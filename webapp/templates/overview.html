@@ -1,0 +1,36 @@
+{{ define "content" }}
+<div>
+    <h2>Service Details</h2>
+    <form action="/save-service" method="POST">
+        <table>
+            <tr><th><span>Domain</span></th><td><span>{{.Domain}}</span></td></tr>
+            <tr><th><span>Port</span></th><td><span>{{.Port}}</span></td></tr>
+            <tr><th><span>Last Update</span></th><td><span>{{.Updated}}</span></td></tr>
+        </table>
+    </form>
+</div>
+<div>
+    <h2>mTLS Gateway Manager Service</h2>
+    <table>
+        <tr><th><span>Up Time</span></th><td><span>{{.UpTime}}</span></td></tr>
+        <tr><th><span>Validations</span></th><td><span>{{.ValidationCount}}</span></td></tr>
+        <tr><th><span>Identity Plus Latency / Avg. Latency</span></th><td><span>{{.Latency}}ms / {{.AvgLatency}}ms</span></td></tr>
+        <tr><th><span>Cached IDs</span></th><td><span>{{.CacheSize}}</span></td></tr>
+    </table>
+    <a class="submit" href="javascript:post('Clear Cache')"><span class="fa-solid fa-broom"></span>Clear Cache</a>
+    <a class="submit" href="javascript:post('Check Latency')"><span class="fa-solid fa-hourglass-half"></span>Check Latency</a>
+</div>
+<div>
+    <h2>Your Identity</h2>
+    <table>
+        <tr><th><span>mTLS ID</span></th><td><span>{{.MtlsID}}</span></td></tr>
+        <tr><th><span>Agent Name</span></th><td><span>{{.AgentName}}</span></td></tr>
+        <tr><th><span>Agent Type</span></th><td><span>{{.AgentType}}</span></td></tr>
+        <tr><th><span>Org. ID</span></th><td><span>{{.OrgID}}</span></td></tr>
+        <tr><th class="TOP"><span>Organizational Roles</span></th><td>
+        {{ range .OrgRoles }}
+        <span>{{ . }}</span><br>
+        {{ end }}</td></tr>
+</table>    
+</div>
+{{ end }}

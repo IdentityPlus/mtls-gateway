@@ -1,0 +1,89 @@
+{{define "main"}}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MTLS Web App</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
+    <link href="/static/fontawesome-6.6/css/all.css" rel="stylesheet" />
+    <link rel="stylesheet" href="/static/style.css">
+    <script>
+        function post(action){
+            document.getElementById("sync_submit_action").value = action;
+            document.getElementById("sync_submit").submit();
+        }
+
+        function sync_post(form_name, action){
+            var form = document.getElementById(form_name);
+
+            /*
+            Array.from(form.elements).forEach((input) => {
+                console.log("->> " + input.name + " = " + input.value);
+            });
+            alert(form_name);
+            */
+
+            var input = document.createElement("input");
+			input.type = "hidden";
+			input.name = "action";
+			input.value = action;
+			form.appendChild(input);
+
+            form.submit();
+        }
+
+        function context_post(context) {
+            var form = document.getElementById("sync_submit");
+
+            for (key in context) {
+                if (key == '__url') form.action = context[key];
+                else if (key == 'action') document.getElementById("sync_submit_action").value = context[key];
+                else {
+                    var input = document.createElement("input");
+                    input.type = "hidden";
+                    input.name = key;
+                    input.value = context[key];
+                    form.appendChild(input);
+                }
+            }
+
+            form.submit();
+        }
+    </script>
+</head>
+<body>
+    {{ template "header" . }}
+    <div class="main-container">
+        <aside class="menu">
+            <ul>
+                <li>{{ if eq .CurrentPage "Overview" }}<p><fa class="fa-solid fa-chart-simple"></fa>Overview</p>{{ else }}<a href="/"><fa class="fa-solid fa-chart-simple"></fa>Overview</a>{{ end }}</li>
+                <li>{{ if eq .CurrentPage "Basic Configuration" }}<p><fa class="fa-solid fa-wrench"></fa>Basic Config</p>{{ else }}<a href="/basic-config"><fa class="fa-solid fa-wrench"></fa>Basic Config</a>{{ end }}</li>
+                {{ if eq .Service.Mode "HTTP" }}
+                    <li>{{ if eq .CurrentPage "HTTP Config" }}<p><fa class="fa-solid fa-link"></fa>HTTP Config</p>{{ else }}<a href="/http-config"><fa class="fa-solid fa-link"></fa>HTTP Config</a>{{ end }}</li>
+                {{ end }}
+ 
+                {{ if eq .Service.Mode "TCP" }}
+                    <li>{{ if eq .CurrentPage "TCP Config" }}<p><fa class="fa-solid fa-plug"></fa>TCP Config</p>{{ else }}<a href="/tcp-config"><fa class="fa-solid fa-plug"></fa>TCP Config</a>{{ end }}</li>
+                {{ end }}
+                <li><separator></separator></li>
+                <li>{{ if eq .CurrentPage "Add Service Route" }}<p><fa class="fa-solid fa-plus"></fa>New Service Perimeter</p>{{ else }}<a href="/add-service-route"><fa class="fa-solid fa-plus"></fa>New Service Perimeter</a>{{ end }}</li>
+                {{ range .DynamicPages }}
+                    {{ if ne $.Domain . }}<li><a href="https://{{ . }}:{{ $.SRV_Port }}"><fa class="fa-solid fa-gear"></fa>{{ . }}</a></li>{{ end }}
+                {{ end }}
+            </ul>
+        </aside>
+
+        <section>
+            {{ if and (ne .PageError nil) (ne .PageError "") }}
+            <p class="error"><span class="fa-solid fa-circle-exclamation"></span> {{ .PageError }}</p>
+            {{ end }}
+            <div class="content">
+                {{ template "content" . }}
+            </div>
+        </section>
+    </div>
+    <form id="sync_submit" method="post" class="display:none"><input type="hidden" id="sync_submit_action" name="action" value=""></form>
+</body>
+</html>
+{{end}}

@@ -1,0 +1,47 @@
+{{define "init"}}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MTLS Web App</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
+    <link href="/static/fontawesome-6.6/css/all.css" rel="stylesheet" />
+    <link rel="stylesheet" href="/static/style.css">
+    <script>
+        function async_post(){
+            document.getElementById("wait-img").className = "";
+            document.getElementById("submit-link").className = "HIDDEN";
+            document.getElementById("async_submit").submit();
+            document.getElementById("token").disabled = true;
+        }
+    </script>
+</head>
+<body>
+    {{ template "header" . }}
+
+    <section class="content">
+        <div>
+            <h2>Thank you for choosing mTLS Gateway!</h2>
+            <table>
+                <tr><td>
+                    {{ if eq .Destination "" }}
+                        <p>Let's provision the <brand>mTLS Identity Perimeter</brand> for a service to initialize the gateway. From then on, this configuration panel will only be accessible via mTLS</p>
+                        <p>Please configure the service in the <a href="https://platform.identity.plus" target="_blank">Identity Plus Perimeter Controller Dashboard</a> and grab an Autoprovisioning Token to kickstart the integration.</p>
+                        <form class="all-in-one" id="async_submit" method="post">
+                            <input type="text" name="token" id="token" value="" placeholder="Autoprovisioning Token">
+                            <img width="42" height="42" id="wait-img" class="HIDDEN" src="/static/ring-wait.svg" >
+                            <a class="submit" id="submit-link" href="javascript:async_post()"><span class="fa-solid fa-gears"></span> Provision</a>
+                        </form>
+                        <p class="error-msg">{{.Error}}</p>
+                    {{ else }}
+                        <p class="ok-msg">{{.Destination}} service route has been configured. Initialization service will no exist, please switch over to the secure channel.</p>
+                        <a class="submit" href="https://{{.Destination}}:{{.Port}}"><span class="fa-solid fa-lock"></span> Continue over mTLS</a>
+                    {{ end }}
+                </td></tr>
+            </table>
+        </div>
+    </section>
+</body>
+</html>
+{{end}}

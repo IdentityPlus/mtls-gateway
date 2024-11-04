@@ -1,0 +1,13 @@
+verbose: true
+admin_port: "444"
+admin_access_port: "4444"
+validation_service_port: "81"
+data_directory: "/etc/mtls-gw"
+mtls_id_ttl: 1
+device_name: "Agent X"
+identity_broker: "identity.plus"
+roles_allowed:
+  - "org. administrator"
+  - "org. manager"
+  - "administrator"
+  - "manager"

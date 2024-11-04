@@ -1,0 +1,100 @@
+* {box-sizing: border-box; font-family: Roboto; font-weight: 300; }
+
+.TOP{vertical-align:top;}
+
+body {margin: 0; padding: 0; }
+brand {color: #000000;}
+brand span {color: #4292D3;}
+separator{margin:5px 10px; height:1px; display:inline-block; width:100px; border-bottom:1px solid rgba(0,0,0,0.2);}
+h1 {font-size:26px; font-weight:400; color:rgba(0,0,0,0.8); margin:0;}
+h2 {font-size:20px; font-weight:400; color:rgba(0,0,0,0.8); margin:0;}
+a {color:#4292D3; text-decoration: none;}
+p {max-width: 600px;}
+b {font-weight: 400;}
+brand {font-weight: 400;}
+brand span {color:#4292D3;}
+
+.HIDDEN{display:none;}
+.NOMARGIN{margin:0;}
+.ALIGN-R{text-align:right;}
+
+.top-bar { background-color: #202020; color: #E0E0E0; padding: 10px; text-align: left; }
+.top-bar * { display:inline-block; margin:0;}
+.top-bar logo {font-size:20px; font-weight: 400; background:url('/static/mtls-gw.svg'); background-repeat:no-repeat; background-size:contain; background-position: center left; padding:5px 10px 5px 70px; margin:5px 10px;}
+.top-bar logo span {color:#A0A0A0; font-size:66%;}
+.top-bar brand {color: #FFFFFF; font-size:66%;}
+.top-bar brand span {color: #4292D3; font-size:100%; font-weight:400;}
+.top-bar div { margin-left:20px; border-left:1px solid rgba(255, 255, 255, 0.1); padding: 5px 20px; }
+
+.main-container { display: flex; min-height: 100vh; height:100%;}
+.menu { background-color: #f4f4f4; border-right:1px solid rgba(0,0,0,0.1); width: auto; padding: 15px; box-shadow:inset -3px 0px 10px -9px rgba(0,0,0,0.36);padding:0;}
+.menu ul { width:100%; list-style-type: none; box-shadow: initial; padding: 0; font-size:16px; font-weight: 400; }
+.menu ul li{ width:100%; box-shadow: initial; margin-left:2px; }
+.menu ul li p { width:100%; display:inline-block; margin: 0 0; background:rgba(0,0,0,0.05); border-left:solid 5px #4292D3; white-space: nowrap; padding: 0px 20px 0px 0px;}
+.menu ul li a { width:100%; display:inline-block; margin: 0 0; text-decoration: none; color: #333; border:none; background:none; border-left:solid 5px rgba(0,0,0,0); white-space: nowrap; padding: 0px 20px 0px 0px;}
+.menu ul li a fa, .menu ul li p fa{ padding: 15px 10px 15px 15px;}
+
+.content { padding: 40px; display:flex; flex-direction: row; flex-wrap: wrap; justify-content: flex-start; align-content: flex-start; gap: 20px 20px; }
+.content div { flex-grow: 1; min-width:300px; min-height:200px; background:rgba(0,0,0, 0.01); border:1px solid rgba(0,0,0, 0.1); border-radius: 5px; padding:25px 35px;}
+.content div table {border-top: 1px solid rgba(0,0,0,0.1); vertical-align: middle; text-align: left; margin-top:10px; font-weight: 300; margin-bottom:20px;}
+.content div table td, .content div table th {border-bottom: 1px dotted rgba(0,0,0,0.1); padding:10px 15px 10px 0; vertical-align: middle; text-align: left; }
+.content div table th {font-weight: 500; color:#909090;}
+.content div table th.TOP {vertical-align: top;}
+.content div table td.r, .content div table th.r {text-align: right;}
+.content div table th label {margin:10px 5px; clear:both;}
+.content div table th div.holder {clear:both; min-height: auto;}
+
+
+a.submit {font-weight: 400; font-size:16px; background:rgba(0,0,0,0.1); border:1px solid rgba(0,0,0,0.1); color:#303030; padding:10px 15px; float:left; margin:0px 20px 10px 0px; cursor: pointer; text-decoration:none; white-space: nowrap;}
+a.submit:hover {background:rgba(0,0,0,0.08);}
+a.submit:active {background:rgba(0,0,0,0.2);}
+a.submit span::before {margin-right:8px; font-family:'Font Awesome 6 Free'}
+a.submit span.nomargin::before {margin-right:0px; font-family:'Font Awesome 6 Free'}
+
+.top-bar div a.submit {background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.2); color:#C0C0C0;}
+.top-bar div a.submit:hover {background:rgba(255,255,255,0.15);}
+.top-bar div a.submit:active {background:rgba(255,255,255,0.05);}
+
+form.all-in-one {border:1px solid rgba(0,0,0,0.1); padding:2px; display:flex; flex-wrap:}
+form.all-in-one a {font-weight: 400; font-size:16px; background:rgba(0,0,0,0.1); border:1px solid rgba(0,0,0,0.1); color:#303030; padding:8px 13px; float:left; cursor: pointer; text-decoration:none; margin:0;}
+form.all-in-one a:hover {background:rgba(0,0,0,0.08);}
+form.all-in-one a:active {background:rgba(0,0,0,0.2);}
+
+input[type="text"] {border:1px solid rgba(0,0,0,0.1); font-size:16px; padding:8px 15px;}
+input[type="text"]:focus {outline:none; background:rgba(255, 255, 200, 0.1);}
+input[type="number"] {border:1px solid rgba(0,0,0,0.1); font-size:16px; padding:8px 15px;}
+input[type="number"]:focus {outline:none; background:rgba(255, 255, 200, 0.1);}
+input[type="checkbox"] {margin: 10px 10px 10px 0px;}
+input[type="text"].path::before{content: '/'; padding:10px;}
+textarea {border:1px solid rgba(0,0,0,0.1); font-size:16px; padding:8px 15px; min-width:600px; min-height: 150px; margin:5px 0px;}
+textarea:focus {outline:none; background:rgba(255, 255, 200, 0.1);}
+
+form.all-in-one input[type="text"] {border:0; width:100%;}
+form.all-in-one a.submit span::before {margin-right:0px;}
+p.error-msg {color:rgba(155, 80, 60, 0.8); margin-left:3px;}
+p.ok-msg {color:rgba(80, 155, 60, 0.8); margin-left:3px;}
+p.warning {border:1px solid #E0B060; background: #F0E080; border-radius:5px; padding:10px 20px 10px 20px; color:#404040;}
+p.warning span {color:#A08030; margin:0; padding:0;}
+p.error {width:100%; border:1px solid #d17e69; background: #ffcbbe; border-radius:5px; padding:10px 20px 10px 20px; color:#400000; margin-left:40px;}
+p.error span {color:#9b471e; margin:0; padding:0;}
+
+select{
+	color:#404040;
+	font-size:inherit;
+	padding:8px 12px;
+	background:rgba(255, 255, 255, 0.8);
+	border:1px solid rgba(0,0,0,0.15);
+	margin:0;
+	line-height:150%;
+	padding-right:40px;
+	background-color:rgba(255, 255, 255, 0.8);
+}
+select option{
+	font-size:inherit;
+	padding:0;
+	border:0;
+	margin:0;
+}
+select:focus{
+    outline: none;
+}

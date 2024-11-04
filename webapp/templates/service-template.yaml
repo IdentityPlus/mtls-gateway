@@ -1,0 +1,37 @@
+managed-service:
+  enabled: false
+  tested: false
+  port: 443
+  mode: "HTTP"
+  upstream:
+    - "01"
+    - "02"
+  tcp:
+    roles-allowed:
+      - admin
+      - org. admin
+
+  http:
+    websockets: true
+    host-header: ""
+    subdomain-to-path: true
+    x-forwarded-for: "Y-Forwarded-For"
+    x-forwarded-proto: "Y-Forwarded-Proto"
+    x-real-ip: "Y-Real-IP"
+    mtls-id: "X-mTLS-ID"
+    mtls-agent: "X-mTLS-Agent"
+    mtls-org-id: "X-mTLS-Org-ID"
+    mtls-roles: "X-mTLS-Roles"
+    locations:
+      - path: "/admin"
+        roles-allowed:
+          - admin
+          - org. admin
+        custom-commands:
+          - "# something"
+      - path: "/"
+        roles-allowed:
+          - admin
+          - org. admin
+        custom-commands:
+          - "proxy_set_header Host $host;"

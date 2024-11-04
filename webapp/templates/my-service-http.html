@@ -1,0 +1,90 @@
+{{ define "content" }}
+
+    <div>
+        <h2>mTLS Behavior</h2>
+        <form id="mtls-behavior" method="POST">
+        <table>
+            <tr><th><label for="split">Access Control Ownership</label></th><td >
+                <select id="split" name="split">
+                    <option {{ if eq .Service.HTTP.AccessMode "Gateway" }} SELECTED {{ end }} >Gateway</option>
+                    <option {{ if eq .Service.HTTP.AccessMode "Split" }} SELECTED {{ end }} >Split</option>
+                    <option {{ if eq .Service.HTTP.AccessMode "Application" }} SELECTED {{ end }} >Application</option>
+                </select>
+            </td></tr>
+
+            <tr><th><label for="mtlsid">mTLS ID Heder</label></th><td><input type="text" id="mtlsid" name="mtlsid" value="{{ .Service.HTTP.MtlsID }}"></td></tr>
+            {{ if ne .Service.HTTP.AccessMode "Application" }}
+            <tr><th><label for="agent">mTLS Agent Heder</label></th><td><input type="text" id="agent" name="agent" value="{{ .Service.HTTP.MtlsAgent }}"></td></tr>
+            <tr><th><label for="org-id">mTLS Org ID Heder</label></th><td><input type="text" id="org-id" name="org-id" value="{{ .Service.HTTP.MtlsOrgID }}"></td></tr>
+            <tr><th><label for="roles">mTLS Roles Heder</label></th><td><input type="text" id="roles" name="roles" value="{{ .Service.HTTP.MtlsRoles }}"></td></tr>
+            <tr><th><label for="local-id">mTLS Local (Application) ID Heder</label></th><td><input type="text" id="local-id" name="local-id" value="{{ .Service.HTTP.MtlsLocalID }}"></td></tr>
+            {{ end }}
+        </table>
+        </form>
+        <a class="submit" href="javascript:sync_post('mtls-behavior', 'edit-mtls')"><span class="fa-solid fa-save"></span>Save</a>
+    </div>
+
+    <div>
+        <h2>HTTP Behavior</h2>
+        <form id="http-behavior" method="POST">
+        <table>
+            <tr><th><label for="ws">Web Sockerts Support</label></th><td><input type="checkbox" id="ws" name="ws" {{ if eq .Service.HTTP.Websockets true }} CHECKED {{ end }}></td></tr>
+            <tr><th><label for="host">Host Header</label></th><td><input type="text" id="host" name="host" value="{{ .Service.HTTP.HostHeader }}"></td></tr>
+            <tr><th><label for="xfw">X-Forwarded-For Header</label></th><td><input type="text" id="xfw" name="xfw" value="{{ .Service.HTTP.XForwardedFor }}"></td></tr>
+            <tr><th><label for="xfwp">X-Forwarded-For Header</label></th><td><input type="text" id="xfwp" name="xfwp" value="{{ .Service.HTTP.XForwardedProto }}"></td></tr>
+            <tr><th><label for="xip">X-Forwarded-For Header</label></th><td><input type="text" id="xip" name="xip" value="{{ .Service.HTTP.XRealIP }}"></td></tr>
+        </table>
+        </form>
+        <a class="submit" href="javascript:sync_post('http-behavior', 'edit-http')"><span class="fa-solid fa-save"></span>Save</a>
+    </div>
+
+    {{ range $location := .Service.HTTP.Locations }}
+    <div>
+        <h2>Location "{{$location.Path}}"</h2>
+        <table>
+            <tr>
+                <th><label for="newpath-{{deslash $location.Path}}">Path</label></th>
+                <td>
+                    <form class="all-in-one" id="fm-path-{{deslash $location.Path}}" method="POST">
+                        <input type="text" value="{{$location.Path}}" id="newpath-{{deslash $location.Path}}" name="new-path" placeholder="/path/">
+                        <a class="submit" href="javascript:sync_post('fm-path-{{deslash $location.Path}}', 'change-path')"><span class="fa-solid fa-floppy-disk"></span> Change</a>
+                        <input type="hidden" name="path" value="{{$location.Path}}">
+                    </form>                
+                </td>
+            </tr>
+            {{ if eq $.Service.HTTP.AccessMode "Gateway" }}
+            <tr><th colspan="4">
+                <input type="checkbox" id="bypass-{{deslash $location.Path}}" onclick="context_post({'action':'toggle-bypass', 'path':'{{ $location.Path }}', 'bypass':'{{ if ne $location.Bypass false }}on{{ end }}'})" name="bypass" {{ if eq $location.Bypass false }} CHECKED {{ end }}><label for="bypass-{{deslash $location.Path}}">Enforce mTLS Perimeter Roles</label>
+                {{ if eq $location.Bypass false }}
+                <div class="holder">
+                    {{ range $role := $location.RolesAllowed }}
+                    <a class="submit" title="Click to delete role" href="javascript:context_post({'action':'remove-location-role', 'path': '{{$location.Path}}', 'role':'{{ . }}'})"><span class="fa-solid fa-trash-can nomargin"></span> {{ . }}</a>
+                    {{ end }}
+                    <form class="all-in-one" id="fm-add-role-{{deslash $location.Path}}" method="POST">
+                        <input type="text" value="" id="add-role-{{deslash $location.Path}}" name="new-role" placeholder="mTLS Role">
+                        <a class="submit" href="javascript:sync_post('fm-add-role-{{deslash $location.Path}}', 'add-location-role')"><span class="fa-solid fa-plus"></span></a>
+                        <input type="hidden" name="path" value="{{$location.Path}}">
+                    </form>
+                </div>
+                {{ else }}
+                <p class="warning"><span class="fa-solid fa-triangle-exclamation"></span> mTLS Authentication is disabled for this location. Anyone can access the back-end service under this URL.</p>
+                {{ end }}
+            </th></tr>
+            {{ end }}
+            <tr><th colspan="4">
+                <form id="fm-custom-{{deslash $location.Path}}" method="POST">
+                    <label for="custom-{{deslash $location.Path}}">Custom Commands</label><br>
+                    <textarea id="custom-{{deslash $location.Path}}" name="custom">{{ $location.CustomCommands }}</textarea><br>
+                    <a class="submit" href="javascript:sync_post('fm-custom-{{deslash $location.Path}}', 'change-custom')"><span class="fa-solid fa-floppy-disk"></span>Update Custom Commands</a>
+                    <input type="hidden" name="path" value="{{$location.Path}}">
+                </form>
+            </th></tr>
+        </table>
+        {{ if ne $location.Path "/" }}
+        <a class="submit" title="Click to delete role" href="javascript:context_post({'action':'delete-location', 'path':'{{ $location.Path }}'})"><span class="fa-solid fa-trash-can nomargin"></span> Delete Location</a>
+        {{ end }}
+        <a class="submit" title="Click to delete role" href="javascript:context_post({'action':'clone-location', 'path':'{{ $location.Path }}'})"><span class="fa-regular fa-copy nomargin"></span> Clone Location</a>
+    </div>
+    {{ end }}
+
+{{ end }}

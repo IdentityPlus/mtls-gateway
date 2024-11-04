@@ -1,0 +1,17 @@
+{{ define "content" }}
+
+    <div>
+        <h2>mTLS Allowed Roles</h2>
+        <table>
+            <tr><th><label for="role">Allow Role</label></th><td>
+                <form class="all-in-one" id="add-role" method="POST">
+                    <input type="text" value="" id="woker" name="role" placeholder="mTLS Role">
+                    <a class="submit" href="javascript:sync_post('add-role', 'add-role')"><span class="fa-solid fa-plus"></span></a>
+                </form>
+            </td></tr>
+            {{ range $role := .Service.TCP.RolesAllowed }}
+            <tr><th>{{ . }}</th><td><a class="submit" title="Click to delete upstream destination" href="javascript:context_post({'action':'remove-role', 'role':'{{ . }}'})"><span class="fa-solid fa-trash-can nomargin"></span></a></td></tr>
+            {{ end }}
+        </table>
+    </div>
+{{ end }}
