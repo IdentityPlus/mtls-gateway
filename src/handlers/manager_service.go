@@ -412,7 +412,7 @@ func (srv *Manager_Service) basic_config(w http.ResponseWriter, r *http.Request)
 				page_error = result
 			}
 			srv.certificate_for(domain, true)
-			srv.Start_Openresty()
+			go srv.Start_Openresty()
 
 		} else {
 			log.Printf("unknown action: %s", r.FormValue("action"))
@@ -690,8 +690,10 @@ func (srv *Manager_Service) update_service_config(domain string, config integrat
 	destination_file := ""
 
 	if config.Service.Mode == "TCP" {
+		os.MkdirAll(global.Config__.DataDirectory+"/conf/stream/", 0755)
 		destination_file = "/conf/stream/" + domain + ".conf"
 	} else {
+		os.MkdirAll(global.Config__.DataDirectory+"/conf/http/", 0755)
 		destination_file = "/conf/http/" + domain + ".conf"
 	}
 
@@ -701,10 +703,16 @@ func (srv *Manager_Service) update_service_config(domain string, config integrat
 	// in case no errors have been found
 	// copy the modified configuration file into the production directory
 	if test_result == "" {
-		utils.MoveFile(global.Config__.DataDirectory+"/services/work"+destination_file, global.Config__.DataDirectory+destination_file)
-		go srv.Start_Openresty()
+		err := utils.MoveFile(global.Config__.DataDirectory+"/services/work"+destination_file, global.Config__.DataDirectory+destination_file)
+		if err == nil {
+			go srv.Start_Openresty()
+		} else {
+			log.Printf("Error moving config file: %v\n", err)
+		}
 	}
-	log.Printf("test resuts: %s\n", test_result)
+
+	// log.Printf("test resuts: %s\n", test_result)
+
 	return test_result
 }
 
@@ -718,7 +726,7 @@ func (srv *Manager_Service) Start_Openresty() {
 		return
 	}
 
-	log.Printf("starting Openresty HTTP/TCP Proxy ...")
+	log.Printf("Starting Openresty HTTP/TCP Proxy Server with config: %s", global.Config__.DataDirectory+"/conf/nginx.conf")
 
 	// configure_openresty();
 	utils.WriteToFile(global.Config__.DataDirectory+"/conf/nginx.conf", []byte(integrations.Build_Nginx("")))
@@ -757,6 +765,7 @@ func (srv *Manager_Service) Start_Openresty() {
 		fmt.Println("Command finished successfully!")
 	}
 
+	fmt.Printf("Openresty exit ... \n")
 	srv.openresty = nil
 }
 
