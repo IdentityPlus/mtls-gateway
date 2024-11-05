@@ -1,10 +1,10 @@
 verbose: true
 admin_port: "444"
-admin_access_port: "4444"
+admin_access_port: "444"
 validation_service_port: "81"
-data_directory: "/etc/mtls-gw"
+data_directory: "/etc/mtls-gateway"
 mtls_id_ttl: 1
-device_name: "Agent X"
+device_name: "Prd-Agent"
 identity_broker: "identity.plus"
 roles_allowed:
   - "org. administrator"
