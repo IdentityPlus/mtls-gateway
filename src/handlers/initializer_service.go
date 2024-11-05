@@ -137,6 +137,8 @@ func (srv *Initialization_Service) Start() {
 
 				if perimeter_api != nil {
 					domain = perimeter_api.Domain()
+					Manager_Service__.Register(domain)
+					go Manager_Service__.Start()
 				}
 
 			} else {

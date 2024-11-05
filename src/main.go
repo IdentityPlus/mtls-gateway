@@ -87,9 +87,11 @@ func main() {
 	load_config(config_file)
 
 	identities, _ := handlers.List_Service_Configurations()
+	initialized := false
 
 	for _, id_dir := range identities {
 		handlers.Manager_Service__.Register(id_dir)
+		initialized = true
 	}
 
 	// run a certificate update in synch
@@ -97,8 +99,11 @@ func main() {
 
 	go handlers.Manager_Service__.Start()
 	go handlers.Validation_Service__.Start()
-	go handlers.Manager_Service__.Start_Openresty()
 	go handlers.Initialization_Service__.Start()
+
+	if !initialized {
+		go handlers.Manager_Service__.Start_Openresty()
+	}
 
 	certificate_update_service()
 }

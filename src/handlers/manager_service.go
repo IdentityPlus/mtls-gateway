@@ -279,7 +279,7 @@ func (srv *Manager_Service) add_serivce_route(w http.ResponseWriter, r *http.Req
 
 			if new_perimeter_api != nil {
 				new_domain = new_perimeter_api.Domain()
-				go srv.Register(new_domain)
+				srv.Register(new_domain)
 			}
 
 		} else {
