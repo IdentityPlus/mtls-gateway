@@ -85,6 +85,8 @@ func Enroll(token string) (*mtlsid.Perimeter_API, string) {
 		// recreate the temp working _ directory
 		os.MkdirAll(sourceDir, 0755)
 
+		// make sure the api's identity dir is moved too
+		cli.Identity_Dir = destDir
 		return &mtlsid.Perimeter_API{
 			Self_Authority: &cli,
 		}, ""
@@ -119,7 +121,7 @@ func (srv *Initialization_Service) renderPage(w http.ResponseWriter, tmpl string
 func (srv *Initialization_Service) Start() {
 	mux := http.NewServeMux()
 
-	mux.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("static"))))
+	mux.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("webapp/static"))))
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 
 		var perimeter_api *mtlsid.Perimeter_API

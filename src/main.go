@@ -97,13 +97,14 @@ func main() {
 	// run a certificate update in synch
 	update_certificates()
 
-	go handlers.Manager_Service__.Start()
-	go handlers.Validation_Service__.Start()
-	go handlers.Initialization_Service__.Start()
-
-	if !initialized {
-		go handlers.Manager_Service__.Start_Openresty()
+	if initialized {
+		go handlers.Manager_Service__.Start()
+	} else {
+		go handlers.Initialization_Service__.Start()
 	}
+
+	go handlers.Validation_Service__.Start()
+	go handlers.Manager_Service__.Start_Openresty()
 
 	certificate_update_service()
 }
