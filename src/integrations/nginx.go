@@ -178,6 +178,7 @@ func (cfg Nginx_Builder) Build() string {
 	server_name := ""
 
 	if cfg.Service.Mode == "TCP" {
+		server_name = "        ssl_preread                 on;\n"
 		tcp_access = cfg.build_TCP_lua_access()
 		if tcp_access != "" {
 			tcp_proxy = "\n        proxy_pass up_" + strings.ReplaceAll(cfg.domain(), ".", "_") + ";"
