@@ -134,7 +134,7 @@ func (cli *Self_Authority_API) client(client_certificate *tls.Certificate) (*htt
 		TLSClientConfig: &tlsConfig,
 	}
 
-	__client = &http.Client{
+	__client := &http.Client{
 		Transport: &transport,
 		Timeout:   time.Second * 40,
 	}

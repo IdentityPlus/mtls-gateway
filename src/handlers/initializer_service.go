@@ -95,7 +95,7 @@ func Enroll(token string) (*mtlsid.Perimeter_API, string) {
 	return nil, "Initialization failed for unknown reason. Please contact us for potential fixes."
 }
 
-func (srv *Initialization_Service) renderPage(w http.ResponseWriter, tmpl string, data interface{}) {
+func (srv *Initialization_Service) render_page(w http.ResponseWriter, tmpl string, data interface{}) {
 	tmplPath := fmt.Sprintf("./webapp/templates/%s.html", tmpl)
 
 	// Create the FuncMap before parsing the template files
@@ -118,16 +118,19 @@ func (srv *Initialization_Service) renderPage(w http.ResponseWriter, tmpl string
 	}
 }
 
-func (srv *Initialization_Service) Start() {
-	mux := http.NewServeMux()
+func (srv *Initialization_Service) init_service(w http.ResponseWriter, r *http.Request) {
+	var perimeter_api *mtlsid.Perimeter_API
+	var error_msg = ""
+	var domain = ""
+	var header = "not initialized"
 
-	mux.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("webapp/static"))))
-	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-
-		var perimeter_api *mtlsid.Perimeter_API
-		var error_msg = ""
-		var domain = ""
-
+	if len(Manager_Service__.Perimeter_APIs) > 0 {
+		for k := range Manager_Service__.Perimeter_APIs {
+			domain = Manager_Service__.Perimeter_APIs[k].Domain()
+			break
+		}
+		header = domain
+	} else {
 		if r.Method == http.MethodPost {
 			err := r.ParseForm()
 			if err != nil {
@@ -147,14 +150,21 @@ func (srv *Initialization_Service) Start() {
 				error_msg = "no action specified"
 			}
 		}
+	}
 
-		srv.renderPage(w, "new-service", map[string]interface{}{
-			"Domain":      "not initialized",
-			"Error":       error_msg,
-			"Destination": domain,
-			"Port":        global.Config__.AdminPort,
-		})
+	srv.render_page(w, "new-service", map[string]interface{}{
+		"Domain":      header,
+		"Error":       error_msg,
+		"Destination": domain,
+		"Port":        global.Config__.AdminPort,
 	})
+}
+
+func (srv *Initialization_Service) Start() {
+	mux := http.NewServeMux()
+
+	mux.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("webapp/static"))))
+	mux.HandleFunc("/", srv.init_service)
 
 	initialization_servive := &http.Server{
 		Addr:    "0.0.0.0:80",

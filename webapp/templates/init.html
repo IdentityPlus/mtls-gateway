@@ -35,8 +35,8 @@
                         </form>
                         <p class="error-msg">{{.Error}}</p>
                     {{ else }}
-                        <p class="ok-msg">{{.Destination}} service route has been configured. Initialization service will no exist, please switch over to the secure channel.</p>
-                        <a class="submit" href="https://{{.Destination}}:{{.Port}}"><span class="fa-solid fa-lock"></span> Continue over mTLS</a>
+                        <p class="ok-msg">{{.Destination}} service route has been configured. Initialization service will now exist, please switch over to the secure channel. Please make sure you block the insecure HTTP port from your firewall. You will no longer need to access this port moving on.</p>
+                        <a class="submit" target="blank_" href="https://{{.Destination}}:{{.Port}}"><span class="fa-solid fa-lock"></span> Continue over mTLS</a>
                     {{ end }}
                 </td></tr>
             </table>

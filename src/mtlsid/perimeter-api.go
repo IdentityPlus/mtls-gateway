@@ -156,9 +156,10 @@ func (idp *Perimeter_API) Validate_Client_Identity_SN(serial_no string, as_servi
 
 	// we will look a the roles now, and if there are no roles defined
 	// the client clearly has no business here
-	if error_reason == "" && len(cached_validation.Cache.ServiceRoles) == 0 {
-		error_reason = "Certificate is valid no roles on this service"
-	}
+	// we disable this to allow the decision to be taken by whoever calls this method
+	//if error_reason == "" && len(cached_validation.Cache.ServiceRoles) == 0 {
+	//error_reason = "Certificate is valid no roles on this service"
+	//}
 
 	// means it allows the user to continue execution through he proxy
 	return &cached_validation, error_reason
