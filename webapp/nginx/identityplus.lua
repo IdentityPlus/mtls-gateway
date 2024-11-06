@@ -40,7 +40,7 @@ local _M = {}
         elseif string.find(validation["outcome"], "OK 0001", 0, true) then
         	    local srv_roles = "[]";
 			if validation["service-roles"] ~= nil then srv_roles = table.concat(validation["service-roles"], ",") end 
-            ngx.log(0, 'Access denied for mTLS ID '..ngx.var.ssl_client_serial..', on '..host..': None of the following roles are allowed '..srv_roles, ",");
+            ngx.log(0, 'Access denied for mTLS ID '..ngx.var.ssl_client_serial..', on '..host..': None of the following roles are allowed '..srv_roles);
         else
             ngx.log(0, 'Access denied for mTLS ID '..ngx.var.ssl_client_serial..', on '..host..': '..validation["outcome"]);
         end
@@ -84,7 +84,8 @@ local _M = {}
             if validation ~= nil and validation["service-roles"] ~= nil then
                 for _, role in pairs(roles) do
                     for _, assigned_role in pairs(validation["service-roles"]) do
-                        if assigned_role == role then
+                    		-- ngx.log(0, assigned_role..' == '..role..' - '..tostring(string.lower(assigned_role) == string.lower(role)));
+                        if string.lower(assigned_role) == string.lower(role) then
                             -- nothing to do, audit log maybe
                             return true
                         end
