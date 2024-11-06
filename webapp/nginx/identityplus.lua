@@ -8,16 +8,28 @@ local ssl = require "ngx.ssl"
 local _M = {}
 
     function _M.http_fail(validation, host)
-        _M.fail_tcp(validation, host)
+        _M.tcp_fail(validation, host)
 
         ngx.status = 403
         ngx.header["Content-Type"] = "text/plain"
-        ngx.say("Bad TLS/mTLS request. Possible causes:")
-        ngx.say(" - no client certificate detected,")
-        ngx.say(" - client certificate expired,")
-        ngx.say(" - client certificate authority not trusted,")
-        ngx.say(" - client certificate authentication failed,")
-        ngx.say(" - certificate owner does not have the right to access the requested content")
+        ngx.say("Access Denied (403) - mTLS Perimeter authentication and/or auhtorization failed!")
+        ngx.say("Aspects to consider:")
+        
+        if validation == nil or validation["outcome"] == nil then
+            ngx.say(" - Client certificate authentication failed,")
+       		ngx.say(" - No client certificate detected,")
+        		ngx.say(" - Client certificate expired,")
+        		ngx.say(" - Client certificate authority not trusted,")
+		elseif string.find(validation["outcome"], "OK 0001", 0, true) then
+        	    local srv_roles = "[]";
+			if validation["service-roles"] ~= nil then srv_roles = table.concat(validation["service-roles"], ",") end 
+            ngx.say(" - mTLS ID detected: 0x"..ngx.var.ssl_client_serial)
+            ngx.say(" - mTLS ID subject: "..ngx.var.ssl_client_s_dn)
+            ngx.say(" - Roles with this service: "..srv_roles)
+        else
+ 	        ngx.say("Please check the logs for additional informtion")
+        end
+        
 
         return 403
     end
@@ -26,7 +38,9 @@ local _M = {}
         if validation == nil or validation["outcome"] == nil then
             ngx.log(0, 'Access denied on '..host..': No client certificate presented');
         elseif string.find(validation["outcome"], "OK 0001", 0, true) then
-            ngx.log(0, 'Access denied for mTLS ID '..ngx.var.ssl_client_serial..', on '..host..': No matching roles with '..table.concat(validation["service-roles"], ","));
+        	    local srv_roles = "[]";
+			if validation["service-roles"] ~= nil then srv_roles = table.concat(validation["service-roles"], ",") end 
+            ngx.log(0, 'Access denied for mTLS ID '..ngx.var.ssl_client_serial..', on '..host..': None of the following roles are allowed '..srv_roles, ",");
         else
             ngx.log(0, 'Access denied for mTLS ID '..ngx.var.ssl_client_serial..', on '..host..': '..validation["outcome"]);
         end
@@ -58,8 +72,10 @@ local _M = {}
 
         if validation["local-id"] ~= nil then ngx.req.set_header(agent_h, validation["local-id"]) end
         if validation["organizational-reference"] ~= nil then ngx.req.set_header(org_id_h, validation["organizational-reference"]) end 
+        if validation["service-roles"] ~= nil then ngx.req.set_header(roles_h, table.concat(validation["service-roles"], ",")) end 
+        
         ngx.req.set_header(agent_h, ngx.var.ssl_client_s_dn)
-        ngx.req.set_header(roles_h, table.concat(validation["service-roles"], ","))
+        
     end
 
 
