@@ -184,7 +184,11 @@ func (cfg Nginx_Builder) Build() string {
 		}
 	} else if cfg.Service.Mode == "HTTP" {
 		http_locations = cfg.build_HTTP_locations()
-		server_name = "        server_name " + "*." + cfg.domain() + ";\n"
+		server_name = "        server_name                 "
+		if cfg.Service.HTTP.Wildcard {
+			server_name += "*."
+		}
+		server_name += cfg.domain() + ";\n"
 	}
 
 	return utils.Build_Template("./webapp/templates/nginx/server.conf", map[string]string{

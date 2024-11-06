@@ -544,6 +544,7 @@ func (srv *Manager_Service) http_config(w http.ResponseWriter, r *http.Request) 
 
 		} else if r.FormValue("action") == "edit-http" {
 			config.Service.HTTP.Websockets = r.FormValue("ws") == "on"
+			config.Service.HTTP.Wildcard = r.FormValue("wc") == "on"
 			config.Service.HTTP.HostHeader = r.FormValue("host")
 
 			if r.FormValue("xfw") != "" {

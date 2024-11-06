@@ -29,6 +29,7 @@
         <form id="http-behavior" method="POST">
         <table>
             <tr><th><label for="ws">Web Sockerts Support</label></th><td><input type="checkbox" id="ws" name="ws" {{ if eq .Service.HTTP.Websockets true }} CHECKED {{ end }}></td></tr>
+            <tr><th><label for="wc">Wildcard Domain</label></th><td><input type="checkbox" id="wc" name="wc" {{ if eq .Service.HTTP.Wildcard true }} CHECKED {{ end }}></td></tr>
             <tr><th><label for="host">Host Header</label></th><td><input type="text" id="host" name="host" value="{{ .Service.HTTP.HostHeader }}"></td></tr>
             <tr><th><label for="xfw">X-Forwarded-For Header</label></th><td><input type="text" id="xfw" name="xfw" value="{{ .Service.HTTP.XForwardedFor }}"></td></tr>
             <tr><th><label for="xfwp">X-Forwarded-For Header</label></th><td><input type="text" id="xfwp" name="xfwp" value="{{ .Service.HTTP.XForwardedProto }}"></td></tr>
