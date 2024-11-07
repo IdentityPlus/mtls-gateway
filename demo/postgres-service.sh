@@ -14,18 +14,13 @@ echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.
 apt-get update
 apt-get install -y mc ca-certificates docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
 
-# build the mTLS Gateway Docker image
-mkdir -p /etc/mtls-gateway
-mkdir -p /opt/identity.plus
-cd /opt/identity.plus
-curl https://raw.githubusercontent.com/IdentityPlus/mtls-gateway/refs/heads/main/bin/x86_64/ubuntu_24.04/Dockerfile > Dockerfile
-docker build -t mtls-gateway .
+mkdir -p /media/data
 
-# run mTLS Gateway service inside docker
+# run postgres db service inside docker
 docker run -d \
-    -p 80:80 \
-    -p 443:443 \
-    -p 444:444 \
-    -v /etc/mtls-gateway:/etc/mtls-gateway \
-    --name mtls-gw \
-    mtls-gateway
+    --name postgres-container \
+    -e TZ=UTC \
+    -p 5432:5432 \
+    -e POSTGRES_USER=postgres \
+    -e POSTGRES_PASSWORD=postgres \
+    ubuntu/postgres:14-22.04_beta

@@ -22,11 +22,11 @@ import (
 )
 
 type Self_Authority_API struct {
-	TrustStore   string
-	Verbose      bool
-	Service      string
-	Identity_Dir string
-	Device_Name  string
+	TrustStore   []string `yaml:"trust_store"`
+	Verbose      bool     `yaml:"verbose"`
+	Service      string   `yaml:"identity_broker"`
+	Identity_Dir string   `yaml:"id_directory"`
+	Device_Name  string   `yaml:"device_name"`
 
 	client_certificate *tls.Certificate
 }
@@ -109,8 +109,8 @@ func (cli *Self_Authority_API) do_call(client *http.Client, endpoint string, met
 func (cli *Self_Authority_API) client(client_certificate *tls.Certificate) (*http.Client, error) {
 
 	var trusted_authorities *x509.CertPool
-	if cli.TrustStore != "" {
-		root_cert, err := ioutil.ReadFile(cli.TrustStore)
+	for _, ca := range cli.TrustStore {
+		root_cert, err := ioutil.ReadFile(ca)
 
 		if err != nil {
 			return nil, errors.New("error loading trust material: " + err.Error())
@@ -435,7 +435,7 @@ func (cli *Self_Authority_API) Issue_service_identity(force bool) string {
 	err, ans := cli.secure_call("https://signon."+cli.Service+"/api/v1", "POST", "{\"operation\": \"issue_service_certificate\", \"args\": {\"force-renew\":"+strconv.FormatBool(force)+"}}")
 
 	if cli.Verbose {
-		// fmt.Printf(string(ans))
+		fmt.Printf(string(ans))
 	}
 
 	if err != "" {
