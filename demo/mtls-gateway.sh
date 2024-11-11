@@ -23,9 +23,7 @@ docker build -t mtls-gateway .
 
 # run mTLS Gateway service inside docker
 docker run -d \
-    -p 80:80 \
-    -p 443:443 \
-    -p 444:444 \
     -v /etc/mtls-gateway:/etc/mtls-gateway \
+    --network host 
     --name mtls-gw \
     mtls-gateway
