@@ -22,8 +22,10 @@ curl https://raw.githubusercontent.com/IdentityPlus/mtls-gateway/refs/heads/main
 docker build -t mtls-gateway .
 
 # run mTLS Gateway service inside docker
+# we map the config directory so that we can seamlessly upgrade the system with a docker rebuild/run
+# without losing the configurations
 docker run -d \
     -v /etc/mtls-gateway:/etc/mtls-gateway \
-    --network host 
+    --network host \
     --name mtls-gw \
     mtls-gateway

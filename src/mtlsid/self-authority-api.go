@@ -10,7 +10,6 @@ import (
 	"crypto/x509"
 	"encoding/base64"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -108,15 +107,23 @@ func (cli *Self_Authority_API) do_call(client *http.Client, endpoint string, met
 
 func (cli *Self_Authority_API) client(client_certificate *tls.Certificate) (*http.Client, error) {
 
-	var trusted_authorities *x509.CertPool
+	trusted_authorities, err := x509.SystemCertPool()
+
+	if err != nil && cli.Verbose {
+		fmt.Printf("Unable to load system trust store: %v\n", err)
+	}
+
+	if trusted_authorities == nil {
+		trusted_authorities = x509.NewCertPool()
+	}
+
 	for _, ca := range cli.TrustStore {
 		root_cert, err := ioutil.ReadFile(ca)
 
 		if err != nil {
-			return nil, errors.New("error loading trust material: " + err.Error())
+			fmt.Printf("Unable to load trust material %s: %v\n", ca, err)
 		}
 
-		trusted_authorities = x509.NewCertPool()
 		_ = trusted_authorities.AppendCertsFromPEM(root_cert)
 	}
 
@@ -224,6 +231,10 @@ func (cli *Self_Authority_API) do_enroll(token string) string {
 	p12_cert, derr := base64.StdEncoding.DecodeString(agent_identity.Result.P12)
 	if derr != nil {
 		return "Failed decoding certificate: " + err
+	}
+
+	if cli.Verbose {
+		fmt.Printf("writing certificate information into: " + cli.Identity_Dir + "/")
 	}
 
 	ioutil.WriteFile(cli.Identity_Dir+"/"+cli.Device_Name+".p12", p12_cert, 0644)
@@ -364,6 +375,10 @@ func (cli *Self_Authority_API) Enroll_unified(authorization string) string {
 	path := cli.Identity_Dir
 	if os.MkdirAll(path, os.ModePerm) != nil {
 		log.Println(err)
+	}
+
+	if cli.Verbose {
+		fmt.Printf("writing certificate information into: " + cli.Identity_Dir + "/...")
 	}
 
 	ioutil.WriteFile(cli.Identity_Dir+"/"+cli.Device_Name+".p12", p12_cert, 0644)

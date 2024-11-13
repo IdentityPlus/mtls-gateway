@@ -3,8 +3,13 @@
     <h2>Service Details</h2>
     <form action="/save-service" method="POST">
         <table>
-            <tr><th><span>Domain</span></th><td><span>{{.Domain}}</span></td></tr>
-            <tr><th><span>Port</span></th><td><span>{{.Port}}</span></td></tr>
+            <tr><th><span>End Point</span></th><td>
+              {{ if eq .Service.Mode "HTTP" }}
+                <a href="https://{{.Domain}}{{ if ne .Port 443 }}:{{.Port}}{{ end }}" target="blank_">https://{{.Domain}}{{ if ne .Port 443 }}:{{.Port}}{{ end }}</a>
+              {{ else }}
+                <npan>{{.Domain}}:{{.Port}}</span>
+              {{ end }}
+            </td></tr>
             <tr><th><span>Last Update</span></th><td><span>{{.Updated}}</span></td></tr>
         </table>
     </form>

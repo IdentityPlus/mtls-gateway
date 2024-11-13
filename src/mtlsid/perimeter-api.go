@@ -15,6 +15,7 @@ import (
 	"log"
 	"net/http"
 	"strings"
+	"sync"
 	"time"
 
 	"identity.plus/mtls-gw/global"
@@ -38,6 +39,7 @@ type Client_Validation_Ticket struct {
 type Perimeter_API struct {
 	Self_Authority     *Self_Authority_API
 	Validation_Tickets map[string]Client_Validation_Ticket
+	mu                 sync.Mutex
 }
 
 func (idp *Perimeter_API) Cache_Size() int {
@@ -86,6 +88,8 @@ func (idp *Perimeter_API) Validate_Client_Identity(cert *x509.Certificate, as_se
 }
 
 func (idp *Perimeter_API) Validate_Client_Identity_SN(serial_no string, as_service string, cacheable bool) (*Client_Validation_Ticket, string) {
+
+	idp.mu.Lock()
 
 	var cached_validation Client_Validation_Ticket
 
@@ -162,6 +166,7 @@ func (idp *Perimeter_API) Validate_Client_Identity_SN(serial_no string, as_servi
 	//}
 
 	// means it allows the user to continue execution through he proxy
+	idp.mu.Unlock()
 	return &cached_validation, error_reason
 }
 

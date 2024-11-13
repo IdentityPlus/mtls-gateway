@@ -101,6 +101,8 @@ local _M = {}
     function _M.validate_mtls_id(service)
         local serial = ngx.var.ssl_client_serial
 
+	   -- ngx.log(0, "Vaidating: "..service.." / ", serial)
+
         if serial == nil then
             return nil
         end

@@ -56,7 +56,20 @@
     {{ template "header" . }}
     <div class="main-container">
         <aside class="menu">
+            <table><tr><th><fa class="fa-solid fa-gear"></fa></th><td>
+                <script>
+                    function change_service(){
+                      window.location = document.getElementById('service-menu').value;
+                    }
+                </script>
+                <select id="service-menu" onchange="change_service()">
+                  {{ range .DynamicPages }}
+                      <option {{ if eq $.Domain . }} SELECTED {{ end }} value="https://{{ . }}:{{ $.SRV_Port }}">{{ . }}</option>
+                  {{ end }}
+                </select>
+            </td></tr></table>
             <ul>
+                <li><separator></separator></li>
                 <li>{{ if eq .CurrentPage "Overview" }}<p><fa class="fa-solid fa-chart-simple"></fa>Overview</p>{{ else }}<a href="/"><fa class="fa-solid fa-chart-simple"></fa>Overview</a>{{ end }}</li>
                 <li>{{ if eq .CurrentPage "Basic Configuration" }}<p><fa class="fa-solid fa-wrench"></fa>Basic Config</p>{{ else }}<a href="/basic-config"><fa class="fa-solid fa-wrench"></fa>Basic Config</a>{{ end }}</li>
                 {{ if eq .Service.Mode "HTTP" }}
@@ -68,9 +81,6 @@
                 {{ end }}
                 <li><separator></separator></li>
                 <li>{{ if eq .CurrentPage "Add Service Route" }}<p><fa class="fa-solid fa-plus"></fa>New Service Perimeter</p>{{ else }}<a href="/add-service-route"><fa class="fa-solid fa-plus"></fa>New Service Perimeter</a>{{ end }}</li>
-                {{ range .DynamicPages }}
-                    {{ if ne $.Domain . }}<li><a href="https://{{ . }}:{{ $.SRV_Port }}"><fa class="fa-solid fa-gear"></fa>{{ . }}</a></li>{{ end }}
-                {{ end }}
             </ul>
         </aside>
 

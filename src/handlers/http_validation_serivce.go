@@ -53,6 +53,7 @@ func (srv *Validation_Service) Start() {
 
 	mux.HandleFunc("/validate/", func(w http.ResponseWriter, r *http.Request) {
 		if r.Method == http.MethodGet || r.Method == http.MethodPost {
+			log.Printf("validating: %s", r.URL)
 
 			subject := r.URL.Path[len("/validate/"):]
 

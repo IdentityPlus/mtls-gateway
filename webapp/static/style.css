@@ -28,11 +28,14 @@ brand span {color:#4292D3;}
 
 .main-container { display: flex; min-height: 100vh; height:100%;}
 .menu { background-color: #f4f4f4; border-right:1px solid rgba(0,0,0,0.1); width: auto; padding: 15px; box-shadow:inset -3px 0px 10px -9px rgba(0,0,0,0.36);padding:0;}
-.menu ul { width:100%; list-style-type: none; box-shadow: initial; padding: 0; font-size:16px; font-weight: 400; }
+.menu ul { width:100%; list-style-type: none; box-shadow: initial; padding: 0; font-size:16px; font-weight: 400; margin-top:0px; }
 .menu ul li{ width:100%; box-shadow: initial; margin-left:2px; }
 .menu ul li p { width:100%; display:inline-block; margin: 0 0; background:rgba(0,0,0,0.05); border-left:solid 5px #4292D3; white-space: nowrap; padding: 0px 20px 0px 0px;}
 .menu ul li a { width:100%; display:inline-block; margin: 0 0; text-decoration: none; color: #333; border:none; background:none; border-left:solid 5px rgba(0,0,0,0); white-space: nowrap; padding: 0px 20px 0px 0px;}
 .menu ul li a fa, .menu ul li p fa{ padding: 15px 10px 15px 15px;}
+.menu table th {padding:13px 5px 0px 20px;}
+.menu table td {padding:10px 0px 0px 0px;}
+.menu table td select {border:0; background:rgba(255, 255 ,255, 0); font-size:18px; margin-right:10px;}
 
 .content { padding: 40px; display:flex; flex-direction: row; flex-wrap: wrap; justify-content: flex-start; align-content: flex-start; gap: 20px 20px; }
 .content div { flex-grow: 1; min-width:300px; min-height:200px; background:rgba(0,0,0, 0.01); border:1px solid rgba(0,0,0, 0.1); border-radius: 5px; padding:25px 35px;}

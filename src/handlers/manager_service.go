@@ -315,7 +315,7 @@ func (srv *Manager_Service) admin(w http.ResponseWriter, r *http.Request) {
 }
 
 func (srv *Manager_Service) overview(w http.ResponseWriter, r *http.Request) {
-	domain, port, _ := net.SplitHostPort(r.Host)
+	domain, _, _ := net.SplitHostPort(r.Host)
 	config := get_service_config(domain)
 
 	var validation__ *mtlsid.Client_Validation_Ticket
@@ -352,7 +352,7 @@ func (srv *Manager_Service) overview(w http.ResponseWriter, r *http.Request) {
 	render_page(w, "overview", map[string]interface{}{
 		"CurrentPage":     "Overview",
 		"SRV_Port":        fmt.Sprintf("%s", global.Config__.AdminAccessPort),
-		"Port":            port,
+		"Port":            config.Service.Port,
 		"DynamicPages":    service_fonfigs,
 		"CacheSize":       srv.Perimeter_APIs[domain].Cache_Size(),
 		"Domain":          srv.Perimeter_APIs[domain].Domain(),
