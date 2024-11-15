@@ -1,1 +1,86 @@
-# mtls-gateway
+# Overview
+The Identity Plus mTLS Gateway is a reference implementation of the Identity Plus mTLS based Identity & Access Control solution. While the more familiar terminology in the field is Identity & Access Management, the choice of words here is not accidental. While industry solutions (the ones we call IAM) focus on managing indentities so that control systems can be effective, the Identity Plus IaC Solution eliminates the management problem to deliver simple, granular and highly scalable mutual TLS based access control.
+
+This refernce implementation offers an easy entry into the novel self asserted identity combined with mutual TLS based access control, which offers a radical improvment in security by eliminating 99.99999% of the surface of attack at a fraction of today's expenditure, both in terms of cost and effrot.
+
+## Requirements
+
+- A small VPC in any cloud environment. This can be substituted with a Docker environment on a single (potentially local machine)
+- A LAN defined within the VPC (or inside the Docker environemnt) that connects instances (VMs or containers) within the enviornment
+- We are going to be working with 3 VMs (for testing purposes any configuration will do, 512MB - 1GB of RAM, 1-2 vCPUs, 30GB disk space). Most of this capacity is needed to support the Linux envioronment on which the demo will run, so please calibrate your needs to that
+- The demo is based on x86 64bit architecture, so for simplicity we recommend using that. The demo can be adapted to other architectures by modifying docker base image URLs. We recommend doing that after gaining some experience.
+- Each VM will have to be connected to the LAN, and one VM (the one hosting the mTLS Gateway) should be attached a public IP as well
+- If a Load Balancer (ALB, ELB, or any cloud load balancer) is configured in front of the mTLS Gateway, please make sure the balancing is at TCP layer (not HTTP). The mTLS Gateway must own the TLS offloading process. Mutual TLS connections cannot be man-in-the-middled (it is the way they are supposed to be) so if there is a proxy offloading and re-ncapsulating the communication between the client and the mTLS Gateway, the "m" part of the TLS will be lost and client certificate authentication will fail.
+
+## Installation Steps
+
+### 1. Sign up for an Identity Plus Indetity
+
+From an IDENTITY perspective, Identy Plus is a Self Asserted Digital Identity Service which gives you the ability to become the Certificate Authority for your own devices - both as an individual or as a service (part of an organization) - a process we call Self-Authority. This will give you, and anyone in the system, the ability to issue client certificates that associated to their identity to be used in the interest of establishing mTLS connection (TLS authenticated conne connections). 
+
+Signing up for an Idnetity Plus Digital Identity (we don't call them accounts) essentially means issuing your first client certificate for, your first end-user device. Go to https://signon.identity.plus and follow the steps. Once the certificate is installed you may have to restart your browser (sometimes an incognito window is sufficient). This happens because browsers are caching TLS sessions and do not immediately pick up the client certificate. This technique is not standardized so your experience may vary depending on your OS and your browser. The process is successful when you are able to login into https://my.identity.plus, using the previousely installed client certifcate.
+
+### 2. Create your first organizations
+
+After step 1 is completed and you are able to log into your Identity Plus account, follow the link to https://platform.identity.plus. You will have no organizations at this point, so follow the clues. Chose Personal plan for development and testing purpose stuff and give your organization a name.
+
+Please chose your organization id well. This is important because your organization will be assigned a subdomain trunk in the .mtls.app domain, like your-org-id.mtls.app, which will be unique to your organization. All of your serivces under that organization will be assigned subdomains in this subdomain trunk. The organization id can be change later, but it may imply a lot of work, because all service domains will be changed and server certificates will need to be re-issued.
+
+### 3. Creating the 5 services
+
+Once your organization is created we will configure four services in the Identity Plus platform, the three internal, VPC based services, and one that we will use as a mock service to serve as a 3rd Party service for testing purposes. This one will not require a deployment, but we do need it for administrative (management) purposes.
+
+As a note from a naming perspective, like with the organization, these services can in principle be named any way, and the name can be changed later, with less work than the organization but still some administrative overhead. For ease of the process, let's use the service names specified in this documentation, simply beacuse the deployment config files are pre-configured with those names and so we eliminate some complexity during the testing. Service names need not be unique world-wide, only organization wide, because each service id will be suffixed with the .your-org.mtls.app subdomain which will give it a unique glabal uri (identitifier).
+
+An important note is that while the Gateway will require a machine to run on, it does not require a dedicated service in Indentity Plus. The Gateway offers means to services to be mTLS Gated (routed), and each routed service has its own slice on the Gateway and that slice is configured with access control dedicated to that service in particular. 
+
+
+#### 4.1 The MINIO Object Storage Service - Admin Service
+
+As a side note, technically speaking the MINIO Object Storage Service has two interfaces (the Admin and the API), which require differnt access control criteria and for that alone it makes sense to treat them as separate services. They do run on different ports too, so this makes routing (proxying) easier also.  
+
+Side note closed, in the "Services" page, under "Your Organization" let's click "Create Service" and give it the name "Minio".
+
+Once created, let's enter the service, and in the "Identity" menu, "Display Name" section, let's change the name to "Minio Admin", for better clarity. Please also note that "Identity & Ownership" section, the unique name of the service will be minio.your-org.mtls.app. This is a true domain name, allocated to your service the DNS record table of which can be configured - we'll do that shortly.
+
+#### 4.2 The MINIO Object Storage Service - API Service
+
+Following the pattern in 4.1, let's just name it "Minio API". Also nothe that by by doing so, the minio-api.your-org.mtls.app domain name will be allocated to it by default.
+
+#### 4.3 Creating Podtgres DB Service
+
+Following the patter in 4.1, let's just name it "pg" and then edit the "Display Name" section as above to show "Postgres DB Service". as a result we will have a nice explicit name and a short and weet domain pg.your-org.mtls.app.
+
+The reason we are configuring a Postgres service is because the mTLS Gateway can route plain TCP connection over mTLS too, not just HTTPS communcation.
+
+#### 4.3 Creating "Internal Client" service
+
+Following the patter in 4.1, let's just name it "int". Also, let's just use the "Internal Client" display name for it.
+
+#### 4.4 Creating "3rd Party Client" service
+
+Following the patter in 4.1, let's just name it "ext", and use the "3rd Party Client" for easier identification.
+
+### 3. Deploying the Servers
+
+In this root of this repository there is a directory called "demo" and in it, you can find 3 shell scripts, which, let's use those to provision the VMs. The scripts can be used as cloud init scripts or simply to run them after. We will deploy 4 VMs using the three scripts:
+
+* Gateway: containing the mTLS Gateway service running inside a docker environment. This mush be accessible from the Internet if you wish to test across the Internet
+* Minio: whch will contain both the MINIO Admin and the MINIO API service running on ports 9001 and 9000 respectively
+* Postgres: which will host the PostgreSQL Database service, also inside a dokcer environment exposed internally on port 5432 (standard)
+* Client: which will simply be a test machine, so there is no pre configuration defined for it.
+
+### 3. Service Discovery
+
+Identity Plus relies on Intenet standard, DNS based service naming and discovery, so it can be plugged in seamlessly into any internal or public internal/Internet or mixed environment. The domain names we configured earlier are public domain names, resolvable from anywhere in the world, once configured, which is what we need to do at this step, now that we have the services configured and the VMs demplyed (we know their IP addresses).
+
+We will do the following for each service:
+
+1. Go to https://platform.identity.plus,
+2. Select the organization and then each service one-by-one
+3. Select the DNS menu
+4. add an empty record to point to the public IP address of the Gateway VM. This will make the root of the service (for example, minio.your-org.mtls.app) point to the gateway. We do this because we will be accessing all services via the mTLS gateway. The rest of the service don't need to have a public IP address.
+5. add a wildcard (*) record to point to the LAN IP address of each machine. This will make machines resolvable within the LAN. For example, worker.minio.your-org.mtls.app will point internally to the Minio VM. As a side-note, we will point both minio-api and minio to the same VM, because they run on the same VM. This does not constitute a naming/discovery conflict.
+
+
+
