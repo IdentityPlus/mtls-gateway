@@ -34,7 +34,7 @@ As a notem from a naming perspective, like with the organization, these services
 
 An important note is that while the Gateway will require a machine to run on, it does not require a dedicated service in Indentity Plus. The Gateway offers means to services to be mTLS Gated (routed), and each routed service has its own slice on the Gateway and that slice is configured with access control dedicated to that service in particular. 
 
-``
+''
                                       +-----------------------+
                                       |                       |
                       +---------------|------------------+    |                  +--------------------+
@@ -57,9 +57,7 @@ An important note is that while the Gateway will require a machine to run on, it
    +---------------------------------------------- | Gateway Admin      |
                                                    +--------------------+
 
-
-
-``
+''
 
 #### 4.1 The MINIO Object Storage Service - Admin Service
 
