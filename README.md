@@ -1,7 +1,7 @@
 # Overview
 The Identity Plus mTLS Gateway is a reference implementation of the Identity Plus mTLS based Identity & Access Control solution. While the more familiar terminology in the field is Identity & Access Management, the choice of words here is not accidental. While industry solutions (the ones we call IAM) focus on managing indentities so that control systems can be effective, the Identity Plus IaC Solution eliminates the management problem to deliver simple, granular and highly scalable mutual TLS based access control.
 
-This refernce implementation offers an easy entry into the novel self asserted identity combined with mutual TLS based access control, which offers a radical improvment in security by eliminating 99.99999% of the surface of attack at a fraction of today's expenditure, both in terms of cost and effrot.
+This refernce implementation offers an easy entry into our groundbraking fusion of a self asserted identity model with mutual TLS based access control, which offers a radical improvment in security by eliminating 99.99999% of the surface of attack at a fraction of today's expenditure, both in terms of cost and effort.
 
 ## Requirements
 
@@ -30,10 +30,36 @@ Please chose your organization id well. This is important because your organizat
 
 Once your organization is created we will configure four services in the Identity Plus platform, the three internal, VPC based services, and one that we will use as a mock service to serve as a 3rd Party service for testing purposes. This one will not require a deployment, but we do need it for administrative (management) purposes.
 
-As a note from a naming perspective, like with the organization, these services can in principle be named any way, and the name can be changed later, with less work than the organization but still some administrative overhead. For ease of the process, let's use the service names specified in this documentation, simply beacuse the deployment config files are pre-configured with those names and so we eliminate some complexity during the testing. Service names need not be unique world-wide, only organization wide, because each service id will be suffixed with the .your-org.mtls.app subdomain which will give it a unique glabal uri (identitifier).
+As a notem from a naming perspective, like with the organization, these services can in principle be named any way, and the name can be changed later, with less work than the organization but still some administrative overhead. For ease of the process, let's use the service names specified in this documentation, simply beacuse the deployment config files are pre-configured with those names and so we eliminate some complexity during the testing. Service names need not be unique world-wide, only organization wide, because each service id will be suffixed with the .your-org.mtls.app subdomain which will give it a unique glabal uri (identitifier).
 
 An important note is that while the Gateway will require a machine to run on, it does not require a dedicated service in Indentity Plus. The Gateway offers means to services to be mTLS Gated (routed), and each routed service has its own slice on the Gateway and that slice is configured with access control dedicated to that service in particular. 
 
+``
+                                      +-----------------------+
+                                      |                       |
+                      +---------------|------------------+    |                  +--------------------+
+                      | minio.your-org.mtls.app:443 ----------|--------------->  | minio:9001 (admin) |
+   +--------------->  | minio.your-org.mtls.app:444 ----------+                  |                    |
+   |     +--------->  | minio-api.your-org.mtls.app:443 ---------------------->  | minio:9000 (API)   |
+   |     |            | minio-api.your-org.mtls.app:444 -- -  -                  +--------------------+
+   |     |            | pg.your-org.mtls.app:5432 -------------+      
+   |     |            | pg.your-org.mtls.app:444 -- -  -       |                 +--------------------+
+   |     |            +----------------------------------+     +-------------->  | postgres:5432      |
+   |     |                                                                       +--------------------+
+   |     |                                                        
+   |     |                                                                       
+   |     |                          
+   |     |                                                              +--------------------+
+   |     +------------------------------------------------------------- | Internal Client    |
+   |                                                                    +--------------------+
+   |
+   |                                               +--------------------+
+   +---------------------------------------------- | Gateway Admin      |
+                                                   +--------------------+
+
+
+
+``
 
 #### 4.1 The MINIO Object Storage Service - Admin Service
 
