@@ -79,7 +79,7 @@ Once created, let's enter the service, and in the "Identity" menu, "Display Name
 
 Following the pattern in 4.1, let's just name it "Minio API". Also nothe that by by doing so, the minio-api.your-org.mtls.app domain name will be allocated to it by default.
 
-#### 4.3 Creating Podtgres DB Service
+#### 4.3 Creating Postgres DB Service
 
 Following the patter in 4.1, let's just name it "pg" and then edit the "Display Name" section as above to show "Postgres DB Service". as a result we will have a nice explicit name and a short and weet domain pg.your-org.mtls.app.
 
@@ -113,6 +113,15 @@ We will do the following for each service:
 3. Select the DNS menu
 4. add an empty record to point to the public IP address of the Gateway VM. This will make the root of the service (for example, minio.your-org.mtls.app) point to the gateway. We do this because we will be accessing all services via the mTLS gateway. The rest of the service don't need to have a public IP address.
 5. add a wildcard (*) record to point to the LAN IP address of each machine. This will make machines resolvable within the LAN. For example, worker.minio.your-org.mtls.app will point internally to the Minio VM. As a side-note, we will point both minio-api and minio to the same VM, because they run on the same VM. This does not constitute a naming/discovery conflict.
+
+### 3. Firewall Access Control
+
+Please make sure the Gatewar service is reachable across the Internet, in most cloud platforms this will not happen by default. For the setup to work, we need four rules:
+1. Open port 443 to the world on the Gatway public IP address: clients will use this to consume https backend services
+2. Open port 5432 to the world on the Gatway public IP address: clients will use this port to consume TCP prosgres communiaction wrapped in mTLS
+3. Open port 444 to the world on the Gatway public IP address: this will be used as an admin consloe for the Gateway once the gateway is initialized (at least one service is configured and mTLS can be enabled)
+4. Open port 80 termporarily, preferably for your exit IP alone on the Gatway public IP address: this is necessary to initialize the Gateway. Since we don't have a domain or a certificate on the Gateway at this stage we cannot have mTLS so we will use the initialization service. This service will no longer start if there are configured services, nevertheless, once configured, it is a good idea to just close port 80 from the firewall.
+
 
 
 
