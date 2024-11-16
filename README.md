@@ -14,7 +14,7 @@ This refernce implementation offers an easy entry into our groundbraking fusion 
 
 ## Installation Steps
 
-### 1. Sign up for an Identity Plus Indetity
+### 1. Sign up for an DIGITAL IDENTITY on Identity Plus
 
 From an IDENTITY perspective, Identy Plus is a Self Asserted Digital Identity Service which gives you the ability to become the Certificate Authority for your own devices - both as an individual or as a service (part of an organization) - a process we call Self-Authority. This will give you, and anyone in the system, the ability to issue client certificates that associated to their identity to be used in the interest of establishing mTLS connection (TLS authenticated conne connections). 
 
@@ -41,29 +41,30 @@ Below is a short schematic representaion of the demo environment.
 4. Gateway admin access will be managing the 
 
 ```
-                                      +-------- mgmt ---------+
-                                      |                       |
-                      +---------------|------------------+    |                  +--------------------+
-                      | minio.your-org.mtls.app:443 ----------|--------------->  | minio:9001 (admin) |
-   +--------------->  | minio.your-org.mtls.app:444 ----------+                  |                    |
-   |     +--------->  | minio-api.your-org.mtls.app:443 ---------------------->  | minio:9000 (API)   |
-   |     |            | minio-api.your-org.mtls.app:444 -- -  -                  +--------------------+
-   |     |            | pg.your-org.mtls.app:5432 -------------+                   MinIO VM ^^
-   |     |            | pg.your-org.mtls.app:444 -- -  -       |                 
-   |     |            +----------------------------------+     |                 +--------------------+
-   |     |              Gateway VM ^^                          +-------------->  | postgres:5432      |
-   |     |                                                                       +--------------------+  
-   |     |                                                                         Postgres VM ^^
-   |     |                          
-   |     |                                                              +--------------+
-   |     +---------------------- controlled access -------------------- | Client       |
-   |                                                                    +--------------+
-   |                                                                      Client VM ^^
+
+                                   +-------- mgmt ---------+
+                                   |                       |
+                   +---------------|------------------+    |                  +--------------------+
+                   | minio.your-org.mtls.app:443 ----------|--------------->  | minio:9001 (admin) |
+   +------------>  | minio.your-org.mtls.app:444 ----------+                  |                    |
+   |  +--------->  | minio-api.your-org.mtls.app:443 ---------------------->  | minio:9000 (API)   |
+   |  |            | minio-api.your-org.mtls.app:444 -- - mgmt -              +--------------------+
+   |  |            | pg.your-org.mtls.app:5432 ----------------+                MinIO VM ^^
+   |  |            | pg.your-org.mtls.app:444 -- - mgmt -      |                 
+   |  |            +----------------------------------+        |              +--------------------+
+   |  |              Gateway VM ^^                             +----------->  | postgres:5432      |
+   |  |                                                                       +--------------------+  
+   |  |                                                                         Postgres VM ^^
+   |  |                          
+   |  |                                                              +--------------+
+   |  +---------------------- controlled access -------------------- | Client       |
+   |                                                                 +--------------+
+   |                                                                   Client VM ^^
    |
-   |                                               +--------------------+
-   +----------------- admin ---------------------- | Gateway Admin      |
-                                                   +--------------------+
-                                                     Browser ^^
+   |                                            +--------------------+
+   +-------------- admin ---------------------- | Gateway Admin      |
+                                                +--------------------+
+                                                  Browser ^^
 
 ```
 
