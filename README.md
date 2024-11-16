@@ -34,28 +34,36 @@ As a notem from a naming perspective, like with the organization, these services
 
 An important note is that while the Gateway will require a machine to run on, it does not require a dedicated service in Indentity Plus. The Gateway offers means to services to be mTLS Gated (routed), and each routed service has its own slice on the Gateway and that slice is configured with access control dedicated to that service in particular. 
 
+Below is a short schematic representaion of the demo environment. 
+1. Domain names represent services and their access proints via the reverse proxy.
+2. Client VM is accessing service via the Gateway (managed proxy with mTLS RBAC (role based access control) validation
+3. We are not using more machines as access is network idnependent (both internal and external work exactly the same, the solution is 100% portable across TCP/IP networks)
+4. Gateway admin access will be managing the 
+
 ```
-                                      +-----------------------+
+                                      +-------- mgmt ---------+
                                       |                       |
                       +---------------|------------------+    |                  +--------------------+
                       | minio.your-org.mtls.app:443 ----------|--------------->  | minio:9001 (admin) |
    +--------------->  | minio.your-org.mtls.app:444 ----------+                  |                    |
    |     +--------->  | minio-api.your-org.mtls.app:443 ---------------------->  | minio:9000 (API)   |
    |     |            | minio-api.your-org.mtls.app:444 -- -  -                  +--------------------+
-   |     |            | pg.your-org.mtls.app:5432 -------------+      
-   |     |            | pg.your-org.mtls.app:444 -- -  -       |                 +--------------------+
-   |     |            +----------------------------------+     +-------------->  | postgres:5432      |
-   |     |                                                                       +--------------------+
-   |     |                                                        
-   |     |                                                                       
+   |     |            | pg.your-org.mtls.app:5432 -------------+                   MinIO VM ^^
+   |     |            | pg.your-org.mtls.app:444 -- -  -       |                 
+   |     |            +----------------------------------+     |                 +--------------------+
+   |     |              Gateway VM ^^                          +-------------->  | postgres:5432      |
+   |     |                                                                       +--------------------+  
+   |     |                                                                         Postgres VM ^^
    |     |                          
-   |     |                                                              +--------------------+
-   |     +------------------------------------------------------------- | Internal Client    |
-   |                                                                    +--------------------+
+   |     |                                                              +--------------+
+   |     +---------------------- controlled access -------------------- | Client       |
+   |                                                                    +--------------+
+   |                                                                      Client VM ^^
    |
    |                                               +--------------------+
-   +---------------------------------------------- | Gateway Admin      |
+   +----------------- admin ---------------------- | Gateway Admin      |
                                                    +--------------------+
+                                                     Browser ^^
 
 ```
 
