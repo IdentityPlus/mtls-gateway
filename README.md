@@ -195,9 +195,9 @@ We will skip over the initialization service as this is only a helper service an
                         configer/reload  |          |  |
                                          |          |  |
                                         \|/         | \|/
-                                     +--------------------+                                  +--------------------+
--- service request --------------->  |  Nginx / Openresy  |  ----- route (if allowd) ----->  |  Upstream Service  |
-                                     +--------------------+                                  +--------------------+
+                                     +--------------------+                                 +--------------------+
+-- service request --------------->  |  Nginx / Openresy  |  ----- route (if allowd) ---->  |  Upstream Service  |
+                                     +--------------------+                                 +--------------------+
                                                        |
                                                        | deny (if not allowed)
                                                        | 
