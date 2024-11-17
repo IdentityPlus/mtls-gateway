@@ -226,11 +226,27 @@ Openresty is a production ready, high performance reverse proxy service which ha
 1. communication between client and the upstream service travels exclusively via the reverse proxy. It never reaches the manager, or Identity Plus, or anything else.
 2. TLS is offloaded by Nginx, not by the manager, the client certificate serrial number is used to query the validation service for roles
 3. During validation, the request from the client is suspended, so the client will wait for the result. If the validation cannot be done from cache, this suspension will incur the full latency of the Identity Plus validation request. If it is in the cache it will occur in a fraction of a millisecond - communication between the Nginx and the Validation Service is done through persistent local socket communication.
-4. Unlike OAuth and other authentication mechanisms there is no redirects. Authentication occurs when establishing the TCP or HTTP channel through TLS.
+4. Unlike OAuth and other authentication mechanisms there is no redirects. Authentication occurs when establishing the TCP or HTTP channel through TLS. The entire authentication occurs in those few milliseconds of latency, there are no extraneous authentication steps, no headers, tokens, web-hooks, credential storing, http cookies, or any additional step. When the validation is over, authentication is completed; done. The process is not only orders of magnitude more secure than any other type of authentication, it is also mcuh, much simpler. From the server perspective, everything happens in one step, and from a client perspective in zero steps (it is basically part of the connection) 
 5. Similarly to request, responses are served through the Nginx service. They never leave the service for inspection or anything else.  
 6. As a result of the setup, during production, the manager is completely bypassed, that being said, it can be accessed to update the Nginx configuration and to gracefully reload it without service interruption.
 
 ### 10 Configuring RBAC via the Gateway
 
+Each service configuration on the manager is broken down into three sections: Overview, Basic Configuration and HTTP or TCP configuration respectively, depending on the type of the proxying that is being done. Let's see these sections one by one.
 
+#### 10.1 Overview
+
+The overview menu gives a high level view of the service combined with information on the authenticating client, you, and your device. This helps assess the health of the platform: the manager service, your identity, certificate, helps you assess that all is working. To that end, it also allows you to test the latency of the call to Identity Plus by bypassing caching and forcing a complete validation call to the Inentity Plus API. In cese there are not a lot of calls on your service, the http client on the Validation service will terminate the connection with Identity Plus which will cause a greater latency to occur. To test the actual operation latency under continuous load perform a few checks consecutively.
+
+This menu also allows you to perform a cache clearing operation. This is useful if you change roles for clients in the Identity Plus Platform and you don't want to wait for caches to expire. This is generally necessary if the client is active on the site already and its validation is cached, a feature that is especially useful during development/setup times.
+
+#### 10.2 Basic Configuration
+
+#### 10.3 HTTP Configuration
+
+#### 10.4 TCP Configuration
+
+The TCP configuration is very basic indeed, due to the fact that the protocol itself is very crude - in the sense that there is nothing to configure, nothing to communicate to upstream server on account of the fact that at this layer the proxy is not aware of the application protocol and introducing things in the TCP packts could negatively interfere with the communication. At this level all that is available is either that a connection should or should not be established, which is what the Gateway does. It allow configuring roles for incoming clients. If the digital identity (individual or service) whose mTLS ID is being used to establish the connection has any of the given roles, the connection is allowd upstream, if not, the connection is dropped.
+
+In its simplicity, this feature is very powerful, as it enables security for any TCP/IP based upstream application, not just HTTP, including databses, messaging queues, you name it, regardless if it supports mTLS, TLS or none at all. If the client supports using an X.509 Client Certificate file the Gateway can handle the authentication and offloading of the TLS. If the client is also incapable of mTLS this can also be solved by wrapping the call in an mTLS envelope, using Identity Pluys mTLS Persona.
 
