@@ -173,38 +173,38 @@ We will skip over the initialization service as this is only a helper service an
 
 ```
 
-                                          +---------------+
-                                          | Identity Plus |
-                                          +---------------+
-                                                /|\ |
-                                                 |  |
-                                                 |  | get identity info and
-                                                 |  | access rules from the source
-                                                 |  |
-                                                 | \|/
-                                       +---------------------+
-                                       | Validation Service  |
-                                       +---------------------+
-                                          /|\ |      /|\ |
-                                           |  |       |  |
-                                           |  |       |  |
-                             +-------------------+    |  |
---- management request --->  |  Manager Service  |    |  | get identity info and 
-                             +-------------------+    |  | access rules from local cache
-                                           |          |  |
-                          configer/reload  |          |  |
-                                           |          |  |
-                                          \|/         | \|/
-                                       +--------------------+                                        +--------------------+
----- service request --------------->  |  Nginx / Openresy  |  --------- route (if allowd) ------->  |  Upstream Service  |
-                                       +--------------------+                                        +--------------------+
-                                                         |
-                                                         | deny (if not allowed)
-                                                         | 
-                                                        \|/
-                                                  +---------------+
-                                                  |   Black Hole  |
-                                                  +---------------+
+                                        +---------------+
+                                        | Identity Plus |
+                                        +---------------+
+                                              /|\ |
+                                               |  |
+                                               |  | get identity info and
+                                               |  | access rules from the source
+                                               |  |
+                                               | \|/
+                                     +---------------------+
+                                     | Validation Service  |
+                                     +---------------------+
+                                        /|\ |      /|\ |
+                                         |  |       |  |
+                                         |  |       |  |
+                           +-------------------+    |  |
+- management request --->  |  Manager Service  |    |  | get identity info and 
+                           +-------------------+    |  | access rules from local cache
+                                         |          |  |
+                        configer/reload  |          |  |
+                                         |          |  |
+                                        \|/         | \|/
+                                     +--------------------+                                    +--------------------+
+-- service request --------------->  |  Nginx / Openresy  |  ----- route (if allowd) ------->  |  Upstream Service  |
+                                     +--------------------+                                    +--------------------+
+                                                       |
+                                                       | deny (if not allowed)
+                                                       | 
+                                                      \|/
+                                                +---------------+
+                                                |   Black Hole  |
+                                                +---------------+
 
 
 ```
