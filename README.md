@@ -125,26 +125,88 @@ Please make sure the Gatewar service is reachable across the Internet, in most c
 
 ### 7. Trust the Identity Plus Root CA
 
-For a bit of clarity, there are two types of certificates at play here:
-1. The server certificate, which is most people are used to when it comes to certificates because it is indispensable when it comes to HTTPS
-2. The client certificate, which is required on the client end to enable mTLS connections
+For a bit of clarity, there are two types of certificates at play when it comes to mTLS:
+1. The server certificate, in other words the certificate the server authenticates with, which is most people are used to when it comes to certificates because it is indispensable when it comes to HTTPS
+2. The client certificate, in other words the certificate the cliente authenticates with, and which is required on the client end to transform single side TLS into mutual TLS connections
 
-As an IDENTITY service, Identity Plus enables you to become a self authority with primary scope in the client certificate space. This is funamentally novel and unique in the industry - you will not find it anywhere at the time of writing. They operate seamlessly with any client enviornment. Once installed, these client side certificates, which we call mTLS IDs, operate as machine identities and allow the machine to authenticate ont he owner's behalf and establish mTLS connections.
+As an IDENTITY service, Identity Plus enables you to become a self authority with primary scope in the client certificate space. This is funamentally novel and unique in the industry - you will not find it anywhere at the time of writing. The certificates you issue operate seamlessly with any client enviornment as they obey the industry standard. Once installed, these client side certificates, which we call mTLS IDs - per the function they serve - operate as machine identities and allow the machine to authenticate on the owner's behalf and establish mTLS connections.
 
-For the service end, the Identity Plus ACCESS CONTROLL component, works perfectly well with public certificate authorities - the multitude of service issuing certificates the traditional way. In public deployments, where browsers and mobile devices are employed, we recommend using the public service providers. At this point it is easier due to the very complicated process of indirect trust - the public certificate trust ecosystem - in which the Identity Plus Root CA is not yet trusted. While indispensable in the B2C space, this trust ecosystem comes with several major limitations and friction when it comes to internal and other direct trust use-cases. Public providers will not issue certificates for internal domains (which means you will not be able to use certificates on the server side unless you purchase a domain and register it for internal purposes), but even then there are limitations. So for local development, internal use-cases, service meshes, corporate use-cases, and other situatuation, even b2b, when it is a good idea to explicitly trust the server certificate and not rely on indirect trust system - we server certificates too. From a security perspective they are just strong (if not stronger - due to the direct trust mechanis), they are more convenient and scalable to use (as we offer full automation), and since certs need to be truste any way explicitly, they do not come with any additional inconvenience aside fromt he fact that for DEV purposes, you also have to trust them on in your browser explicitly.
+For the service end, the Identity Plus ACCESS CONTROLL component, also works with certificates issued by public certificate authorities - the multitude of service issuing certificates the traditional way. In public deployments where browsers or other third party clients are used the behavior of which is difficult to control, we recommend using the public service providers. At this point it is easier due to the very complicated process of indirect trust in TLS - the public certificate trust ecosystem - in which the Identity Plus Root CA is not yet trusted. While indispensable in the B2C space, this trust ecosystem comes with several limitations and significant added friction when it comes to internal and other explicit (direct) trust use-cases. For example, public CAs will not issue certificates for internal domains, which means you will not be able to use certificates on the server side, unless you purchase a domain and register it for internal purposes, but even then there are limitations. So for local development, internal use-cases, service meshes, corporate use-cases, and other situatuation (even b2b) when it is recommended to explicitly trust the server certificate and not rely on indirect (public) trust system - we recommend using Identity Plus server certificates. From a security perspective they are just strong (if not stronger - due to the direct trust mechanis), they are more convenient and scalable to use (as we offer full automation), and since certs need to be truste any way explicitly, they do not come with any additional inconvenience, aside from the fact that for development purposes you also have to trust them explicitly in your browser.
 
-TO do so, please go into any of your services in https://platform.identity.plus, in the "Server Profile" menu, find the "Root Certificate For Browsers" button and download the CA Certificate. Open the browser settings, type "Certificates" in the search bar and open the Certificate Management windo, or KeyCahin in on Mac. find  
+To do so, please go into any of your services at https://platform.identity.plus, in the "Server Profile" menu, find the "Root Certificate For Browsers" button and download the CA Certificate. Open the browser settings, type "Certificates" in the search bar and open the Certificate Management windo, or KeyCahin in on Mac. find  
 
 ### 8. Configuring the Gateway
 
 As a summary, at this point we must have:
-1. the VMs deployed, including the mTLS Gateway
+1. The VMs deployed, including the mTLS Gateway
 2. Services configured in the Identity Plus Platform
 3. Naming and discover is configured in Indentity Plus Platfrom to route correctly to the public IP address of the mTLS Gateway (you can test this with a nslookup minio.your-org.mtls.app)
 4. Firewall is open and routing to the mTLS Gateway
 5. Your browser has an mTLS ID (a client certificate from Identity Plus)
-6. Your browser trusts the Identity Plus Root CA for server certificates
+6. Your browser trusts the Identity Plus Root CA for server certificates (This will be necessary becasue the Gatweay will be provisioned with Identity Plus server certificates for convenience)
+
+With the above list checked, follow these stepst to provision the first mTLS protected route on the Gateway:
+1. Open the browser and go to http://gateway-public-ip. This service will only be started if the Gateway is in an uninitialized state, meaning it has no domains, no service, nothing associated, so it cannot have certificates as identity since it does not know what/who it is.
+2. If all is correctly configured an initialization page will appear asking for an "Autoprovisioning Token" - a one time token that will allow the Gateway to bind itself to an Identity Plus service and ask for both client and server certificates.
+3. You can obtain an autoprovisioning token at https://platform.identity.plus, in the "Service Agents" menu. These are the client agents representing services and they need client certificates to authenticate into thirdy party systems, including Identity Plus. The autoprovisioning token will enable the Gateway to enroll an agent into a service to act on its behalf.
+4. Let's choose the minio service, grab an autoprovisioning token and paste it into the initialization field on the Gatewy. Press "Provision"
+5. Once the service route is provisioned, follow the link (button) to swithch to the secure mode.
+
+From this moment on, the Gatweak will only work over mTLS. You can swap between the services that are provisioned on the gateway and you can use any of them to provision a new route (for a new service) by using a token for that service 
+
+6. This initialization step will have to be repeated for all services: minio-api.your-org.mtls.app, pg.your-org.mtls.app and you can later extend the system with other services if you like.
+
+### 9. Configuring RBAC via the Gateway
+
+To configure Role Bases Access Control for upstream services we need to say a few words first about how the Gateway works.
+
+#### 9.1 Management, Validation & Routing
+
+Under the hood, the mTLS Gateway is in fact a collection of services:
+
+1. The initialization servive, which we already used, running on port http/80 when the Gateway is in an uninitialized state
+2. The management service, which we access on port 444 and provides means to easily configure routing and access criteria for upstream services
+3. A production ready Nginx revers proxy, with Lua scripting capabilities bundeld as part of the Openresty project: https://openresty.org
+4. A validation service, which performs certificate validations and queries against Indentity Plus. Practically, this is the Identity Plus integration peiece, the rest is regular proxy related concepts, which will be present in pretty much any server environment.
+
+We will skip over the initialization service as this is only a helper service and we already talked about it. For the rest of the services we will continue with a little schematic representation and after that individual descriptions::
+
+```
+
+                                                        +---------------+
+                                                        | Identity Plus |
+                                                        +---------------+
+                                                             /|\ |
+                                                              |  |
+                                                              |  | get identity info and
+                                                              |  | access rules from the source
+                                                              |  |
+                                                              | \|/
+                                                    +---------------------+
+                                                    | Validation Service  |
+                                                    +---------------------+
+                                                       /|\ |      /|\ |
+                                                        |  |       |  |
+                                                        |  |       |  |
+                                          +-------------------+    |  |
+---------- management request --------->  |  Manager Service  |    |  | get identity info and 
+                                          +-------------------+    |  | access rules from local cache
+                                                        |          |  |
+                                       configer/reload  |          |  |
+                                                        |          |  |
+                                                       \|/         | \|/
+                                                    +--------------------+                                                  +--------------------+
+----------------- service request --------------->  |  Nginx / Openresy  |  --------------- route (if allowd) ----------->  |  Upstream Service  |
+                                                    +--------------------+                                                  +--------------------+
+                                                                      |
+                                                                      | deny (if not allowed)
+                                                                      | 
+                                                                     \|/
+                                                               +---------------+
+                                                               |   Black Hole  |
+                                                               +---------------+
 
 
+```
 
 
