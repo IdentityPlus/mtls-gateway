@@ -156,7 +156,7 @@ From this moment on, the Gatweak will only work over mTLS. You can swap between 
 
 6. This initialization step will have to be repeated for all services: minio-api.your-org.mtls.app, pg.your-org.mtls.app and you can later extend the system with other services if you like.
 
-### 9. Configuring RBAC via the Gateway
+### 9. The mTLS Gateway Architecture
 
 To configure Role Bases Access Control for upstream services we need to say a few words first about how the Gateway works.
 
@@ -187,7 +187,7 @@ We will skip over the initialization service as this is only a helper service an
                                      +---------------------+
                                         /|\ |      /|\ |
                                          |  |       |  |
-                                         |  |       |  |
+                                         | \|/      |  |
                            +-------------------+    |  |
 - management request --->  |  Manager Service  |    |  | get identity info and 
                            +-------------------+    |  | access rules from local cache
@@ -196,7 +196,7 @@ We will skip over the initialization service as this is only a helper service an
                                          |          |  |
                                         \|/         | \|/
                                      +--------------------+                                 +--------------------+
--- service request --------------->  |  Nginx / Openresy  |  ----- route (if allowd) ---->  |  Upstream Service  |
+--- client request --------------->  |  Nginx / Openresy  |  ----- route (if allowd) ---->  |  Upstream Service  |
                                      +--------------------+                                 +--------------------+
                                                        |
                                                        | deny (if not allowed)
@@ -208,5 +208,29 @@ We will skip over the initialization service as this is only a helper service an
 
 
 ```
+
+#### 9.2 Validation Service 
+
+The validation service is the Identity Plus integration. It's role is to validate mTLS connection requests aginst rules defined in the Identity Plus Platform and to cache responses locally for a brief period of time (preferably 5 - 30 minutes). The prupose of the caching is avoid unnecessary latency. The validation introduces a small latency, so by caching the response not every request will incur that latency, which is important because there may be many request per single page load. The result would be a significant latency at no real security benefit, therefore it is optimal to cache the response for a bit of time.
+
+The validation service will use the mTLS ID which was issued to it through the autoprovisioning token to make calls to Identity Plus and validate clients/customers. As such it practically acts as an agent (an extension) of the upstream service to validate and authenticated clients long before they actually reach the upstream service.
+
+#### 9.3 The Manager Service
+
+The manager services is a utility tool that orchastrates the entire service conglomerate and enables a visual configuration mechanism and automatic configuration testing and reloading capabilities for Nginx. We will talk about the configuration elements later.  
+
+#### 9.4 Openresty / Nginx
+
+Openresty is a production ready, high performance reverse proxy service which has scripting capabilities. We need those scripting capabilities to reach out from Nginx to the validation service, receive identity information, compare them against parameters in the configuration file and take a decision to either route upstream or to drop the connection. A feew elements to consider:
+
+1. communication between client and the upstream service travels exclusively via the reverse proxy. It never reaches the manager, or Identity Plus, or anything else.
+2. TLS is offloaded by Nginx, not by the manager, the client certificate serrial number is used to query the validation service for roles
+3. During validation, the request from the client is suspended, so the client will wait for the result. If the validation cannot be done from cache, this suspension will incur the full latency of the Identity Plus validation request. If it is in the cache it will occur in a fraction of a millisecond - communication between the Nginx and the Validation Service is done through persistent local socket communication.
+4. Unlike OAuth and other authentication mechanisms there is no redirects. Authentication occurs when establishing the TCP or HTTP channel through TLS.
+5. Similarly to request, responses are served through the Nginx service. They never leave the service for inspection or anything else.  
+6. As a result of the setup, during production, the manager is completely bypassed, that being said, it can be accessed to update the Nginx configuration and to gracefully reload it without service interruption.
+
+### 10 Configuring RBAC via the Gateway
+
 
 
