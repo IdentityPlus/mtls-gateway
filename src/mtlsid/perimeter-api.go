@@ -40,6 +40,7 @@ type Perimeter_API struct {
 	Self_Authority     *Self_Authority_API
 	Validation_Tickets map[string]Client_Validation_Ticket
 	mu                 sync.Mutex
+	__client           *http.Client
 }
 
 func (idp *Perimeter_API) Cache_Size() int {
@@ -247,15 +248,10 @@ func (idp *Perimeter_API) do_call(method string, request_body string) ([]byte, e
 	return bodyBytes, nil
 }
 
-// Lazily creates a http client and caches it so that next time it does not have to create it
-// also, this leverages re-use of TCP/TLS connection such that we do not have to do tripple
-// handshake at every call: 7ZR8XFK36HZEYHDVTTZU
-var __client *http.Client
-
 func (idp *Perimeter_API) client() (*http.Client, error) {
 
 	// create the client if not yet created
-	if __client == nil {
+	if idp.__client == nil {
 
 		if idp.Self_Authority.Identity_Dir == "" || idp.Self_Authority.Device_Name == "" {
 			return nil, errors.New("client certificate or key not properly specified. They need to be in separate files as DER Encoded")
@@ -279,11 +275,11 @@ func (idp *Perimeter_API) client() (*http.Client, error) {
 			DisableKeepAlives:   false,
 		}
 
-		__client = &http.Client{
+		idp.__client = &http.Client{
 			Transport: &transport,
 			Timeout:   time.Second * 5,
 		}
 	}
 
-	return __client, nil
+	return idp.__client, nil
 }
