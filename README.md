@@ -242,7 +242,27 @@ This menu also allows you to perform a cache clearing operation. This is useful 
 
 #### 10.2 Basic Configuration
 
+The basics configuration section gives you access to operating parameters that are common to any type of reverse proxy operating mode, both HTTP and TCP, such as setting the aforementioned operating mode, the port receiving client communication and the upstream service instance or instances legitimate traffic needs to be proxied to. In this section you can also see the status of your certificates: the client certificate the validation service uses to authenticate to Identity Plus and validate connections on behalf of upstream services, and the server certificate both the Manager Service and Nginx are using to prove their legitimacy (authenticate) to incomming clients. These certificates are automatically renew as needed per the schedule dusplayed on the page, but you can also rotate them manually at a click of a button.  
+
 #### 10.3 HTTP Configuration
+
+The HTTP configuration menu is broken down in three main sections: mTLS Perimeter Bahavior, HTTP Behavior and the Location areas.
+
+##### 10.3.1 mTLS Perimeter Behavior
+
+This area allows you to configure the operating mode of the Gateway with respect to authenticating and validating client certificates as well as customizing the HTTP headers that are used to pass upstream the client idnetity related inforamtion. The Gateway has three levels of ownership when it comes to mTLS based access control. Each mode has it's own particular benefits, which makes it better suited for various use-cases:
+
+1. Gateway, in which the Gateway takes full responsibility to validate clients, and also enforce the rols. In this mode access control occurs fully on the gateway. This use case is best suited for situations when cannot rely on the upstream service at all to handle any part of the authentication and or authorization processes, for example in case of a service we don't control, or legacy service that can no longer be changed and it contains vulnerabilities. For example, this is the only mode available when we front-end TCP applications, due to the fact that modifying TCP packets - for the purpose of forwarding - is highly application specific. The limitation of this mode is that Gateway has limited context to work with. It has identity information and roles but from an upstream applicatino perspective it only has HTTP Context information, such as domain, subdomain, URL path, etc. In page granularity is impossible to achieve. That being said, the Gateway will pass on all identity information in headers so this can be combined with implementations as described for the split mode.
+   
+2. Split, in which the authentication responsibility is divided between the Gateway and the upstream service. In this mode, the Gateway will perform the client authentication, certificate validation and authentication, however it will not take any decision on it, unless basic problems occur - such as no mTLS ID (certificate) validity problems. For valid mTLS IDs, the Identity information, including assigned roles, are passed upstream in headers, allowing for the upstream service to implement granular control over roles and identities - including local account granularity.
+
+3. Application mode, when the majority of the control is passed on to the upstream service. In this mode, the Gateway will validate certificate issuing authority and expiry, however, it will not querry the identity information against Identity Plus. It will pass on the certiicate serial number to the application in a header and allow the application to manage both authentication and authorization. This mode is necessary for SaaS applications when the application needs to deal with dynamic client base, including the process of onboarding.  
+
+A very important note with respect to the operating mode of the technlogy stack is that regardless of the operating modes described above, the authentication can and should be done before the first response goes back to the client. All the while, the initial request will stay suspended as described earlier. The only exception to this rule is when the upstream service is designed to work with unknonw customers, in which case it is recommended that this is done in a dedicated, elevated security context. 
+
+##### 10.3.2 HTTP Behavior
+
+##### 10.3.3 Location Control
 
 #### 10.4 TCP Configuration
 
