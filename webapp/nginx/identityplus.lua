@@ -89,10 +89,6 @@ local _M = {}
 
 
     function _M.matches(validation, roles) 
-        if serial == nil then
-        		return false
-		end 
-		
         if validation["outcome"] and string.find(validation["outcome"], "OK 0001", 0, true) then
             if validation ~= nil and validation["service-roles"] ~= nil then
                 for _, role in pairs(roles) do
