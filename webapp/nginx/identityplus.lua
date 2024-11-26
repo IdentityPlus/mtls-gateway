@@ -51,6 +51,11 @@ local _M = {}
     -- Populate the client certificate serial number headers
     function _M.populate_mtls_id_header(header)
         local serial = ngx.var.ssl_client_serial
+        
+        if serial == nil then
+        		return
+		end 
+		
         ngx.log(0, 'Setting header '..serial);
         if header == nil or header == "" then
             header = "X-mTLS-ID"
@@ -70,6 +75,10 @@ local _M = {}
         if roles_h == nil or roles_h == "" then roles_h = 'X-mTLS-Roles' end
         if local_id_h == nil or local_id_h == "" then local_id_h = 'X-mTLS-Local-ID' end
 
+        if validation == nil then
+        		return
+		end 
+
         if validation["local-id"] ~= nil then ngx.req.set_header(agent_h, validation["local-id"]) end
         if validation["organizational-reference"] ~= nil then ngx.req.set_header(org_id_h, validation["organizational-reference"]) end 
         if validation["service-roles"] ~= nil then ngx.req.set_header(roles_h, table.concat(validation["service-roles"], ",")) end 
@@ -80,6 +89,10 @@ local _M = {}
 
 
     function _M.matches(validation, roles) 
+        if serial == nil then
+        		return false
+		end 
+		
         if validation["outcome"] and string.find(validation["outcome"], "OK 0001", 0, true) then
             if validation ~= nil and validation["service-roles"] ~= nil then
                 for _, role in pairs(roles) do
