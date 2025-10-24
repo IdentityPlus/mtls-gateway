@@ -1,9 +1,5 @@
 #!/bin/sh
 
-# disable password login for ssh
-sed -i 's/^#PasswordAuthentication .*/PasswordAuthentication no/g' /etc/ssh/sshd_config
-service sshd restart
-
 # Add Docker the repository to Apt sources:
 install -m 0755 -d /etc/apt/keyrings
 curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc
@@ -24,4 +20,4 @@ docker run -d \
    -v /media/data:/data \
    -e "MINIO_ROOT_USER=minioadmin" \
    -e "MINIO_ROOT_PASSWORD=minioadmin" \
-   quay.io/minio/minio server /data --console-address ":9001"
+   quay.io/minio/minio:RELEASE.2025-04-22T22-12-26Z server /data --console-address ":9001"
