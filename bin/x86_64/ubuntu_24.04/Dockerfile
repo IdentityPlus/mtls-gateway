@@ -1,4 +1,4 @@
-FROM openresty/openresty:jammy-amd64
+FROM openresty/openresty:noble-amd64
 
 RUN apt update
 RUN apt install -y cron supervisor
