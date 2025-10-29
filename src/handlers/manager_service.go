@@ -365,6 +365,8 @@ func (srv *Manager_Service) overview(w http.ResponseWriter, r *http.Request) {
 		"Service":         config.Service,
 		"AgentType":       device_type,
 		"OrgID":           validation__.Cache.OrgID,
+		"OrgName":         validation__.Cache.OrgName,
+		"OrgEmail":        validation__.Cache.OrgEmail,
 		"OrgRoles":        validation__.Cache.ServiceRoles,
 		"Updated":         srv.Updated,
 	})
@@ -532,6 +534,12 @@ func (srv *Manager_Service) http_config(w http.ResponseWriter, r *http.Request) 
 			}
 			if r.FormValue("org-id") != "" {
 				config.Service.HTTP.MtlsOrgID = r.FormValue("org-id")
+			}
+			if r.FormValue("org-name") != "" {
+				config.Service.HTTP.MtlsOrgName = r.FormValue("org-name")
+			}
+			if r.FormValue("org-email") != "" {
+				config.Service.HTTP.MtlsOrgEmail = r.FormValue("org-email")
 			}
 			if r.FormValue("roles") != "" {
 				config.Service.HTTP.MtlsRoles = r.FormValue("roles")
@@ -795,6 +803,8 @@ func get_service_config(domain string) integrations.ServiceConfig {
 					MtlsID:          "X-mTLS-ID",
 					MtlsAgent:       "X-mTLS-Agent",
 					MtlsOrgID:       "X-mTLS-Org-ID",
+					MtlsOrgName:     "X-mTLS-Org-Name",
+					MtlsOrgEmail:    "X-mTLS-Org-Email",
 					MtlsRoles:       "X-mTLS-Roles",
 					MtlsLocalID:     "X-mTLS-Local-ID",
 					Locations: []integrations.Location{

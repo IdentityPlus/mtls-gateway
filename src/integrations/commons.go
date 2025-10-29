@@ -32,6 +32,8 @@ type Http struct {
 	MtlsID          string     `yaml:"mtls-id"`
 	MtlsAgent       string     `yaml:"mtls-agent"`
 	MtlsOrgID       string     `yaml:"mtls-org-id"`
+	MtlsOrgName     string     `yaml:"mtls-org-name"`
+	MtlsOrgEmail    string     `yaml:"mtls-org-email"`
 	MtlsRoles       string     `yaml:"mtls-roles"`
 	MtlsLocalID     string     `yaml:"mtls-local-id"`
 	Locations       []Location `yaml:"locations"`

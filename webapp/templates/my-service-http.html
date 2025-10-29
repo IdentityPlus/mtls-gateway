@@ -16,6 +16,8 @@
             {{ if ne .Service.HTTP.AccessMode "Application" }}
             <tr><th><label for="agent">mTLS Agent Heder</label></th><td><input type="text" id="agent" name="agent" value="{{ .Service.HTTP.MtlsAgent }}"></td></tr>
             <tr><th><label for="org-id">mTLS Org ID Heder</label></th><td><input type="text" id="org-id" name="org-id" value="{{ .Service.HTTP.MtlsOrgID }}"></td></tr>
+            <tr><th><label for="org-name">mTLS Org Name Heder</label></th><td><input type="text" id="org-name" name="org-name" value="{{ .Service.HTTP.MtlsOrgName }}"></td></tr>
+            <tr><th><label for="org-email">mTLS Org Email Heder</label></th><td><input type="text" id="org-email" name="org-email" value="{{ .Service.HTTP.MtlsOrgEmail }}"></td></tr>
             <tr><th><label for="roles">mTLS Roles Heder</label></th><td><input type="text" id="roles" name="roles" value="{{ .Service.HTTP.MtlsRoles }}"></td></tr>
             <tr><th><label for="local-id">mTLS Local (Application) ID Heder</label></th><td><input type="text" id="local-id" name="local-id" value="{{ .Service.HTTP.MtlsLocalID }}"></td></tr>
             {{ end }}

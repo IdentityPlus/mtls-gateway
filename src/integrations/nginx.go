@@ -102,7 +102,7 @@ func (cfg Nginx_Builder) build_HTTP_lua_access(location Location) string {
 		"{{SERVICE}}":    cfg.domain(),
 		"{{ROLES}}":      roles,
 		"{{ID}}":         cfg.Service.HTTP.MtlsID,
-		"{{HEADERS}}":    "'" + cfg.Service.HTTP.MtlsAgent + "', " + "'" + cfg.Service.HTTP.MtlsOrgID + "', " + "'" + cfg.Service.HTTP.MtlsRoles + "', " + "'" + cfg.Service.HTTP.MtlsLocalID + "'",
+		"{{HEADERS}}":    "'" + cfg.Service.HTTP.MtlsAgent + "', " + "'" + cfg.Service.HTTP.MtlsOrgID + "', " + "'" + cfg.Service.HTTP.MtlsOrgName + "', " + "'" + cfg.Service.HTTP.MtlsOrgEmail + "', " + "'" + cfg.Service.HTTP.MtlsRoles + "', " + "'" + cfg.Service.HTTP.MtlsLocalID + "'",
 		"{{NO-RULES}}":   no_rules,
 		"{{NO-HEADERS}}": no_headers,
 	})
@@ -145,13 +145,16 @@ func (cfg Nginx_Builder) build_HTTP_locations() string {
 		http_proxy := ""
 		http_defaults := cfg.build_HTTP_defaults()
 		websockets := cfg.build_web_sockets()
+		custom := cfg.build_custom(location)
 
-		http_proxy = "\n            proxy_pass http://up_" + strings.ReplaceAll(cfg.domain(), ".", "_") + ";"
+		if !strings.Contains(custom, "proxy_pass ") {
+			http_proxy = "\n            proxy_pass http://up_" + strings.ReplaceAll(cfg.domain(), ".", "_") + ";"
+		}
 
 		location := utils.Build_Template("./webapp/templates/nginx/location.conf", map[string]string{
 			"{{PATH}}":          location.Path,
 			"{{LUA_ACCESS}}":    http_access,
-			"{{CUSTOM}}":        cfg.build_custom(location),
+			"{{CUSTOM}}":        custom,
 			"{{HTTP-DEFAULTS}}": http_defaults,
 			"{{WEBSOCKETS}}":    websockets,
 			"{{UPSTREAM}}":      http_proxy,

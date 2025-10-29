@@ -4,6 +4,9 @@ package mtlsid
 // Type mapping definitions for ReST communiation
 // We are going to create a big structure to aid automatic identification of types
 //
+import (
+	"encoding/json"
+)
 
 type Simple_Response struct {
 	Outcome string `json:"outcome"`
@@ -50,13 +53,13 @@ type X509_Identity_Response struct {
 }
 
 type Autoprovisioning_Token_Response struct {
-	Error  string        		  `json:"error"`
+	Error  string                 `json:"error"`
 	Result Autoprovisioning_Token `json:"result"`
 }
 
 type Autoprovisioning_Token struct {
-	Managed_Service  string     `json:"managed-cli.Service"`
-	Token            string 	`json:"token"`
+	Managed_Service string `json:"managed-cli.Service"`
+	Token           string `json:"token"`
 }
 
 type IDP_Response struct {
@@ -67,6 +70,8 @@ type IDP_Response struct {
 
 type Identity_Profile struct {
 	OrgID              string   `json:"organizational-reference"`
+	OrgName            string   `json:"organizational-name"`
+	OrgEmail           string   `json:"organizational-email"`
 	LocalUserID        string   `json:"local-user-id"`
 	ServiceRoles       []string `json:"service-roles"`
 	TrustSponsors      []string `json:"trust-sponsors"`
@@ -77,4 +82,45 @@ type Identity_Profile struct {
 	LocalTrust         int      `json:"local-trust"`
 	LocalIntrusions    int      `json:"local-intrusions"`
 	Outcome            string   `json:"outcome"`
+
+	Custom map[string]interface{} `json:"-"`
+}
+
+func (p *Identity_Profile) UnmarshalJSON(data []byte) error {
+	// Step 1: unmarshal into an alias type to avoid recursion
+	type Alias Identity_Profile
+	aux := &struct {
+		*Alias
+	}{
+		Alias: (*Alias)(p),
+	}
+
+	if err := json.Unmarshal(data, &aux); err != nil {
+		return err
+	}
+
+	// Step 2: unmarshal into a generic map to find unknown fields
+	var rawMap map[string]interface{}
+	if err := json.Unmarshal(data, &rawMap); err != nil {
+		return err
+	}
+
+	// Step 3: remove known fields
+	delete(rawMap, "organizational-reference")
+	delete(rawMap, "organizational-name")
+	delete(rawMap, "organizational-email")
+	delete(rawMap, "local-user-id")
+	delete(rawMap, "service-roles")
+	delete(rawMap, "trust-sponsors")
+	delete(rawMap, "sites-frequented")
+	delete(rawMap, "average-identity-age")
+	delete(rawMap, "max-identity-age")
+	delete(rawMap, "trust-score")
+	delete(rawMap, "local-trust")
+	delete(rawMap, "local-intrusions")
+	delete(rawMap, "outcome")
+
+	// Step 4: save what’s left
+	p.Custom = rawMap
+	return nil
 }

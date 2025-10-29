@@ -107,7 +107,7 @@ func (idp *Perimeter_API) Validate_Client_Identity_SN(serial_no string, as_servi
 
 		start := time.Now()
 		bodyBytes, err := idp.identity_inquiry_call(serial_no, as_service)
-		// log.Printf("Identity Broker response: %s\n", string(bodyBytes))
+		//log.Printf("Identity Broker response: %s\n", string(bodyBytes))
 
 		var ans IDP_Response
 

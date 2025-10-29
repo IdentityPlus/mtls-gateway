@@ -68,10 +68,12 @@ local _M = {}
     end
 
 
-    function _M.populate_mtls_headers(validation, agent_h, org_id_h, roles_h, local_id_h)
+    function _M.populate_mtls_headers(validation, agent_h, org_id_h, org_name_h, org_email_h, roles_h, local_id_h)
 
         if agent_h == nil or agent_h == "" then agent_h = 'X-mTLS-Agent' end
         if org_id_h == nil or org_id_h == "" then org_id_h = 'X-mTLS-Org-ID' end
+        if org_name_h == nil or org_name_h == "" then org_id_h = 'X-mTLS-Org-Name' end
+        if org_email_h == nil or org_email_h == "" then org_id_h = 'X-mTLS-Org-Email' end
         if roles_h == nil or roles_h == "" then roles_h = 'X-mTLS-Roles' end
         if local_id_h == nil or local_id_h == "" then local_id_h = 'X-mTLS-Local-ID' end
 
@@ -81,6 +83,8 @@ local _M = {}
 
         if validation["local-id"] ~= nil then ngx.req.set_header(agent_h, validation["local-id"]) end
         if validation["organizational-reference"] ~= nil then ngx.req.set_header(org_id_h, validation["organizational-reference"]) end 
+        if validation["organizational-name"] ~= nil then ngx.req.set_header(org_name_h, validation["organizational-name"]) end 
+        if validation["organizational-email"] ~= nil then ngx.req.set_header(org_email_h, validation["organizational-email"]) end 
         if validation["service-roles"] ~= nil then ngx.req.set_header(roles_h, table.concat(validation["service-roles"], ",")) end 
         
         ngx.req.set_header(agent_h, ngx.var.ssl_client_s_dn)
