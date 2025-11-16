@@ -1,14 +1,17 @@
 verbose: true
 admin_port: "444"
-admin_access_port: "444"
-local_host: "192.168.1.99"
-validation_service_port: "81"
-data_directory: "/etc/mtls-gateway"
-mtls_id_ttl: 1
-device_name: "Prd-Agent"
+admin_operating_port: "444"
+application_port: "443"
+local_host: "127.0.0.1"
+authenticator_operating_port: "81"
+local_authenticator_endpoint: "10.10.0.200:81"
+data_directory: "/etc/mtls-gateway/work"
+mtls_id_ttl: 5
+device_name: "Agent X"
 identity_broker: "identity.plus"
 roles_allowed:
   - "org. administrator"
   - "org. manager"
   - "administrator"
   - "manager"
+
