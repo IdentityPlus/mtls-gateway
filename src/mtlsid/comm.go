@@ -6,6 +6,9 @@ package mtlsid
 //
 import (
 	"encoding/json"
+	"strings"
+
+	"identity.plus/mtls-gw/integrations"
 )
 
 type Simple_Response struct {
@@ -84,6 +87,20 @@ type Identity_Profile struct {
 	Outcome            string   `json:"outcome"`
 
 	Custom map[string]interface{} `json:"-"`
+}
+
+func (p *Identity_Profile) Get_Roles(http_config integrations.Http) []string {
+	roles := p.ServiceRoles
+
+	for i, r := range roles {
+		for _, m := range http_config.Translator.Mappings {
+			if strings.EqualFold(r, m.Canonical) {
+				roles[i] = m.Local
+			}
+		}
+	}
+
+	return roles
 }
 
 func (p *Identity_Profile) UnmarshalJSON(data []byte) error {

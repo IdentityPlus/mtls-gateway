@@ -1,12 +1,10 @@
 package handlers
 
 import (
-	// "crypto/tls"
-	// "crypto/x509"
+	"crypto/x509"
+	"encoding/pem"
 	"fmt"
-	// "time"
 	"html/template"
-	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
@@ -16,9 +14,6 @@ import (
 	"identity.plus/mtls-gw/global"
 	"identity.plus/mtls-gw/mtlsid"
 	"identity.plus/mtls-gw/utils"
-	// "os/exec"
-	// "io"
-	// "bytes"
 )
 
 type Initialization_Service struct {
@@ -55,9 +50,9 @@ func Enroll(token string) (*mtlsid.Perimeter_API, string) {
 		return nil, ans
 	}
 
-	files, err := ioutil.ReadDir(global.Config__.DataDirectory + "/identity/_/service-id")
+	files, err := os.ReadDir(global.Config__.DataDirectory + "/identity/_/service-id")
 	if err != nil {
-		return nil, fmt.Sprintf("error enrolling. identity not issued: %w", err)
+		return nil, fmt.Sprintf("error enrolling. identity not issued: %v", err)
 	}
 
 	var domain = ""
@@ -118,7 +113,7 @@ func (srv *Initialization_Service) render_page(w http.ResponseWriter, tmpl strin
 	}
 }
 
-func (srv *Initialization_Service) init_service(w http.ResponseWriter, r *http.Request) {
+func (srv *Initialization_Service) handle_init_service(w http.ResponseWriter, r *http.Request) {
 	var perimeter_api *mtlsid.Perimeter_API
 	var error_msg = ""
 	var domain = ""
@@ -142,7 +137,7 @@ func (srv *Initialization_Service) init_service(w http.ResponseWriter, r *http.R
 
 				if perimeter_api != nil {
 					domain = perimeter_api.Domain()
-					Manager_Service__.Register(domain)
+					Manager_Service__.Register_Service(domain)
 					go Manager_Service__.Start()
 				}
 
@@ -160,11 +155,66 @@ func (srv *Initialization_Service) init_service(w http.ResponseWriter, r *http.R
 	})
 }
 
+func handle_download_ca(w http.ResponseWriter, r *http.Request) {
+	configurations := Manager_Service__.Get_Configurations()
+
+	if len(configurations) == 0 {
+		fmt.Fprintln(w, "mTLS Gatewat is not yet initialized, the CA has not yet been saved locally.")
+		return
+	}
+
+	root_ca_data, err := os.ReadFile(global.Config__.DataDirectory + "/identity/" + configurations[0] + "/service-id/identity-plus-root-ca.cer")
+	if err != nil {
+		log.Printf("Error loading %s: %v", global.Config__.DataDirectory+"/identity/"+configurations[0]+"/service-id/identity-plus-root-ca.cer", err)
+	}
+
+	var roots []byte
+	var block *pem.Block
+	for {
+		block, root_ca_data = pem.Decode(root_ca_data)
+		if block == nil {
+			break
+		}
+
+		if block.Type != "CERTIFICATE" {
+			continue
+		}
+
+		cert, err := x509.ParseCertificate(block.Bytes)
+		if err != nil {
+			continue // skip malformed certs
+		}
+
+		// 3️⃣ Detect if this cert is self-signed (issuer == subject)
+		if cert.IsCA && cert.CheckSignatureFrom(cert) == nil {
+			// Likely a root CA
+			roots = pem.EncodeToMemory(block)
+		}
+	}
+
+	if len(roots) == 0 {
+		http.Error(w, "No root CA found in PEM", http.StatusNotFound)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/octet-stream")
+	w.Header().Set("Content-Disposition", "attachment; filename=\"identity-plus-root-ca.cer")
+	w.Header().Set("Content-Transfer-Encoding", "binary")
+	w.Header().Set("Content-Length", fmt.Sprintf("%d", len(roots)))
+	w.WriteHeader(http.StatusOK)
+
+	_, err = w.Write(roots)
+	if err != nil {
+		log.Printf("Error writing response: %v", err)
+	}
+}
+
 func (srv *Initialization_Service) Start() {
 	mux := http.NewServeMux()
 
 	mux.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("webapp/static"))))
-	mux.HandleFunc("/", srv.init_service)
+	mux.HandleFunc("/download-ca", handle_download_ca)
+	mux.HandleFunc("/", srv.handle_init_service)
 
 	initialization_servive := &http.Server{
 		Addr:    "0.0.0.0:80",

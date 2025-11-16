@@ -86,11 +86,11 @@ func main() {
 
 	load_config(config_file)
 
-	identities, _ := handlers.List_Service_Configurations()
+	identities := handlers.Manager_Service__.Get_Configurations()
 	initialized := false
 
 	for _, id_dir := range identities {
-		handlers.Manager_Service__.Register(id_dir)
+		handlers.Manager_Service__.Configure_Perimeter_API(id_dir)
 		initialized = true
 	}
 
@@ -100,8 +100,9 @@ func main() {
 	if initialized {
 		go handlers.Manager_Service__.Start()
 	} else {
-		go handlers.Initialization_Service__.Start()
 	}
+
+	go handlers.Initialization_Service__.Start()
 
 	go handlers.Validation_Service__.Start()
 	go handlers.Manager_Service__.Start_Openresty()

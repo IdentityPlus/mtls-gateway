@@ -73,38 +73,55 @@ func (cfg Nginx_Builder) build_TCP_lua_access() string {
 }
 
 func (cfg Nginx_Builder) build_HTTP_lua_access(location Location) string {
-	if location.Bypass {
-		return ""
-	}
+	enforcement := ""
 
-	roles := ""
-	for _, r := range location.RolesAllowed {
-		if len(roles) > 0 {
-			roles += ", "
-		}
-
-		roles += "'" + r + "'"
-	}
-
-	no_rules := ""
-	no_headers := ""
-
-	if cfg.Service.HTTP.AccessMode != "Gateway" {
-		no_rules = "-- "
-	}
-
-	if cfg.Service.HTTP.AccessMode == "Application" {
-		no_headers = "-- "
-		no_rules = "-- "
+	// there is no enforcement for application mode
+	if cfg.Service.HTTP.AccessMode != "Application" {
+		enforcement = cfg.build_HTTP_access_mode_gw(location)
 	}
 
 	return utils.Build_Template("./webapp/templates/nginx/http-access-lua.conf", map[string]string{
-		"{{SERVICE}}":    cfg.domain(),
-		"{{ROLES}}":      roles,
-		"{{ID}}":         cfg.Service.HTTP.MtlsID,
-		"{{HEADERS}}":    "'" + cfg.Service.HTTP.MtlsAgent + "', " + "'" + cfg.Service.HTTP.MtlsOrgID + "', " + "'" + cfg.Service.HTTP.MtlsOrgName + "', " + "'" + cfg.Service.HTTP.MtlsOrgEmail + "', " + "'" + cfg.Service.HTTP.MtlsRoles + "', " + "'" + cfg.Service.HTTP.MtlsLocalID + "'",
-		"{{NO-RULES}}":   no_rules,
-		"{{NO-HEADERS}}": no_headers,
+		"{{ID}}":          cfg.Service.HTTP.MtlsID,
+		"{{ENFORCEMENT}}": enforcement,
+	})
+}
+
+func (cfg Nginx_Builder) build_HTTP_access_mode_gw(location Location) string {
+	if !location.EnforceMTLS {
+		return ""
+	}
+
+	mtls_headers := ""
+	// populate the mtLS headers for both Gateway and Proxy mode but skip for OIDC
+	if cfg.Service.HTTP.AccessMode != "OIDC" {
+		mtls_headers = "'" + cfg.Service.HTTP.MtlsAgent + "', " + "'" + cfg.Service.HTTP.Trusted_Headers.MtlsOrgID + "', " + "'" + cfg.Service.HTTP.Trusted_Headers.MtlsOrgName + "', " + "'" + cfg.Service.HTTP.Trusted_Headers.MtlsOrgEmail + "', " + "'" + cfg.Service.HTTP.Trusted_Headers.MtlsRoles + "', " + "'" + cfg.Service.HTTP.Trusted_Headers.MtlsLocalID + "'"
+		mtls_headers = "                identityplus.populate_mtls_headers(validation, " + mtls_headers + ")"
+	}
+
+	roles := ""
+	if !location.AllowAllRoles {
+		for _, r := range location.RolesAllowed {
+			if len(roles) > 0 {
+				roles += ", "
+			}
+
+			roles += "'" + r + "'"
+		}
+	}
+
+	template := ""
+	if !location.EnforceRoles {
+		template = "http-access-lua-gw-ignore-roles"
+	} else if location.AllowAllRoles {
+		template = "http-access-lua-gw-any-role"
+	} else {
+		template = "http-access-lua-gw-these-roles"
+	}
+
+	return utils.Build_Template("./webapp/templates/nginx/"+template+".conf", map[string]string{
+		"{{SERVICE}}": cfg.domain(),
+		"{{HEADERS}}": mtls_headers,
+		"{{ROLES}}":   roles,
 	})
 }
 
@@ -162,6 +179,39 @@ func (cfg Nginx_Builder) build_HTTP_locations() string {
 
 		locations += location
 	}
+
+	var location = ""
+	if cfg.Service.HTTP.AccessMode == "OIDC" {
+		oidc_ep := Location{
+			Path:          "/mtls-gw/oidc/",
+			EnforceMTLS:   true,
+			EnforceRoles:  false,
+			AllowAllRoles: true,
+		}
+
+		location = utils.Build_Template("./webapp/templates/nginx/location.conf", map[string]string{
+			"{{PATH}}":          oidc_ep.Path,
+			"{{LUA_ACCESS}}":    cfg.build_HTTP_lua_access(oidc_ep),
+			"{{CUSTOM}}":        "",
+			"{{HTTP-DEFAULTS}}": cfg.build_HTTP_defaults(),
+			"{{WEBSOCKETS}}":    "",
+			"{{UPSTREAM}}":      "\n            proxy_pass http://" + global.Config__.LocalAuthenticatorEndpoint + ";",
+		})
+
+	} else {
+		location = utils.Build_Template("./webapp/templates/nginx/location.conf", map[string]string{
+			"{{PATH}}":          "/mtls-gw/oidc/",
+			"{{LUA_ACCESS}}":    "",
+			"{{CUSTOM}}":        "            default_type text/plain;",
+			"{{HTTP-DEFAULTS}}": "",
+			"{{WEBSOCKETS}}":    "",
+			"{{UPSTREAM}}":      "            return 404 \"OpenID-Connect authentication not enabled for this service.\\n\";",
+		})
+	}
+
+	locations += location
+
+	// log.Printf("/n---------------------/n%s/n--------------/n", locations)
 
 	return locations
 }

@@ -1,6 +1,7 @@
 verbose: true
 admin_port: "444"
 admin_access_port: "444"
+local_host: "192.168.1.99"
 validation_service_port: "81"
 data_directory: "/etc/mtls-gateway"
 mtls_id_ttl: 1

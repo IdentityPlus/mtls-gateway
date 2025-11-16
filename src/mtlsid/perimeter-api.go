@@ -92,17 +92,17 @@ func (idp *Perimeter_API) Validate_Client_Identity_SN(serial_no string, as_servi
 
 	idp.mu.Lock()
 
-	var cached_validation Client_Validation_Ticket
+	var cached_validation = idp.Validation_Tickets[serial_no]
+	// if global.Config__.Verbose && cached_validation.Cache != nil {
+	// 	log.Printf("Validating mTLS ID: %s, %t\n", serial_no, cacheable)
+	// }
 
-	// if no elementary errors have been found
-
-	cached_validation = idp.Validation_Tickets[serial_no]
 	error_reason := ""
 
 	// if we have a Cache that is not older than 5 minutes, we skip
-	if !cacheable || cached_validation.Cache == nil || time.Now().Sub(cached_validation.Added).Seconds() > 60 {
+	if !cacheable || cached_validation.Cache == nil || time.Since(cached_validation.Added).Seconds() > 300 {
 		if global.Config__.Verbose {
-			log.Printf("re-validating mTLS ID: %s, from cache (%s)\n", serial_no, cached_validation.Cache == nil)
+			log.Printf("Fully re/validating mTLS ID: %s\n", serial_no)
 		}
 
 		start := time.Now()
@@ -159,14 +159,6 @@ func (idp *Perimeter_API) Validate_Client_Identity_SN(serial_no string, as_servi
 		Stats__.ValidationCount++
 	}
 
-	// we will look a the roles now, and if there are no roles defined
-	// the client clearly has no business here
-	// we disable this to allow the decision to be taken by whoever calls this method
-	//if error_reason == "" && len(cached_validation.Cache.ServiceRoles) == 0 {
-	//error_reason = "Certificate is valid no roles on this service"
-	//}
-
-	// means it allows the user to continue execution through he proxy
 	idp.mu.Unlock()
 	return &cached_validation, error_reason
 }
@@ -221,7 +213,7 @@ func (idp *Perimeter_API) do_call(method string, request_body string) ([]byte, e
 
 	// var body_reader io.Reader
 	var jsonStr = []byte(request_body)
-	client_request, err := http.NewRequest(method, "https://api.identity.plus/v1", bytes.NewBuffer(jsonStr))
+	client_request, _ := http.NewRequest(method, "https://api.identity.plus/v1", bytes.NewBuffer(jsonStr))
 	client_request.Header.Set("Content-Type", "application/json")
 
 	resp, err := client.Do(client_request)

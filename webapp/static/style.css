@@ -18,7 +18,7 @@ brand span {color:#4292D3;}
 .NOMARGIN{margin:0;}
 .ALIGN-R{text-align:right;}
 
-.top-bar { background-color: #202020; color: #E0E0E0; padding: 10px; text-align: left; }
+.top-bar { background-color: #111518; color: #E0E0E0; padding: 10px; text-align: left; }
 .top-bar * { display:inline-block; margin:0;}
 .top-bar logo {font-size:20px; font-weight: 400; background:url('/static/mtls-gw.svg'); background-repeat:no-repeat; background-size:contain; background-position: center left; padding:5px 10px 5px 70px; margin:5px 10px;}
 .top-bar logo span {color:#A0A0A0; font-size:66%;}
@@ -30,25 +30,27 @@ brand span {color:#4292D3;}
 .menu { background-color: #f4f4f4; border-right:1px solid rgba(0,0,0,0.1); width: auto; padding: 15px; box-shadow:inset -3px 0px 10px -9px rgba(0,0,0,0.36);padding:0;}
 .menu ul { width:100%; list-style-type: none; box-shadow: initial; padding: 0; font-size:16px; font-weight: 400; margin-top:0px; }
 .menu ul li{ width:100%; box-shadow: initial; margin-left:2px; }
-.menu ul li p { width:100%; display:inline-block; margin: 0 0; background:rgba(0,0,0,0.05); border-left:solid 5px #4292D3; white-space: nowrap; padding: 0px 20px 0px 0px;}
-.menu ul li a { width:100%; display:inline-block; margin: 0 0; text-decoration: none; color: #333; border:none; background:none; border-left:solid 5px rgba(0,0,0,0); white-space: nowrap; padding: 0px 20px 0px 0px;}
-.menu ul li a fa, .menu ul li p fa{ padding: 15px 10px 15px 15px;}
-.menu table th {padding:13px 5px 0px 20px;}
+.menu ul li p { width:100%; display:inline-block; margin: 0 0; background:rgba(0,0,0,0.05); border-right:solid 5px #4292D3; white-space: nowrap; padding: 0px 20px 0px 5px;}
+.menu ul li a { width:100%; display:inline-block; margin: 0 0; text-decoration: none; color: #333; border:none; background:none; border-right:solid 5px rgba(0,0,0,0); white-space: nowrap; padding: 0px 20px 0px 5px;}
+fa{min-width:48px; width:48px; text-align:center; padding: 15px 10px 15px 15px;}
+.menu table th {padding:10px 0px 0px 5px;}
 .menu table td {padding:10px 0px 0px 0px;}
-.menu table td select {border:0; background:rgba(255, 255 ,255, 0); font-size:18px; margin-right:10px;}
+.menu table td select {border:0; background:rgba(255, 255 ,255, 0); font-size:18px; margin-right:10px; padding-left:0px;}
+.menu table th fa {padding: 15px 5px 15px 15px; min-width:43px; width:43px;}
 
 .content { padding: 40px; display:flex; flex-direction: row; flex-wrap: wrap; justify-content: flex-start; align-content: flex-start; gap: 20px 20px; }
 .content div { flex-grow: 1; min-width:300px; min-height:200px; background:rgba(0,0,0, 0.01); border:1px solid rgba(0,0,0, 0.1); border-radius: 5px; padding:25px 35px;}
-.content div table {border-top: 1px solid rgba(0,0,0,0.1); vertical-align: middle; text-align: left; margin-top:10px; font-weight: 300; margin-bottom:20px;}
-.content div table td, .content div table th {border-bottom: 1px dotted rgba(0,0,0,0.1); padding:10px 15px 10px 0; vertical-align: middle; text-align: left; }
+.content div table {vertical-align: middle; text-align: left; margin-top:20px; font-weight: 300; margin-bottom:20px;}
+.content div table td, .content div table th {border-top: 1px dotted rgba(0,0,0,0.1); padding:10px 15px 10px 0; vertical-align: middle; text-align: left; }
 .content div table th {font-weight: 500; color:#909090;}
 .content div table th.TOP {vertical-align: top;}
 .content div table td.r, .content div table th.r {text-align: right;}
-.content div table th label {margin:10px 5px; clear:both;}
-.content div table th div.holder {clear:both; min-height: auto;}
+.content div table th label {margin:10px 0px; clear:both;}
+.content div table th p {margin:10px 0px; clear:both; color:#000000; font-size:80%;}
+.content div table th div.holder {clear:both; min-height: auto; margin-top:5px;}
 
 
-a.submit {font-weight: 400; font-size:16px; background:rgba(0,0,0,0.1); border:1px solid rgba(0,0,0,0.1); color:#303030; padding:10px 15px; float:left; margin:0px 20px 10px 0px; cursor: pointer; text-decoration:none; white-space: nowrap;}
+a.submit {font-weight: 400; font-size:16px; background:rgba(0,0,0,0.1); border:1px solid rgba(0,0,0,0.1);  border-radius:3px; color:#303030; padding:10px 15px; float:left; margin:0px 20px 10px 0px; cursor: pointer; text-decoration:none; white-space: nowrap;}
 a.submit:hover {background:rgba(0,0,0,0.08);}
 a.submit:active {background:rgba(0,0,0,0.2);}
 a.submit span::before {margin-right:8px; font-family:'Font Awesome 6 Free'}
@@ -58,28 +60,30 @@ a.submit span.nomargin::before {margin-right:0px; font-family:'Font Awesome 6 Fr
 .top-bar div a.submit:hover {background:rgba(255,255,255,0.15);}
 .top-bar div a.submit:active {background:rgba(255,255,255,0.05);}
 
-form.all-in-one {border:1px solid rgba(0,0,0,0.1); padding:2px; display:flex; flex-wrap:}
+form.all-in-one {border:1px solid rgba(0,0,0,0.1); padding:2px; display:flex; border-radius:3px; }
 form.all-in-one a {font-weight: 400; font-size:16px; background:rgba(0,0,0,0.1); border:1px solid rgba(0,0,0,0.1); color:#303030; padding:8px 13px; float:left; cursor: pointer; text-decoration:none; margin:0;}
 form.all-in-one a:hover {background:rgba(0,0,0,0.08);}
 form.all-in-one a:active {background:rgba(0,0,0,0.2);}
 
-input[type="text"] {border:1px solid rgba(0,0,0,0.1); font-size:16px; padding:8px 15px;}
+input[type="text"] {border:1px solid rgba(0,0,0,0.1); font-size:16px; padding:8px 15px; border-radius:3px; }
 input[type="text"]:focus {outline:none; background:rgba(255, 255, 200, 0.1);}
-input[type="number"] {border:1px solid rgba(0,0,0,0.1); font-size:16px; padding:8px 15px;}
+input[type="number"] {border:1px solid rgba(0,0,0,0.1); font-size:16px; padding:8px 15px; border-radius:3px; }
 input[type="number"]:focus {outline:none; background:rgba(255, 255, 200, 0.1);}
 input[type="checkbox"] {margin: 10px 10px 10px 0px;}
+.holder input[type="checkbox"] {margin: 0px 10px 15px 0px;}
 input[type="text"].path::before{content: '/'; padding:10px;}
-textarea {border:1px solid rgba(0,0,0,0.1); font-size:16px; padding:8px 15px; min-width:600px; min-height: 150px; margin:5px 0px;}
+textarea {border:1px solid rgba(0,0,0,0.1); font-size:16px; padding:8px 15px; min-width:600px; min-height: 150px; margin:5px 0px; border-radius:3px; }
 textarea:focus {outline:none; background:rgba(255, 255, 200, 0.1);}
 
 form.all-in-one input[type="text"] {border:0; width:100%;}
-form.all-in-one a.submit span::before {margin-right:0px;}
 p.error-msg {color:rgba(155, 80, 60, 0.8); margin-left:3px;}
 p.ok-msg {color:rgba(80, 155, 60, 0.8); margin-left:3px;}
-p.warning {border:1px solid #E0B060; background: #F0E080; border-radius:5px; padding:10px 20px 10px 20px; color:#404040;}
+p.warning {border:1px solid #E0B060; background: #F0E080; border-radius:3px; padding:10px 20px 10px 20px; color:#404040;}
 p.warning span {color:#A08030; margin:0; padding:0;}
-p.error {width:100%; border:1px solid #d17e69; background: #ffcbbe; border-radius:5px; padding:10px 20px 10px 20px; color:#400000; margin-left:40px;}
+p.error {width:100%; border:1px solid #d17e69; background: #ffcbbe; border-radius:3px; padding:10px 20px 10px 20px; color:#400000; margin-left:40px;}
 p.error span {color:#9b471e; margin:0; padding:0;}
+a:hover .fa-trash-can{color:#E04020;}
+a:hover .fa-save, a:hover .fa-floppy-disk{color:#30A010;}
 
 select{
 	color:#404040;

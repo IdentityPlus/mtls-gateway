@@ -5,11 +5,11 @@ import (
 	"crypto/x509"
 	"fmt"
 	"html/template"
-	"io/ioutil"
 	"log"
 	"math"
 	"net"
 	"net/http"
+	"regexp"
 	"strconv"
 	"strings"
 	"time"
@@ -30,18 +30,32 @@ import (
 )
 
 type Manager_Service struct {
-	Perimeter_APIs map[string]*mtlsid.Perimeter_API
-	certificates   map[string]*tls.Certificate
-	server         *http.Server
-	running        bool
-	mu             sync.Mutex
-	openresty      *exec.Cmd
-	Updated        string
+	Perimeter_APIs      map[string]*mtlsid.Perimeter_API
+	certificates        map[string]*tls.Certificate
+	server              *http.Server
+	running             bool
+	mu                  sync.Mutex
+	openresty           *exec.Cmd
+	Updated             string
+	configuration_files []string
+	managed_services    map[string]*integrations.ServiceConfig
 }
 
 var Manager_Service__ = Manager_Service{
-	Perimeter_APIs: make(map[string]*mtlsid.Perimeter_API),
-	running:        false,
+	Perimeter_APIs:   make(map[string]*mtlsid.Perimeter_API),
+	managed_services: make(map[string]*integrations.ServiceConfig),
+	running:          false,
+}
+
+func (srv *Manager_Service) Get_Configurations() []string {
+	srv.mu.Lock()
+	defer srv.mu.Unlock()
+
+	if len(srv.configuration_files) == 0 {
+		srv.configuration_files, _ = List_Service_Configurations()
+	}
+
+	return srv.configuration_files
 }
 
 func (srv *Manager_Service) Running() bool {
@@ -49,12 +63,11 @@ func (srv *Manager_Service) Running() bool {
 }
 
 func escape_slash(path string) string {
-	return strings.ReplaceAll(path, "/", "-")
+	re := regexp.MustCompile(`[^a-zA-Z0-9_-]+`)
+	return re.ReplaceAllString(path, "-")
 }
 
-// Custom client authentication function
 func (srv *Manager_Service) authenticate_client(domain string, cert *x509.Certificate) bool {
-	// For now, just print certificate info. In a real scenario, add logic to verify the client certificate.
 	var error_cause string
 	var validation__ *mtlsid.Client_Validation_Ticket
 	var device_name string
@@ -86,14 +99,12 @@ func (srv *Manager_Service) authenticate_client(domain string, cert *x509.Certif
 	}
 
 	if allowed {
-		log.Printf("Access granted to mTLS ID: {SN: %s, Agent: \"%s/%s\", Org-ID: \"%s\", Roles: [%s]}\n", validation__.Serial_No, device_name, device_type, validation__.Cache.OrgID, roles)
+		log.Printf("Access Granted: {domain: \"%s\", mTLS ID: %s, Agent: \"%s/%s\", Org-ID: \"%s\", Roles: [%s]}\n", domain, validation__.Serial_No, device_name, device_type, validation__.Cache.OrgID, roles)
 		return true
 	} else {
-		log.Printf("Access denied to mTLS ID: {SN: %s, Agent: \"%s/%s\", Org-ID: \"%s\", Roles: [%s]}\n", validation__.Serial_No, device_name, device_type, validation__.Cache.OrgID, roles)
+		log.Printf("Access Denied: {domain: \"%s\", mTLS ID: %s, Agent: \"%s/%s\", Org-ID: \"%s\", Roles: [%s]}\n", domain, validation__.Serial_No, device_name, device_type, validation__.Cache.OrgID, roles)
 		return false
 	}
-
-	return true
 }
 
 func (srv *Manager_Service) certificate_for(domain string, no_cache bool) *tls.Certificate {
@@ -122,9 +133,9 @@ func (srv *Manager_Service) certificate_for(domain string, no_cache bool) *tls.C
 }
 
 func (srv *Manager_Service) load_TLS_config() *tls.Config {
-	identities, _ := List_Service_Configurations()
+	identities := srv.Get_Configurations()
 
-	caCert, err := ioutil.ReadFile(global.Config__.DataDirectory + "/identity/" + identities[0] + "/service-id/identity-plus-root-ca.cer")
+	caCert, err := os.ReadFile(global.Config__.DataDirectory + "/identity/" + identities[0] + "/service-id/identity-plus-root-ca.cer")
 	if err != nil {
 		log.Fatalf("Failed to read CA certificate: %v", err)
 	}
@@ -199,7 +210,16 @@ func render_page(w http.ResponseWriter, tmpl string, data interface{}) {
 	}
 }
 
-func (srv *Manager_Service) Register(domain string) {
+func (srv *Manager_Service) Register_Service(domain string) {
+	srv.Configure_Perimeter_API(domain)
+
+	srv.mu.Lock()
+	defer srv.mu.Unlock()
+
+	Manager_Service__.configuration_files = nil
+}
+
+func (srv *Manager_Service) Configure_Perimeter_API(domain string) {
 	id_dir := global.Config__.DataDirectory + "/identity/" + domain
 
 	api := mtlsid.Perimeter_API{
@@ -232,18 +252,20 @@ func (srv *Manager_Service) Start() {
 
 	mux := http.NewServeMux()
 	mux.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("webapp/static"))))
-	mux.HandleFunc("/", srv.overview)
-	mux.HandleFunc("/add-service-route/", srv.add_serivce_route)
-	mux.HandleFunc("/basic-config/", srv.basic_config)
-	mux.HandleFunc("/tcp-config/", srv.tcp_config)
-	mux.HandleFunc("/http-config/", srv.http_config)
-	mux.HandleFunc("/admin", srv.admin)
+	mux.HandleFunc("/", srv.handle_overview)
+	mux.HandleFunc("/download-ca", handle_download_ca)
+	mux.HandleFunc("/add-service-route/", srv.handle_new_serivce_route)
+	mux.HandleFunc("/routes/", srv.handle_routes)
+	mux.HandleFunc("/access-control/", srv.handle_access_control)
+	mux.HandleFunc("/tcp-config/", srv.handle_tcp_config)
+	mux.HandleFunc("/http-config/", srv.handle_http_config)
+	mux.HandleFunc("/admin", srv.handle_admin)
 
 	tlsConfig := srv.load_TLS_config()
 
 	// Create the HTTPS server with custom TLS configuration
 	srv.server = &http.Server{
-		Addr:      "0.0.0.0:" + global.Config__.AdminPort,
+		Addr:      "0.0.0.0:" + global.Config__.AdminOperatingPort,
 		Handler:   mux,
 		TLSConfig: tlsConfig,
 	}
@@ -253,19 +275,27 @@ func (srv *Manager_Service) Start() {
 	mtlsid.Stats__.ValidationLatency = 0
 	mtlsid.Stats__.ValidationCount = 0
 
-	log.Printf("Starting mTLS Gateway Manager service on port (https://%s:%s) with Identity Plus mTLS-based client authentication...\n", "0.0.0.0", global.Config__.AdminPort)
+	log.Printf("Starting mTLS Gateway Manager service on port (https://%s:%s) with Identity Plus mTLS-based client authentication...\n", "0.0.0.0", global.Config__.AdminOperatingPort)
 	err := srv.server.ListenAndServeTLS("", "") // Empty strings to use certificates from TLSConfig
 	if err != nil {
 		log.Fatalf("Failed to start server: %v", err)
 	}
 }
 
-func (srv *Manager_Service) add_serivce_route(w http.ResponseWriter, r *http.Request) {
+func (srv *Manager_Service) handle_new_serivce_route(w http.ResponseWriter, r *http.Request) {
+	service_fonfigs := srv.Get_Configurations()
 	op_domain, _, _ := net.SplitHostPort(r.Host)
-	config := get_service_config(op_domain)
+	config := srv.Get_Service_Config(op_domain)
 
 	var error_msg = ""
 	var new_domain = ""
+	var host_ip = ""
+
+	ips, _ := net.LookupIP(op_domain)
+
+	if len(ips) > 0 {
+		host_ip = ips[0].String()
+	}
 	var new_perimeter_api *mtlsid.Perimeter_API
 
 	if r.Method == http.MethodPost {
@@ -279,7 +309,7 @@ func (srv *Manager_Service) add_serivce_route(w http.ResponseWriter, r *http.Req
 
 			if new_perimeter_api != nil {
 				new_domain = new_perimeter_api.Domain()
-				srv.Register(new_domain)
+				srv.Register_Service(new_domain)
 			}
 
 		} else {
@@ -287,42 +317,63 @@ func (srv *Manager_Service) add_serivce_route(w http.ResponseWriter, r *http.Req
 		}
 	}
 
-	service_fonfigs, _ := List_Service_Configurations()
-
 	render_page(w, "new-service", map[string]interface{}{
-		"Domain":       srv.Perimeter_APIs[op_domain].Domain(),
-		"SRV_Port":     fmt.Sprintf("%s", global.Config__.AdminAccessPort),
+		"Domain":       op_domain,
+		"Host_IP":      host_ip,
+		"SRV_Port":     global.Config__.AdminPort,
 		"Error":        error_msg,
 		"Destination":  new_domain,
 		"Service":      config.Service,
-		"Port":         global.Config__.AdminAccessPort,
+		"Port":         global.Config__.AdminPort,
 		"CurrentPage":  "Add Service Route",
 		"DynamicPages": service_fonfigs,
 	})
 }
 
-func (srv *Manager_Service) admin(w http.ResponseWriter, r *http.Request) {
+func (srv *Manager_Service) handle_admin(w http.ResponseWriter, r *http.Request) {
 	domain, _, _ := net.SplitHostPort(r.Host)
-	service_fonfigs, _ := List_Service_Configurations()
+	service_fonfigs := srv.Get_Configurations()
 
 	render_page(w, "admin", map[string]interface{}{
 		"CurrentPage":  "Admin",
-		"SRV_Port":     fmt.Sprintf("%s", global.Config__.AdminAccessPort),
+		"SRV_Port":     global.Config__.AdminPort,
 		"DynamicPages": service_fonfigs,
 		"CacheSize":    srv.Perimeter_APIs[domain].Cache_Size(),
 		"Domain":       srv.Perimeter_APIs[domain].Domain(),
 	})
 }
 
-func (srv *Manager_Service) overview(w http.ResponseWriter, r *http.Request) {
+func (srv *Manager_Service) handle_overview(w http.ResponseWriter, r *http.Request) {
+	service_fonfigs := srv.Get_Configurations()
 	domain, _, _ := net.SplitHostPort(r.Host)
-	config := get_service_config(domain)
+	config := srv.Get_Service_Config(domain)
 
 	var validation__ *mtlsid.Client_Validation_Ticket
-	var device_name string
-	var device_type string
+	var device_name, client_serial, device_type, srv_agent_name, renewal_due, expires string
+	var age int
 
 	cert := r.TLS.PeerCertificates[0]
+
+	client_certificate, no_cc_err := srv.Perimeter_APIs[domain].Self_Authority.Client_Certificate()
+	if no_cc_err == nil {
+		x509_cert, _ := x509.ParseCertificate(client_certificate.Certificate[0])
+		client_serial = x509_cert.SerialNumber.String()
+		srv_agent_name = x509_cert.Subject.CommonName
+		expires = x509_cert.NotAfter.Format("2006-01-02 15:04:05 MST")
+
+		totalLifetime := x509_cert.NotAfter.Sub(x509_cert.NotBefore).Hours() / 24
+		now := time.Now()
+		seventyFivePercentDays := totalLifetime * 0.75
+		targetDate := x509_cert.NotBefore.Add(time.Duration(seventyFivePercentDays*24) * time.Hour)
+		daysUntil75Percent := strconv.Itoa(int(math.Round(targetDate.Sub(now).Hours() / 24)))
+		renewal_due = fmt.Sprintf("%s days", daysUntil75Percent)
+
+		elapsedDays := now.Sub(x509_cert.NotBefore).Hours() / 24
+		age = int(elapsedDays / totalLifetime * 100)
+
+	} else {
+		srv_agent_name = no_cc_err.Error()
+	}
 
 	if r.Method == http.MethodPost {
 		err := r.ParseForm()
@@ -347,12 +398,10 @@ func (srv *Manager_Service) overview(w http.ResponseWriter, r *http.Request) {
 		validation__, device_name, device_type, _ = srv.Perimeter_APIs[domain].Validate_Client_Identity(cert, "", true)
 	}
 
-	service_fonfigs, _ := List_Service_Configurations()
-
 	render_page(w, "overview", map[string]interface{}{
 		"CurrentPage":     "Overview",
-		"SRV_Port":        fmt.Sprintf("%s", global.Config__.AdminAccessPort),
-		"Port":            config.Service.Port,
+		"SRV_Port":        global.Config__.AdminPort,
+		"Port":            global.Config__.ApplicationPort,
 		"DynamicPages":    service_fonfigs,
 		"CacheSize":       srv.Perimeter_APIs[domain].Cache_Size(),
 		"Domain":          srv.Perimeter_APIs[domain].Domain(),
@@ -369,16 +418,27 @@ func (srv *Manager_Service) overview(w http.ResponseWriter, r *http.Request) {
 		"OrgEmail":        validation__.Cache.OrgEmail,
 		"OrgRoles":        validation__.Cache.ServiceRoles,
 		"Updated":         srv.Updated,
+
+		"Age":              age,
+		"ClientSerial":     client_serial,
+		"ServiceAgentName": srv_agent_name,
+		"Expires":          expires,
+		"RenewalDue":       renewal_due,
 	})
 }
 
-func (srv *Manager_Service) basic_config(w http.ResponseWriter, r *http.Request) {
+func (srv *Manager_Service) handle_routes(w http.ResponseWriter, r *http.Request) {
 	domain, _, _ := net.SplitHostPort(r.Host)
 	page_error := ""
-	service_fonfigs, _ := List_Service_Configurations()
-	config := get_service_config(domain)
+	service_fonfigs := srv.Get_Configurations()
+	config := srv.Get_Service_Config(domain)
 
 	if r.Method == http.MethodPost {
+		err := r.ParseForm()
+		if err != nil {
+			http.Error(w, "Unable to parse form", http.StatusBadRequest)
+			return
+		}
 
 		if r.FormValue("action") == "edit-interface" {
 			config.Service.Port, _ = strconv.Atoi(r.FormValue("port"))
@@ -421,26 +481,8 @@ func (srv *Manager_Service) basic_config(w http.ResponseWriter, r *http.Request)
 		}
 	}
 
-	var srv_agent_name, expires, renewal_due, client_serial, sv_srv_agent_name, sv_expires, sv_renewal_due, sv_client_serial string
-	var age, sv_age int
-
-	client_certificate, no_cc_err := srv.Perimeter_APIs[domain].Self_Authority.Client_Certificate()
-	if no_cc_err == nil {
-		x509_cert, _ := x509.ParseCertificate(client_certificate.Certificate[0])
-		srv_agent_name = x509_cert.Subject.CommonName
-		expires = x509_cert.NotAfter.Format("2006-01-02 15:04:05 MST")
-		client_serial = x509_cert.SerialNumber.String()
-		totalLifetime := x509_cert.NotAfter.Sub(x509_cert.NotBefore).Hours() / 24
-		now := time.Now()
-		elapsedDays := now.Sub(x509_cert.NotBefore).Hours() / 24
-		age = int(elapsedDays / totalLifetime * 100)
-		seventyFivePercentDays := totalLifetime * 0.75
-		targetDate := x509_cert.NotBefore.Add(time.Duration(seventyFivePercentDays*24) * time.Hour)
-		daysUntil75Percent := strconv.Itoa(int(math.Round(targetDate.Sub(now).Hours() / 24)))
-		renewal_due = fmt.Sprintf("%s days", daysUntil75Percent)
-	} else {
-		srv_agent_name = no_cc_err.Error()
-	}
+	var sv_srv_agent_name, sv_expires, sv_renewal_due, sv_client_serial string
+	var sv_age int
 
 	sv_client_certificate := srv.certificate_for(domain, false)
 	x509_cert, _ := x509.ParseCertificate(sv_client_certificate.Certificate[0])
@@ -456,17 +498,12 @@ func (srv *Manager_Service) basic_config(w http.ResponseWriter, r *http.Request)
 	daysUntil75Percent := strconv.Itoa(int(math.Round(targetDate.Sub(now).Hours() / 24)))
 	sv_renewal_due = fmt.Sprintf("%s days", daysUntil75Percent)
 
-	render_page(w, "my-service", map[string]interface{}{
-		"CurrentPage":      "Basic Configuration",
-		"SRV_Port":         fmt.Sprintf("%s", global.Config__.AdminAccessPort),
+	render_page(w, "routes", map[string]interface{}{
+		"CurrentPage":      "Routes",
+		"SRV_Port":         global.Config__.AdminPort,
 		"DynamicPages":     service_fonfigs,
 		"Service":          config.Service,
 		"Domain":           srv.Perimeter_APIs[domain].Domain(),
-		"ClientSerial":     client_serial,
-		"ServiceAgentName": srv_agent_name,
-		"Expires":          expires,
-		"RenewalDue":       renewal_due,
-		"Age":              age,
 		"ServerSerial":     sv_client_serial,
 		"ServerCN":         sv_srv_agent_name,
 		"ServerExpires":    sv_expires,
@@ -476,13 +513,18 @@ func (srv *Manager_Service) basic_config(w http.ResponseWriter, r *http.Request)
 	})
 }
 
-func (srv *Manager_Service) tcp_config(w http.ResponseWriter, r *http.Request) {
+func (srv *Manager_Service) handle_tcp_config(w http.ResponseWriter, r *http.Request) {
 	domain, _, _ := net.SplitHostPort(r.Host)
 	page_error := ""
-	service_fonfigs, _ := List_Service_Configurations()
-	config := get_service_config(domain)
+	service_fonfigs := srv.Get_Configurations()
+	config := srv.Get_Service_Config(domain)
 
 	if r.Method == http.MethodPost {
+		err := r.ParseForm()
+		if err != nil {
+			http.Error(w, "Unable to parse form", http.StatusBadRequest)
+			return
+		}
 
 		if r.FormValue("action") == "add-role" {
 			config.Service.TCP.RolesAllowed = append(config.Service.TCP.RolesAllowed, r.FormValue("role"))
@@ -506,7 +548,7 @@ func (srv *Manager_Service) tcp_config(w http.ResponseWriter, r *http.Request) {
 
 	render_page(w, "my-service-tcp", map[string]interface{}{
 		"CurrentPage":  "TCP Config",
-		"SRV_Port":     fmt.Sprintf("%s", global.Config__.AdminAccessPort),
+		"SRV_Port":     global.Config__.AdminPort,
 		"DynamicPages": service_fonfigs,
 		"Service":      config.Service,
 		"Domain":       srv.Perimeter_APIs[domain].Domain(),
@@ -514,14 +556,28 @@ func (srv *Manager_Service) tcp_config(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-func (srv *Manager_Service) http_config(w http.ResponseWriter, r *http.Request) {
+func (srv *Manager_Service) handle_access_control(w http.ResponseWriter, r *http.Request) {
+	service_fonfigs := srv.Get_Configurations()
 	domain, _, _ := net.SplitHostPort(r.Host)
+	config := srv.Get_Service_Config(domain)
 
-	service_fonfigs, _ := List_Service_Configurations()
-	config := get_service_config(domain)
+	cert := r.TLS.PeerCertificates[0]
+	var validation__, _, _, _ = srv.Perimeter_APIs[domain].Validate_Client_Identity(cert, "", true)
+
+	if config.Service.HTTP.OIDC.Clients == nil {
+		config.Service.HTTP.OIDC.Clients = []integrations.OIDC_Client{integrations.OIDC_Client{
+			Id:     "client1",
+			Secret: randomToken(16),
+		}}
+	}
 	page_error := ""
 
 	if r.Method == http.MethodPost {
+		err := r.ParseForm()
+		if err != nil {
+			http.Error(w, "Unable to parse form", http.StatusBadRequest)
+			return
+		}
 
 		if r.FormValue("action") == "edit-mtls" {
 			config.Service.HTTP.AccessMode = r.FormValue("split")
@@ -532,25 +588,157 @@ func (srv *Manager_Service) http_config(w http.ResponseWriter, r *http.Request) 
 			if r.FormValue("agent") != "" {
 				config.Service.HTTP.MtlsAgent = r.FormValue("agent")
 			}
+
+			page_error = srv.update_service_config(domain, config)
+
+		} else if r.FormValue("action") == "edit-trusted-proxy" {
 			if r.FormValue("org-id") != "" {
-				config.Service.HTTP.MtlsOrgID = r.FormValue("org-id")
+				config.Service.HTTP.Trusted_Headers.MtlsOrgID = r.FormValue("org-id")
 			}
 			if r.FormValue("org-name") != "" {
-				config.Service.HTTP.MtlsOrgName = r.FormValue("org-name")
+				config.Service.HTTP.Trusted_Headers.MtlsOrgName = r.FormValue("org-name")
 			}
 			if r.FormValue("org-email") != "" {
-				config.Service.HTTP.MtlsOrgEmail = r.FormValue("org-email")
+				config.Service.HTTP.Trusted_Headers.MtlsOrgEmail = r.FormValue("org-email")
 			}
 			if r.FormValue("roles") != "" {
-				config.Service.HTTP.MtlsRoles = r.FormValue("roles")
+				config.Service.HTTP.Trusted_Headers.MtlsRoles = r.FormValue("roles")
 			}
 			if r.FormValue("local-id") != "" {
-				config.Service.HTTP.MtlsLocalID = r.FormValue("local-id")
+				config.Service.HTTP.Trusted_Headers.MtlsLocalID = r.FormValue("local-id")
 			}
 
 			page_error = srv.update_service_config(domain, config)
 
-		} else if r.FormValue("action") == "edit-http" {
+		} else if r.FormValue("action") == "edit-oidc" {
+
+			for key := range r.Form {
+				if strings.HasPrefix(key, "client-name-") {
+					c := key[len("client-name-"):]
+					for i, client := range config.Service.HTTP.OIDC.Clients {
+						if escape_slash(client.Id) == c {
+							new_name := r.FormValue(key)
+							new_secret := r.FormValue("client-secret-" + c)
+
+							if new_name == "" {
+								config.Service.HTTP.OIDC.Clients = append(config.Service.HTTP.OIDC.Clients[:i], config.Service.HTTP.OIDC.Clients[i+1:]...)
+								break
+							}
+
+							if new_secret == "" {
+								new_secret = randomToken(16)
+							}
+
+							config.Service.HTTP.OIDC.Clients[i].Id = new_name
+							config.Service.HTTP.OIDC.Clients[i].Secret = new_secret
+						}
+					}
+				}
+			}
+
+			id := r.FormValue("new-client-name")
+			secret := r.FormValue("new-client-secret")
+
+			if id != "" {
+				if secret == "" {
+					secret = randomToken(16)
+				}
+
+				config.Service.HTTP.OIDC.Clients = append(config.Service.HTTP.OIDC.Clients, integrations.OIDC_Client{
+					Id:     id,
+					Secret: secret,
+				})
+
+			} else if id == "" && secret != "" {
+				page_error = "Client ID must be specified."
+			}
+
+			// continue processeing
+			if page_error == "" {
+				page_error = srv.update_service_config(domain, config)
+			}
+
+		} else if r.FormValue("action") == "edit-mapped-roles" {
+
+			for key := range r.Form {
+				if strings.HasPrefix(key, "role-from-") {
+					c := key[len("role-from-"):]
+					for i, mapping := range config.Service.HTTP.Translator.Mappings {
+						if escape_slash(mapping.Canonical) == c {
+							new_canonical := r.FormValue(key)
+							new_local := r.FormValue("role-to-" + c)
+
+							if new_canonical == "" || new_local == "" {
+								config.Service.HTTP.Translator.Mappings = append(config.Service.HTTP.Translator.Mappings[:i], config.Service.HTTP.Translator.Mappings[i+1:]...)
+								break
+							}
+
+							config.Service.HTTP.Translator.Mappings[i].Canonical = new_canonical
+							config.Service.HTTP.Translator.Mappings[i].Local = new_local
+						}
+
+					}
+				}
+
+			}
+
+			canonical := r.FormValue("new-role-from")
+			local := r.FormValue("new-role-to")
+
+			if canonical != "" {
+				if local == "" {
+					local = canonical
+				}
+
+				config.Service.HTTP.Translator.Mappings = append(config.Service.HTTP.Translator.Mappings, integrations.Role_Mapping{
+					Canonical: canonical,
+					Local:     local,
+				})
+
+			} else if canonical == "" && local != "" {
+				page_error = "Both canonical and local roles must be specified."
+			}
+
+			// continue processeing
+			if page_error == "" {
+				page_error = srv.update_service_config(domain, config)
+			}
+
+		} else {
+			log.Printf("unknown action: %s", r.FormValue("action"))
+		}
+	}
+
+	render_page(w, "my-service-access-ctl", map[string]interface{}{
+		"CurrentPage":    "Access Control",
+		"SRV_Port":       global.Config__.AdminPort,
+		"Local_Endpoint": global.Config__.LocalAuthenticatorEndpoint,
+		"DynamicPages":   service_fonfigs,
+		"Service":        config.Service,
+		"Domain":         srv.Perimeter_APIs[domain].Domain(),
+		"App_Port":       global.Config__.ApplicationPort,
+		"PageError":      page_error,
+		"OrgID":          validation__.Cache.OrgID,
+		"OrgName":        validation__.Cache.OrgName,
+		"OrgEmail":       validation__.Cache.OrgEmail,
+		"OrgRoles":       validation__.Cache.Get_Roles(config.Service.HTTP),
+	})
+}
+
+func (srv *Manager_Service) handle_http_config(w http.ResponseWriter, r *http.Request) {
+	service_fonfigs := srv.Get_Configurations()
+	domain, _, _ := net.SplitHostPort(r.Host)
+	config := srv.Get_Service_Config(domain)
+	page_error := ""
+
+	if r.Method == http.MethodPost {
+		err := r.ParseForm()
+		if err != nil {
+			http.Error(w, "Unable to parse form", http.StatusBadRequest)
+			return
+		}
+
+		if r.FormValue("action") == "edit-http" {
 			config.Service.HTTP.Websockets = r.FormValue("ws") == "on"
 			config.Service.HTTP.Wildcard = r.FormValue("wc") == "on"
 			config.Service.HTTP.HostHeader = r.FormValue("host")
@@ -620,12 +808,30 @@ func (srv *Manager_Service) http_config(w http.ResponseWriter, r *http.Request) 
 
 			page_error = srv.update_service_config(domain, config)
 
-		} else if r.FormValue("action") == "toggle-bypass" {
+		} else if r.FormValue("action") == "toggle-require" {
 			for i, location := range config.Service.HTTP.Locations {
 				if location.Path == r.FormValue("path") {
+					config.Service.HTTP.Locations[i].EnforceMTLS = r.FormValue("require") == "on"
+					break
+				}
+			}
 
-					config.Service.HTTP.Locations[i].Bypass = r.FormValue("bypass") != "on"
+			page_error = srv.update_service_config(domain, config)
 
+		} else if r.FormValue("action") == "toggle-enforce" {
+			for i, location := range config.Service.HTTP.Locations {
+				if location.Path == r.FormValue("path") {
+					config.Service.HTTP.Locations[i].EnforceRoles = r.FormValue("enforce") == "on"
+					break
+				}
+			}
+
+			page_error = srv.update_service_config(domain, config)
+
+		} else if r.FormValue("action") == "toggle-all-roles" {
+			for i, location := range config.Service.HTTP.Locations {
+				if location.Path == r.FormValue("path") {
+					config.Service.HTTP.Locations[i].AllowAllRoles = r.FormValue("all-roles") == "on"
 					break
 				}
 			}
@@ -670,12 +876,14 @@ func (srv *Manager_Service) http_config(w http.ResponseWriter, r *http.Request) 
 	}
 
 	render_page(w, "my-service-http", map[string]interface{}{
-		"CurrentPage":  "HTTP Config",
-		"SRV_Port":     fmt.Sprintf("%s", global.Config__.AdminAccessPort),
-		"DynamicPages": service_fonfigs,
-		"Service":      config.Service,
-		"Domain":       srv.Perimeter_APIs[domain].Domain(),
-		"PageError":    page_error,
+		"CurrentPage":    "HTTP Config",
+		"SRV_Port":       global.Config__.AdminPort,
+		"Local_Endpoint": global.Config__.LocalAuthenticatorEndpoint,
+		"DynamicPages":   service_fonfigs,
+		"Service":        config.Service,
+		"Domain":         srv.Perimeter_APIs[domain].Domain(),
+		"App_Port":       global.Config__.ApplicationPort,
+		"PageError":      page_error,
 	})
 }
 
@@ -706,6 +914,7 @@ func (srv *Manager_Service) update_service_config(domain string, config integrat
 		destination_file = "/conf/http/" + domain + ".conf"
 	}
 
+	srv.managed_services[domain] = &config
 	utils.WriteToFile(global.Config__.DataDirectory+"/services/work"+destination_file, []byte(lb_cfg))
 	test_result := nginx_template.Openresty_Test_Config(global.Config__.DataDirectory + "/services/work/nginx.conf")
 
@@ -778,11 +987,30 @@ func (srv *Manager_Service) Start_Openresty() {
 	srv.openresty = nil
 }
 
-func get_service_config(domain string) integrations.ServiceConfig {
+func (srv *Manager_Service) Get_Service_Config(domain string) integrations.ServiceConfig {
+	srv.mu.Lock()
+	defer srv.mu.Unlock()
+
+	config := srv.managed_services[domain]
+
+	if config == nil {
+		c := load_service_config(domain)
+		config = &c
+		srv.managed_services[domain] = config
+	}
+
+	return *config
+}
+
+func load_service_config(domain string) integrations.ServiceConfig {
+	if global.Config__.Verbose {
+		log.Printf("loading configuration for %s", domain)
+	}
+
 	config, err := integrations.Parse_Service_Config(global.Config__.DataDirectory + "/services/" + domain + ".yaml")
 
 	if err != nil {
-		log.Printf("No config file for %s, initializting service", domain)
+		log.Printf("No config file for %s, initializing service", domain)
 		config = integrations.ServiceConfig{
 			Service: integrations.ManagedService{
 				Port: 443,
@@ -802,15 +1030,19 @@ func get_service_config(domain string) integrations.ServiceConfig {
 					XRealIP:         "X-Real-IP",
 					MtlsID:          "X-mTLS-ID",
 					MtlsAgent:       "X-mTLS-Agent",
-					MtlsOrgID:       "X-mTLS-Org-ID",
-					MtlsOrgName:     "X-mTLS-Org-Name",
-					MtlsOrgEmail:    "X-mTLS-Org-Email",
-					MtlsRoles:       "X-mTLS-Roles",
-					MtlsLocalID:     "X-mTLS-Local-ID",
+					Trusted_Headers: integrations.Trusted_Headers_Auth{
+						MtlsOrgID:    "X-mTLS-Org-ID",
+						MtlsOrgName:  "X-mTLS-Org-Name",
+						MtlsOrgEmail: "X-mTLS-Org-Email",
+						MtlsRoles:    "X-mTLS-Roles",
+						MtlsLocalID:  "X-mTLS-Local-ID",
+					},
 					Locations: []integrations.Location{
 						integrations.Location{
 							Path:           "/",
-							Bypass:         false,
+							EnforceMTLS:    true,
+							EnforceRoles:   true,
+							AllowAllRoles:  false,
 							RolesAllowed:   []string{"org. administrator", "administrator"},
 							CustomCommands: "# Nginx custom location scope commands",
 						},

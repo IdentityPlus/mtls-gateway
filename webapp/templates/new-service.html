@@ -1,10 +1,23 @@
 {{ define "content" }}
 <div>
-    <h2>Provision mTLS Identity Perimeter for Service</h2>
+    <h2>Provision mTLS Identity Perimeter For A Service</h2>
     <table>
         <tr><td>
             {{ if eq .Destination "" }}
-                <p>Please configure the service in the <a href="https://platform.identity.plus" target="_blank">Identity Plus Perimeter Controller Dashboard</a> and grab an Autoprovisioning Token to kickstart the integration.</p>
+                <p>Before continuing please go through the prep check-list:</p>
+                <ul>
+                    <li>Go to <a href="https://platform.identity.plus" target="_blank">Identity Plus Perimeter Controller Dashboard</a>, chose your organization and create a service mapping.</li>
+                    <li>Configure the IP address of the the domain to point to this server: {{.Host_IP}}.
+                        <ul>
+                            <li>For your-service.your-org.mtls.app domains this is done at the "DNS" section of the service in the dashboard.</li>
+                            <li>For custom domains you mush refer to your DNS hosting service.</li>
+                            <li>Wait for the DNS to propagate and verify.</li>
+                        </ul>
+                    </li>
+                    <li><a href="/download-ca">Download</a> and trust (install) the Identity Plus priavete CA (Certificate Authority) if you haven't already done so.</li>
+                    <li>Grab an Autoprovisioning Token from the "Service Agents" section in the dashboard</li>
+                    <li>Paste the token and click "Provision"</li>
+                </ul>
                 <script>
                     function async_post(){
                         document.getElementById("wait-img").className = "";
@@ -20,8 +33,8 @@
                 </form>
                 <p class="error-msg">{{.Error}}</p>
             {{ else }}
-                <p class="ok-msg">-{{.Destination}}- service route has been configured. Initialization service will no exist, please switch over to the secure channel.</p>
-                <a class="submit" href="https://{{.Destination}}:{{.Port}}"><span class="fa-solid fa-lock"></span> Continue over mTLS</a>
+                <p class="ok-msg"><b>Success! {{.Destination}}</b> service route has been configured.</p>
+                <a class="submit" href="https://{{.Destination}}:{{.Port}}"><span class="fa-solid fa-lock"></span> Switch to {{.Destination}}</a>
             {{ end }}
         </td></tr>
     </table>

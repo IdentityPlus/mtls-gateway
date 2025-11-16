@@ -5,7 +5,7 @@
         <table>
             <tr><th><span>End Point</span></th><td>
               {{ if eq .Service.Mode "HTTP" }}
-                <a href="https://{{.Domain}}{{ if ne .Port 443 }}:{{.Port}}{{ end }}" target="blank_">https://{{.Domain}}{{ if ne .Port 443 }}:{{.Port}}{{ end }}</a>
+                <a href="https://{{.Domain}}{{ if ne .Port "443" }}:{{.Port}}{{ end }}" target="blank_">https://{{.Domain}}{{ if ne .Port "443" }}:{{.Port}}{{ end }}</a>
               {{ else }}
                 <npan>{{.Domain}}:{{.Port}}</span>
               {{ end }}
@@ -14,6 +14,7 @@
         </table>
     </form>
 </div>
+
 <div>
     <h2>mTLS Gateway Manager Service</h2>
     <table>
@@ -25,6 +26,21 @@
     <a class="submit" href="javascript:post('Clear Cache')"><span class="fa-solid fa-broom"></span>Clear Cache</a>
     <a class="submit" href="javascript:post('Check Latency')"><span class="fa-solid fa-hourglass-half"></span>Check Latency</a>
 </div>
+
+<div>
+    <h2>Gateway mTLS Client Persona</h2>
+    <form id="interface" method="POST">
+    <table>
+        <tr><th><label>Serial Number</label></th><td>{{ .ClientSerial }}</td></tr>
+        <tr><th><label>Common Name</label></th><td>{{ .ServiceAgentName }}</td></tr>
+        <tr><th><label>Expires</label></th><td><p style="background: linear-gradient(90deg, rgba(149,255,216,1) 0%, rgba(149,225,255,1) {{ .Age }}%, rgba(240,240,240,1) {{ .Age }}%); display:block; margin:0; padding:5px; text-align:center; border:1px solid rgba(0,0,0,0.2);">{{ .Expires }}</p></td></tr>
+        <tr><th><label>Renewal Due In</label></th><td>{{ .RenewalDue }}</td></tr>
+    </table>
+    </form>
+    <img width="42" height="42" id="wait-client-img" class="HIDDEN" src="/static/ring-wait.svg" >
+    <a class="submit" id="renew_client_link" href="javascript:rotate('client')"><span class="fa-solid fa-rotate"></span>Rotate Now</a>
+</div>
+
 <div>
     <h2>Your Identity</h2>
     <table>
@@ -38,6 +54,7 @@
         {{ range .OrgRoles }}
         <span>{{ . }}</span><br>
         {{ end }}</td></tr>
-</table>    
+  </table>    
 </div>
+
 {{ end }}

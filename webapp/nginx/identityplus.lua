@@ -18,19 +18,18 @@ local _M = {}
         if validation == nil or validation["outcome"] == nil then
             ngx.say(" - Client certificate authentication failed,")
        		ngx.say(" - No client certificate detected,")
-        		ngx.say(" - Client certificate expired,")
-        		ngx.say(" - Client certificate authority not trusted,")
+        	ngx.say(" - Client certificate expired,")
+        	ngx.say(" - Client certificate authority not trusted,")
 		elseif string.find(validation["outcome"], "OK 0001", 0, true) then
-        	    local srv_roles = "[]";
-			if validation["service-roles"] ~= nil then srv_roles = table.concat(validation["service-roles"], ",") end 
-            ngx.say(" - mTLS ID detected: 0x"..ngx.var.ssl_client_serial)
-            ngx.say(" - mTLS ID subject: "..ngx.var.ssl_client_s_dn)
-            ngx.say(" - Roles with this service: "..srv_roles)
-        else
+        	local srv_roles = "[]";
+            if validation["service-roles"] ~= nil then srv_roles = table.concat(validation["service-roles"], ",") end 
+                ngx.say(" - mTLS ID detected: 0x"..ngx.var.ssl_client_serial)
+                ngx.say(" - mTLS ID subject: "..ngx.var.ssl_client_s_dn)
+                ngx.say(" - Roles with this service: "..srv_roles)
+            else
  	        ngx.say("Please check the logs for additional informtion")
         end
         
-
         return 403
     end
 
@@ -38,7 +37,7 @@ local _M = {}
         if validation == nil or validation["outcome"] == nil then
             ngx.log(0, 'Access denied on '..host..': No client certificate presented');
         elseif string.find(validation["outcome"], "OK 0001", 0, true) then
-        	    local srv_roles = "[]";
+        	local srv_roles = "[]";
 			if validation["service-roles"] ~= nil then srv_roles = table.concat(validation["service-roles"], ",") end 
             ngx.log(0, 'Access denied for mTLS ID '..ngx.var.ssl_client_serial..', on '..host..': None of the following roles are allowed '..srv_roles);
         else
@@ -53,17 +52,17 @@ local _M = {}
         local serial = ngx.var.ssl_client_serial
         
         if serial == nil then
-        		return
+        	return
 		end 
 		
-        ngx.log(0, 'Setting header '..serial);
+        -- ngx.log(0, 'Setting header '..serial);
         if header == nil or header == "" then
             header = "X-mTLS-ID"
         end
 
         if serial ~= nil then
-            ngx.req.set_header(header, serial)
-            ngx.req.set_header("X-TLS-Client-Serial", serial)
+            ngx.req.set_header(header, '0x'..serial)
+            ngx.req.set_header("X-TLS-Client-Serial", '0x'..serial)
         end
     end
 
@@ -91,11 +90,22 @@ local _M = {}
         
     end
 
+    -- chek if an mTLS ID owner has any of a given list of roles
+    function _M.ok(validation) 
+        
+        if validation == nil or validation["outcome"] == nil or not string.find(validation["outcome"], "OK 0001", 0, true) then
+            return false
+        else
+            return true
+        end
 
-    function _M.matches(validation, roles) 
+    end
+
+    -- chek if an mTLS ID owner has any of a given list of roles
+    function _M.is_any_of(validation, roles) 
         if validation == nil then
             return false
-	   end 
+	    end 
 		
         if validation["outcome"] and string.find(validation["outcome"], "OK 0001", 0, true) then
             if validation ~= nil and validation["service-roles"] ~= nil then
@@ -114,6 +124,21 @@ local _M = {}
         return false
     end
 
+    -- chek if an mTLS ID owner has any sort of roles in the service
+    function _M.has_roles(validation) 
+        if validation == nil then
+            return false
+	    end 
+		
+        if validation["outcome"] and string.find(validation["outcome"], "OK 0001", 0, true) then
+            if validation ~= nil and #validation["service-roles"] > 0 then
+                return true
+            end
+        end        
+
+        return false
+    end
+
 
     function _M.validate_mtls_id(service)
         local serial = ngx.var.ssl_client_serial
@@ -124,22 +149,30 @@ local _M = {}
             return nil
         end
 
-        local distinguished_name = ngx.var.ssl_client_s_dn
-
-        local result = nil
-        
-        if result == nil then
-            result = _M.make_http_request(81, '/validate/'..service..'/0x'..serial, 'GET', '')
+        -- we cache the response for 5s so that request in the same http page load
+        -- don't trigger cascading http local calls
+        local cache = ngx.shared.http_validation_cache
+        if cache == nil then
+            cache =  ngx.shared.tcp_validation_cache
         end
 
-        local validation = cjson.decode(result)
+        local validation = cache:get(service..'/0x'..serial)
 
-        -- if the response is a profile, we dive into the response
-        if validation["Identity-Profile"] then
-            validation = validation["Identity-Profile"];
-        else
-            validation = validation["Simple-Response"];
+        if validation == nil then
+            local result = _M.make_http_request(81, '/mtls-gw/validate/'..service..'/0x'..serial, 'GET', '')
+
+            validation = cjson.decode(result)
+
+            -- if the response is a profile, we go one level down into the response
+            if validation["Identity-Profile"] then
+                validation = validation["Identity-Profile"];
+            else
+                validation = validation["Simple-Response"];
+            end
         end
+
+        -- cache the validation directly so as to skip json processing too
+        cache:set(service..'/0x'..serial, result, 15)
 
         return validation
     end
@@ -166,14 +199,14 @@ local _M = {}
         return body
     end
 
-
+    -- utility function to make an http request over a tcp socket connection
     function _M.send_http_request(sock, host, path, method, body)
         -- Prepare the HTTP request
         local request = string.format("%s %s HTTP/1.1\r\nHost: %s\r\nContent-Type: application/json\r\nContent-Length: %d\r\nConnection: keep-alive\r\n\r\n%s", method, path, host, #body, body)
 
-        -- ngx.log(0, "-------------- request -----------------")
+        -- ngx.log(0, "\n-------------- request -----------------\n")
         -- ngx.log(0, "", request)
-        -- ngx.log(0, "-------------------------------")
+        -- ngx.log(0, "\n-------------------------------\n")
 
         -- Send the HTTP request
         local bytes, err = sock:send(request)
@@ -183,7 +216,8 @@ local _M = {}
         end
     end
 
-
+    -- utility function to receive a tcp resonse, 
+    -- parse it into an http response and return the body
     function _M.receive_http_response(sock)
         -- Receive the HTTP response
         local response_lines = {}
@@ -223,9 +257,9 @@ local _M = {}
         -- Concatenate the response headers and body into a single response string
         local response = table.concat(response_lines, "\n") .. "\r\n\r\n" .. response_body
 
-        -- ngx.log(0, "-------------- response -----------------")
+        -- ngx.log(0, "\n-------------- response -----------------\n")
         -- ngx.log(0, "", response)
-        -- ngx.log(0, "-------------------------------")
+        -- ngx.log(0, "\n-------------------------------\n")
 
         -- Parse the response
         local body_start = response:find("\r\n\r\n", 1, true)
@@ -240,6 +274,8 @@ local _M = {}
         return body
     end
 
+
+    -- utility function to log pretty-printed map object
     function _M.print_table(t, indent)
         indent = indent or ""
         for k, v in pairs(t) do
@@ -252,6 +288,7 @@ local _M = {}
         end
     end
     
+    -- utility function to send html formatted map object
     function _M.say_table(t)
         indent = indent or ""
         for k, v in pairs(t) do
@@ -267,6 +304,7 @@ local _M = {}
         end
     end
 
+    -- utility function to send pain-text formatted map object
     function _M.say_table_plain(t, indent)
         indent = indent or ""
         for k, v in pairs(t) do

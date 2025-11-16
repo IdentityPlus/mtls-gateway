@@ -71,7 +71,8 @@
             <ul>
                 <li><separator></separator></li>
                 <li>{{ if eq .CurrentPage "Overview" }}<p><fa class="fa-solid fa-chart-simple"></fa>Overview</p>{{ else }}<a href="/"><fa class="fa-solid fa-chart-simple"></fa>Overview</a>{{ end }}</li>
-                <li>{{ if eq .CurrentPage "Basic Configuration" }}<p><fa class="fa-solid fa-wrench"></fa>Basic Config</p>{{ else }}<a href="/basic-config"><fa class="fa-solid fa-wrench"></fa>Basic Config</a>{{ end }}</li>
+                <li>{{ if eq .CurrentPage "Routes" }}<p><fa class="fa-solid fa-network-wired"></fa>Routes</p>{{ else }}<a href="/routes"><fa class="fa-solid fa-network-wired"></fa>Routes</a>{{ end }}</li>
+                <li>{{ if eq .CurrentPage "Access Control" }}<p><fa class="fa-solid fa-lock"></fa>Access Control</p>{{ else }}<a href="/access-control"><fa class="fa-solid fa-lock"></fa>Access Control</a>{{ end }}</li>
                 {{ if eq .Service.Mode "HTTP" }}
                     <li>{{ if eq .CurrentPage "HTTP Config" }}<p><fa class="fa-solid fa-link"></fa>HTTP Config</p>{{ else }}<a href="/http-config"><fa class="fa-solid fa-link"></fa>HTTP Config</a>{{ end }}</li>
                 {{ end }}
@@ -80,7 +81,7 @@
                     <li>{{ if eq .CurrentPage "TCP Config" }}<p><fa class="fa-solid fa-plug"></fa>TCP Config</p>{{ else }}<a href="/tcp-config"><fa class="fa-solid fa-plug"></fa>TCP Config</a>{{ end }}</li>
                 {{ end }}
                 <li><separator></separator></li>
-                <li>{{ if eq .CurrentPage "Add Service Route" }}<p><fa class="fa-solid fa-plus"></fa>New Service Perimeter</p>{{ else }}<a href="/add-service-route"><fa class="fa-solid fa-plus"></fa>New Service Perimeter</a>{{ end }}</li>
+                <li>{{ if eq .CurrentPage "Add Service Route" }}<p><fa class="fa-solid fa-circle-plus"></fa>New Service Perimeter</p>{{ else }}<a href="/add-service-route"><fa class="fa-solid fa-circle-plus"></fa>New Service Perimeter</a>{{ end }}</li>
             </ul>
         </aside>
 
