@@ -7,7 +7,7 @@ authenticator_operating_port: "81"
 local_authenticator_endpoint: "10.10.0.200:81"
 data_directory: "/etc/mtls-gateway/work"
 mtls_id_ttl: 5
-device_name: "Agent X"
+device_name: "Prd-Agent"
 identity_broker: "identity.plus"
 roles_allowed:
   - "org. administrator"

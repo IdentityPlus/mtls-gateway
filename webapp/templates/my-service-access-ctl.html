@@ -26,7 +26,7 @@
     {{ if eq .Service.Mode "HTTP" }}
       {{ if eq .Service.HTTP.AccessMode "Proxy" }}
         <div>
-            <h2>Trusted Proxy Heders</h2>
+            <h2>Trusted Proxy Headers</h2>
             <form id="trusted-proxy-behavior" method="POST">
             <table>
                 <tr><th><label for="org-id">mTLS Org ID</label></th><td><input type="text" id="org-id" name="org-id" value="{{ .Service.HTTP.Trusted_Headers.MtlsOrgID }}"></td></tr>
@@ -37,6 +37,18 @@
             </table>
             </form>
             <a class="submit" href="javascript:sync_post('trusted-proxy-behavior', 'edit-trusted-proxy')"><span class="fa-solid fa-save"></span>Save</a>
+        </div>
+        <div>
+            <h2>Proxy Role Mapping</h2>
+            <form id="role-mapping" method="POST">
+            <table>
+                {{ range $mapping := .Service.HTTP.Translator.Mappings }}
+                <tr><th><label for="role-from-{{deslash $mapping.Canonical}}">Canonical</label></th><td><input type="text" id="role-from-{{deslash $mapping.Canonical}}" name="role-from-{{deslash $mapping.Canonical}}" placeholder="Empty To Delete Mapping" value="{{ $mapping.Canonical }}"></td><th><label for="role-to-{{deslash $mapping.Canonical}}">Upstream Role</label></th><td><input type="text" id="role-to-{{deslash $mapping.Canonical}}" placeholder="Empty To Delete Mapping" name="role-to-{{deslash $mapping.Canonical}}" value="{{ $mapping.Local }}"></td></tr>
+                {{ end }}
+                <tr><th><label for="new-role-from">Canonical</label></th><td><input type="text" id="new-role-from" name="new-role-from" placeholder="Add Canonical Role" value=""></td><th><label for="new-role-to">Upstream Role</label></th><td><input type="text" id="new-role-to" placeholder="Map To Local" name="new-role-to" value=""></td></tr>
+            </table>
+            </form>
+            <a class="submit" href="javascript:sync_post('role-mapping', 'edit-mapped-roles')"><span class="fa-solid fa-save"></span>Save</a>
         </div>
       {{ end }}
   
