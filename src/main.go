@@ -10,7 +10,7 @@ import (
 	// "fmt"
 	"log"
 	// "io"
-	"io/ioutil"
+
 	"os"
 
 	"identity.plus/mtls-gw/global"
@@ -21,11 +21,11 @@ import (
 )
 
 func load_config(config_file string) {
-	log.Println("Loading configuration: %s", config_file)
+	log.Printf("Loading configuration: %s\n", config_file)
 	var config global.Config
 
 	// Read the TLS configuration file
-	fileData, err := ioutil.ReadFile(config_file)
+	fileData, err := os.ReadFile(config_file)
 	if err != nil {
 		log.Fatalf("Unable to read config file: %v", err)
 	}
@@ -79,7 +79,7 @@ func certificate_update_service() {
 }
 
 func main() {
-	config_file := "./config.yaml"
+	config_file := "/etc/mtls-gateway/config.yaml"
 	if len(os.Args) > 1 {
 		config_file = os.Args[1]
 	}
