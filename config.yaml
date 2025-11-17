@@ -1,8 +1,7 @@
 verbose: true
+application_port: "443"
 admin_port: "444"
 admin_operating_port: "444"
-application_port: "443"
-local_host: "127.0.0.1"
 authenticator_operating_port: "81"
 local_authenticator_endpoint: "10.10.0.200:81"
 data_directory: "/etc/mtls-gateway/work"
