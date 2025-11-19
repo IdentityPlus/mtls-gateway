@@ -14,7 +14,7 @@ RUN unzip mtls-gateway.zip
 RUN mv mtls-gateway-main mtls-gateway
 RUN cp mtls-gateway/config.yaml /etc/mtls-gateway/config.yaml
 
-RUN echo "[supervisord]" > /etc/supervisord.conf && \
+RUN echo "[supervisord]" >> /etc/supervisord.conf && \
     echo "nodaemon=true" >> /etc/supervisord.conf && \
     echo "" >> /etc/supervisord.conf && \
     echo "[program:mtls-gateway]" >> /etc/supervisord.conf && \

@@ -40,17 +40,28 @@ func Load_Config(config_file string) {
 
 	// Read the TLS configuration file
 	fileData, err := os.ReadFile(config_file)
+
 	if err != nil {
-		log.Fatalf("Unable to read config file: %v", err)
+		log.Printf("Unable to read config file: %v, using default", err)
+
+	} else if err := yaml.Unmarshal(fileData, &config); err != nil {
+		// Parse the YAML file into the TLSConfig struct
+		log.Printf("Unable to parse config file: %v, using default", err)
 	}
 
-	// Parse the YAML file into the TLSConfig struct
-	if err := yaml.Unmarshal(fileData, &config); err != nil {
-		log.Fatalf("Unable to parse config file: %v", err)
-	}
-
-	if config.Log_Retention == 0 {
+	if config.AdminOperatingPort == 0 {
 		config.Log_Retention = 12
+		config.AdminPort = 444
+		config.AdminOperatingPort = 444
+		config.ApplicationOperatingPort = 443
+		config.ApplicationPort = 443
+		config.AuthenticatorOperatingPort = 81
+		config.LocalAuthenticatorEndpoint = "$PRIVATE_IP:81"
+		config.DataDirectory = "/etc/mtls-gateway/work"
+		config.MtlsIdTtl = 5
+		config.DeviceName = "Prd-Agent"
+		config.IdentityBroker = "identity.plus"
+		config.RolesAllowed = []string{"org. administrator", "org. manager", "administrator", "manager"}
 	}
 
 	Config__ = &config
