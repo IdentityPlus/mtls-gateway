@@ -6,7 +6,8 @@ RUN apt install -y cron supervisor
 # download additional Lua modules (http in particular)
 RUN opm get ledgetech/lua-resty-http
 
-RUN mkdir -p /etc/mtls-gateway/work
+RUN mkdir -p /var/mtls-gateway/
+RUN mkdir -p /etc/mtls-gateway/
 RUN mkdir /opt/identity.plus
 WORKDIR /opt/identity.plus
 RUN curl -L https://github.com/IdentityPlus/mtls-gateway/archive/refs/heads/main.zip > mtls-gateway.zip

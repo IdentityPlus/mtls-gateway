@@ -57,7 +57,7 @@ func Load_Config(config_file string) {
 		config.ApplicationPort = 443
 		config.AuthenticatorOperatingPort = 81
 		config.LocalAuthenticatorEndpoint = "$PRIVATE_IP:81"
-		config.DataDirectory = "/etc/mtls-gateway/work"
+		config.DataDirectory = "/var/mtls-gateway"
 		config.MtlsIdTtl = 5
 		config.DeviceName = "Prd-Agent"
 		config.IdentityBroker = "identity.plus"

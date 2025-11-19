@@ -46,7 +46,7 @@ func certificate_update_service() {
 
 func main() {
 
-	err := os.MkdirAll("/etc/mtls-gateway/logs", 0755)
+	err := os.MkdirAll("/var/mtls-gateway/logs", 0755)
 	if err != nil {
 		log.Printf("Unable to create log directory: %s", err)
 		return
@@ -57,7 +57,7 @@ func main() {
 		config_file = os.Args[1]
 	}
 
-	utils.Log_Writer, _ = utils.NewDailyRotatingWriter("/etc/mtls-gateway/logs")
+	utils.Log_Writer, _ = utils.NewDailyRotatingWriter("/var/mtls-gateway/logs")
 	log.SetOutput(utils.Log_Writer)
 
 	global.Load_Config(config_file)
