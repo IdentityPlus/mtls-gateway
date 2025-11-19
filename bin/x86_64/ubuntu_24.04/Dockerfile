@@ -24,7 +24,7 @@ RUN echo "[supervisord]" >> /etc/supervisord.conf && \
     echo "stderr_logfile_maxbytes=0" >> /etc/supervisord.conf && \
     echo "autorestart=true" >> /etc/supervisord.conf && \
     echo "startretries=10" >> /etc/supervisord.conf && \
-    echo "exitcodes=0 2" >> /etc/supervisord.conf && \
+    echo "exitcodes=0, 2" >> /etc/supervisord.conf && \
     echo "stopsignal=TERM" >> /etc/supervisord.conf && \
     echo "stopwaitsecs=10" >> /etc/supervisord.conf && \
     echo "command=/opt/identity.plus/mtls-gateway/bin/x86_64/ubuntu_24.04/mtls-gw" >> /etc/supervisord.conf
