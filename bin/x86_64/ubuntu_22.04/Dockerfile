@@ -12,7 +12,6 @@ WORKDIR /opt/identity.plus
 RUN curl -L https://github.com/IdentityPlus/mtls-gateway/archive/refs/heads/main.zip > mtls-gateway.zip
 RUN unzip mtls-gateway.zip
 RUN mv mtls-gateway-main mtls-gateway
-RUN cp mtls-gateway/config.yaml /etc/mtls-gateway/config.yaml
 
 RUN echo "[supervisord]" >> /etc/supervisord.conf && \
     echo "nodaemon=true" >> /etc/supervisord.conf && \
