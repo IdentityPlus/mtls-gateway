@@ -84,9 +84,9 @@ func main() {
 	if initialized {
 		go handlers.Manager_Service__.Start()
 	} else {
+		go handlers.Initialization_Service__.Start()
 	}
 
-	go handlers.Initialization_Service__.Start()
 	go handlers.Validation_Service__.Start()
 
 	handlers.Manager_Service__.Start_Openresty()

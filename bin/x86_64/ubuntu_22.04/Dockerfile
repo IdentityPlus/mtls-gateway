@@ -1,7 +1,7 @@
 FROM openresty/openresty:jammy-amd64
 
 RUN apt update
-RUN apt install -y cron supervisor
+RUN apt install -y supervisor certbot
 
 # download additional Lua modules (http in particular)
 RUN opm get ledgetech/lua-resty-http
