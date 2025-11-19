@@ -269,7 +269,7 @@ func (cfg Nginx_Builder) Openresty_Test_Config(config_file string) string {
 	// Run the command
 	err := cmd.Run()
 	if err != nil {
-		// fmt.Println("Error running command:", err)
+		// log.Println("Error running command:", err)
 	}
 
 	// Convert output to string and check if it contains "test is successful"

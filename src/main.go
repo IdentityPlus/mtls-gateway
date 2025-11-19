@@ -1,49 +1,15 @@
 package main
 
 import (
-	"identity.plus/mtls-gw/handlers"
-
+	"log"
+	"os"
+	"strings"
 	"time"
 
-	"gopkg.in/yaml.v2"
-
-	// "fmt"
-	"log"
-	// "io"
-
-	"os"
-
 	"identity.plus/mtls-gw/global"
-	//"mtls-gw/utils"
-	// "mtls-gw/mtlsid"
-	// "strings"
-	//"path/filepath"
+	"identity.plus/mtls-gw/handlers"
+	"identity.plus/mtls-gw/utils"
 )
-
-func load_config(config_file string) {
-	log.Printf("Loading configuration: %s\n", config_file)
-	var config global.Config
-
-	// Read the TLS configuration file
-	fileData, err := os.ReadFile(config_file)
-	if err != nil {
-		log.Fatalf("Unable to read config file: %v", err)
-	}
-
-	// Log the raw file contents to check if it's being read correctly
-	// fmt.Println("Raw YAML file data:")
-	// fmt.Println(string(fileData))
-
-	// Parse the YAML file into the TLSConfig struct
-	if err := yaml.Unmarshal(fileData, &config); err != nil {
-		log.Fatalf("Unable to parse config file: %v", err)
-	}
-
-	// Print the unmarshalled struct
-	// fmt.Printf("Unmarshalled Config: %+v\n", config)
-
-	global.Config__ = &config
-}
 
 func update_certificates() bool {
 	restart_openresty := false
@@ -79,12 +45,30 @@ func certificate_update_service() {
 }
 
 func main() {
+
+	err := os.MkdirAll("/etc/mtls-gateway/logs", 0755)
+	if err != nil {
+		log.Printf("Unable to create log directory: %s", err)
+		return
+	}
+
 	config_file := "/etc/mtls-gateway/config.yaml"
 	if len(os.Args) > 1 {
 		config_file = os.Args[1]
 	}
 
-	load_config(config_file)
+	utils.Log_Writer, _ = utils.NewDailyRotatingWriter("/etc/mtls-gateway/logs")
+	log.SetOutput(utils.Log_Writer)
+
+	global.Load_Config(config_file)
+	local_ip, _ := utils.Get_Local_Private_IP()
+	log.Printf("Local Private IP Address is: %s\n", local_ip)
+	if strings.HasPrefix(global.Config__.LocalAuthenticatorEndpoint, "$") {
+		global.Config__.LocalAuthenticatorEndpoint = local_ip + global.Config__.LocalAuthenticatorEndpoint[len("$PRIVATE_IP"):]
+		global.Config__.Save(config_file)
+	}
+
+	go utils.Log_Writer.Log_Eraser_Process()
 
 	identities := handlers.Manager_Service__.Get_Configurations()
 	initialized := false
@@ -103,9 +87,16 @@ func main() {
 	}
 
 	go handlers.Initialization_Service__.Start()
-
 	go handlers.Validation_Service__.Start()
-	go handlers.Manager_Service__.Start_Openresty()
+
+	handlers.Manager_Service__.Start_Openresty()
+
+	defer func() {
+		if r := recover(); r != nil {
+			log.Printf("panic: %v", r)
+			handlers.Manager_Service__.Kill_Openresty()
+		}
+	}()
 
 	certificate_update_service()
 }

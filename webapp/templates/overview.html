@@ -3,14 +3,14 @@
     <h2>Service Details</h2>
     <form action="/save-service" method="POST">
         <table>
-            <tr><th><span>End Point</span></th><td>
+            <tr><th><label>End Point</label></th><td>
               {{ if eq .Service.Mode "HTTP" }}
-                <a href="https://{{.Domain}}{{ if ne .Port "443" }}:{{.Port}}{{ end }}" target="blank_">https://{{.Domain}}{{ if ne .Port "443" }}:{{.Port}}{{ end }}</a>
+                <a href="https://{{.Domain}}{{ if ne .Port 443 }}:{{.Port}}{{ end }}" target="blank_">https://{{.Domain}}{{ if ne .Port 443 }}:{{.Port}}{{ end }}</a>
               {{ else }}
-                <npan>{{.Domain}}:{{.Port}}</span>
+                <label>{{.Domain}}:{{.Port}}</label>
               {{ end }}
             </td></tr>
-            <tr><th><span>Last Update</span></th><td><span>{{.Updated}}</span></td></tr>
+            <tr><th><label>Last Update</label></th><td><span>{{.Updated}}</span></td></tr>
         </table>
     </form>
 </div>
@@ -18,10 +18,10 @@
 <div>
     <h2>mTLS Gateway Manager Service</h2>
     <table>
-        <tr><th><span>Up Time</span></th><td><span>{{.UpTime}}</span></td></tr>
-        <tr><th><span>Validations</span></th><td><span>{{.ValidationCount}}</span></td></tr>
-        <tr><th><span>Identity Plus Latency / Avg. Latency</span></th><td><span>{{.Latency}}ms / {{.AvgLatency}}ms</span></td></tr>
-        <tr><th><span>Cached IDs</span></th><td><span>{{.CacheSize}}</span></td></tr>
+        <tr><th><label>Up Time</label></th><td><span>{{.UpTime}}</span></td></tr>
+        <tr><th><label>Validations</label></th><td><span>{{.ValidationCount}}</span></td></tr>
+        <tr><th><label>Identity Plus Latency / Avg. Latency</label></th><td><span>{{.Latency}}ms / {{.AvgLatency}}ms</span></td></tr>
+        <tr><th><label>Cached IDs</label></th><td><span>{{.CacheSize}}</span></td></tr>
     </table>
     <a class="submit" href="javascript:post('Clear Cache')"><span class="fa-solid fa-broom"></span>Clear Cache</a>
     <a class="submit" href="javascript:post('Check Latency')"><span class="fa-solid fa-hourglass-half"></span>Check Latency</a>
@@ -44,13 +44,13 @@
 <div>
     <h2>Your Identity</h2>
     <table>
-        <tr><th><span>mTLS ID</span></th><td><span>{{.MtlsID}}</span></td></tr>
-        <tr><th><span>Agent Name</span></th><td><span>{{.AgentName}}</span></td></tr>
-        <tr><th><span>Agent Type</span></th><td><span>{{.AgentType}}</span></td></tr>
-        <tr><th><span>Org. ID</span></th><td><span>{{.OrgID}}</span></td></tr>
-        <tr><th><span>Org. Name</span></th><td><span>{{.OrgName}}</span></td></tr>
-        <tr><th><span>Org. Email</span></th><td><span>{{.OrgEmail}}</span></td></tr>
-        <tr><th class="TOP"><span>Organizational Roles</span></th><td>
+        <tr><th><label>mTLS ID</label></th><td><span>{{.MtlsID}}</span></td></tr>
+        <tr><th><label>Agent Name</label></th><td><span>{{.AgentName}}</span></td></tr>
+        <tr><th><label>Agent Type</label></th><td><span>{{.AgentType}}</span></td></tr>
+        <tr><th><label>Org. ID</label></th><td><span>{{.OrgID}}</span></td></tr>
+        <tr><th><label>Org. Name</label></th><td><span>{{.OrgName}}</span></td></tr>
+        <tr><th><label>Org. Email</label></th><td><span>{{.OrgEmail}}</span></td></tr>
+        <tr><th class="TOP"><label>Organizational Roles</label></th><td>
         {{ range .OrgRoles }}
         <span>{{ . }}</span><br>
         {{ end }}</td></tr>

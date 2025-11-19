@@ -1,9 +1,11 @@
 verbose: true
-application_port: "443"
-admin_port: "444"
-admin_operating_port: "444"
-authenticator_operating_port: "81"
-local_authenticator_endpoint: "10.10.0.200:81"
+application_port: 443
+application_operating_port: 443
+admin_port: 444
+admin_operating_port: 44
+local_authenticator_endpoint: "$PRIVATE_IP:81"
+authenticator_operating_port: 81
+log_retention: 3
 data_directory: "/etc/mtls-gateway/work"
 mtls_id_ttl: 5
 device_name: "Prd-Agent"
@@ -13,4 +15,3 @@ roles_allowed:
   - "org. manager"
   - "administrator"
   - "manager"
-

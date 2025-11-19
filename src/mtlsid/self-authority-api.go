@@ -11,6 +11,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -75,12 +76,12 @@ func (cli *Self_Authority_API) secure_call(endpoint string, method string, reque
 
 func (cli *Self_Authority_API) do_call(client *http.Client, endpoint string, method string, request_body string) (string, []byte) {
 	if cli.Verbose {
-		fmt.Println(request_body)
+		log.Println(request_body)
 	}
 
 	// var body_reader io.Reader
 	var jsonStr = []byte(request_body)
-	client_request, err := http.NewRequest(method, endpoint, bytes.NewBuffer(jsonStr))
+	client_request, _ := http.NewRequest(method, endpoint, bytes.NewBuffer(jsonStr))
 	client_request.Header.Set("Content-Type", "application/json")
 
 	resp, err := client.Do(client_request)
@@ -96,7 +97,7 @@ func (cli *Self_Authority_API) do_call(client *http.Client, endpoint string, met
 		return "error during https call: " + err.Error(), nil
 	}
 
-	bodyBytes, err := ioutil.ReadAll(resp.Body)
+	bodyBytes, err := io.ReadAll(resp.Body)
 
 	if err != nil {
 		return "error decoding https answer: " + err.Error(), nil
@@ -110,7 +111,7 @@ func (cli *Self_Authority_API) client(client_certificate *tls.Certificate) (*htt
 	trusted_authorities, err := x509.SystemCertPool()
 
 	if err != nil && cli.Verbose {
-		fmt.Printf("Unable to load system trust store: %v\n", err)
+		log.Printf("Unable to load system trust store: %v\n", err)
 	}
 
 	if trusted_authorities == nil {
@@ -118,10 +119,10 @@ func (cli *Self_Authority_API) client(client_certificate *tls.Certificate) (*htt
 	}
 
 	for _, ca := range cli.TrustStore {
-		root_cert, err := ioutil.ReadFile(ca)
+		root_cert, err := os.ReadFile(ca)
 
 		if err != nil {
-			fmt.Printf("Unable to load trust material %s: %v\n", ca, err)
+			log.Printf("Unable to load trust material %s: %v\n", ca, err)
 		}
 
 		_ = trusted_authorities.AppendCertsFromPEM(root_cert)
@@ -157,36 +158,36 @@ func (cli *Self_Authority_API) Interactive_enroll_user_agent() string {
 	}
 
 	if cli.Verbose {
-		// fmt.Printf(string(ans))
+		// log.Printf(string(ans))
 	}
 
 	var response Intent_Response
 	json.Unmarshal(ans, &response)
 
 	qr_code := strings.Split(response.Result.QR, ";")
-	fmt.Println("")
-	fmt.Println("")
+	log.Println("")
+	log.Println("")
 	fmt.Print("      ")
 	for i := 0; i < len(qr_code); i += 2 {
 		for j := 0; j < len(qr_code[i]); j++ {
 
 			if qr_code[i][j] == '1' && (i > len(qr_code)-3 || qr_code[i+1][j] == '0') {
-				fmt.Printf("\u2580") // upper half block
+				log.Printf("\u2580") // upper half block
 			} else if qr_code[i][j] == '1' && i < len(qr_code)-2 && qr_code[i+1][j] == '1' {
-				fmt.Printf("\u2588") // full block
+				log.Printf("\u2588") // full block
 			} else if qr_code[i][j] == '0' && i < len(qr_code)-2 && qr_code[i+1][j] == '1' {
-				fmt.Printf("\u2584") // lower half block
+				log.Printf("\u2584") // lower half block
 			} else {
-				fmt.Printf(" ")
+				log.Printf(" ")
 			}
 		}
 
-		fmt.Println("")
+		log.Println("")
 		fmt.Print("      ")
 	}
-	fmt.Println("")
-	fmt.Println("")
-	fmt.Println("Please scan the above QR Code with your Identity Plus App.")
+	log.Println("")
+	log.Println("")
+	log.Println("Please scan the above QR Code with your Identity Plus App.")
 	fmt.Print("Waiting ...")
 
 	for i := 0; i < 10; i++ {
@@ -200,9 +201,9 @@ func (cli *Self_Authority_API) Interactive_enroll_user_agent() string {
 		json.Unmarshal(ans, &response)
 
 		if (response.Error != "" || response.Result.Outcome != "logged in") && cli.Verbose {
-			fmt.Println(response.Error + ", trying again")
+			log.Println(response.Error + ", trying again")
 		} else {
-			fmt.Printf(".")
+			log.Printf(".")
 		}
 
 		if response.Result.Outcome == "logged in" {
@@ -234,7 +235,7 @@ func (cli *Self_Authority_API) do_enroll(token string) string {
 	}
 
 	if cli.Verbose {
-		fmt.Printf("writing certificate information into: " + cli.Identity_Dir + "/")
+		log.Printf("writing certificate information into: " + cli.Identity_Dir + "/")
 	}
 
 	ioutil.WriteFile(cli.Identity_Dir+"/"+cli.Device_Name+".p12", p12_cert, 0644)
@@ -265,7 +266,7 @@ func (cli *Self_Authority_API) Enroll_user_agent(authorization string) string {
 	}
 
 	if cli.Verbose {
-		// fmt.Printf(string(ans))
+		// log.Printf(string(ans))
 	}
 
 	var response Auth_Response
@@ -294,7 +295,7 @@ func (cli *Self_Authority_API) Employ_service_agent(authorization string) string
 	json.Unmarshal(ans, &agent_identity)
 
 	if cli.Verbose {
-		// fmt.Printf(string(ans))
+		// log.Printf(string(ans))
 	}
 
 	if agent_identity.Error != "" {
@@ -360,7 +361,7 @@ func (cli *Self_Authority_API) Enroll_unified(authorization string) string {
 	json.Unmarshal(ans, &agent_identity)
 
 	if cli.Verbose {
-		// fmt.Printf(string(ans))
+		// log.Printf(string(ans))
 	}
 
 	if agent_identity.Error != "" {
@@ -378,7 +379,7 @@ func (cli *Self_Authority_API) Enroll_unified(authorization string) string {
 	}
 
 	if cli.Verbose {
-		fmt.Printf("writing certificate information into: " + cli.Identity_Dir + "/...")
+		log.Printf("writing certificate information into: " + cli.Identity_Dir + "/...")
 	}
 
 	ioutil.WriteFile(cli.Identity_Dir+"/"+cli.Device_Name+".p12", p12_cert, 0644)
@@ -450,7 +451,7 @@ func (cli *Self_Authority_API) Issue_service_identity(force bool) string {
 	err, ans := cli.secure_call("https://signon."+cli.Service+"/api/v1", "POST", "{\"operation\": \"issue_service_certificate\", \"args\": {\"force-renew\":"+strconv.FormatBool(force)+"}}")
 
 	if cli.Verbose {
-		fmt.Printf(string(ans))
+		log.Printf(string(ans))
 	}
 
 	if err != "" {

@@ -62,22 +62,22 @@ func pre_process_request(r *http.Request, verbose bool) error {
 	}
 
 	if verbose {
-		fmt.Println("\n=== Request Info ===")
-		fmt.Printf("Method: %s\n", r.Method)
-		fmt.Printf("URL: %s\n", r.URL.String())
-		fmt.Printf("RemoteAddr: %s\n", r.RemoteAddr)
+		log.Printf("\n=== Request Info ===\n")
+		log.Printf("Method: %s\n", r.Method)
+		log.Printf("URL: %s\n", r.URL.String())
+		log.Printf("RemoteAddr: %s\n", r.RemoteAddr)
 
-		fmt.Println("=== Request Headers ===")
+		log.Println("=== Request Headers ===")
 		for name, values := range r.Header {
 			for _, v := range values {
-				fmt.Printf("%s: %s\n", name, v)
+				log.Printf("%s: %s\n", name, v)
 			}
 		}
 
-		fmt.Println("\n=== Request Parameters ===")
+		log.Println("\n=== Request Parameters ===")
 		for key, values := range r.Form {
 			for _, v := range values {
-				fmt.Printf("%s = %s\n", key, v)
+				log.Printf("%s = %s\n", key, v)
 			}
 		}
 	}

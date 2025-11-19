@@ -1,0 +1,55 @@
+{{ define "content" }}
+
+    <pre id="output">Error loading log file or log file not specified.</pre>
+        
+    <script>
+        var size = 0;
+
+        async function loadLogFile() {
+            const pre = document.getElementById("output");
+            const container = document.getElementById("edit-section");
+
+            const file = "{{$.Log_File}}";
+
+            try {
+                // Detect if user is already at the bottom (with 5px tolerance)
+                const isAtBottom =
+                    container.scrollTop + container.clientHeight >= container.scrollHeight - 5;
+
+                const resp = await fetch(`/dl-log-file?file=${encodeURIComponent(file)}&pos=` + size);
+                if (!resp.ok) {
+                    pre.textContent = `Error loading file: ${resp.status}`;
+                    return;
+                }
+
+                const text = await resp.text();
+
+                if (size === 0 || text == "-1"){
+                    if (text == -1){
+                        pre.textContent = "";
+                        size = 0;
+                    } 
+                    else pre.textContent = text;
+                }
+                else pre.textContent += text;
+
+                size += text.length;
+
+                // Only auto-scroll if user was already at the bottom
+                if (isAtBottom) {
+                    container.scrollTop = container.scrollHeight;
+                }
+
+            } catch (err) {
+                pre.textContent = "Network error: " + err;
+            }
+        }
+
+        // Load immediately
+        loadLogFile();
+
+        // Reload every 1 second
+        setInterval(loadLogFile, 1000);
+    </script>
+
+{{ end }}

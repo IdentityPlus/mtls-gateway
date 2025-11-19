@@ -2,7 +2,7 @@
 
 .TOP{vertical-align:top;}
 
-body {margin: 0; padding: 0; }
+body {margin: 0; padding: 0; height:100vh; display:flex; flex-direction: column;}
 brand {color: #000000;}
 brand span {color: #4292D3;}
 separator{margin:5px 10px; height:1px; display:inline-block; width:100px; border-bottom:1px solid rgba(0,0,0,0.2);}
@@ -18,7 +18,7 @@ brand span {color:#4292D3;}
 .NOMARGIN{margin:0;}
 .ALIGN-R{text-align:right;}
 
-.top-bar { background-color: #111518; color: #E0E0E0; padding: 10px; text-align: left; }
+.top-bar { background-color: #111518; color: #E0E0E0; padding: 10px; text-align: left; flex:0 0 auto;}
 .top-bar * { display:inline-block; margin:0;}
 .top-bar logo {font-size:20px; font-weight: 400; background:url('/static/mtls-gw.svg'); background-repeat:no-repeat; background-size:contain; background-position: center left; padding:5px 10px 5px 70px; margin:5px 10px;}
 .top-bar logo span {color:#A0A0A0; font-size:66%;}
@@ -26,29 +26,58 @@ brand span {color:#4292D3;}
 .top-bar brand span {color: #4292D3; font-size:100%; font-weight:400;}
 .top-bar div { margin-left:20px; border-left:1px solid rgba(255, 255, 255, 0.1); padding: 5px 20px; }
 
-.main-container { display: flex; min-height: 100vh; height:100%;}
-.menu { background-color: #f4f4f4; border-right:1px solid rgba(0,0,0,0.1); width: auto; padding: 15px; box-shadow:inset -3px 0px 10px -9px rgba(0,0,0,0.36);padding:0;}
-.menu ul { width:100%; list-style-type: none; box-shadow: initial; padding: 0; font-size:16px; font-weight: 400; margin-top:0px; }
+
+.main-container { display: flex; flex:1 1 auto; align-items: stretch; min-height: 0;}
+.menu { background-color: #f4f4f4; border-right:1px solid rgba(0,0,0,0.1); width: auto; height:auto; box-shadow:inset -3px 0px 10px -9px rgba(0,0,0,0.36); padding:0; flex:0 0 auto; display:flex; flex-direction: column;}
+.menu ul { width:100%; list-style-type: none; box-shadow: initial; padding: 0; font-size:16px; font-weight: 400; margin-top:0px;}
+.menu ul.main {flex-grow: 1; border-bottom:1px solid #00000010;}
 .menu ul li{ width:100%; box-shadow: initial; margin-left:2px; }
 .menu ul li p { width:100%; display:inline-block; margin: 0 0; background:rgba(0,0,0,0.05); border-right:solid 5px #4292D3; white-space: nowrap; padding: 0px 20px 0px 5px;}
 .menu ul li a { width:100%; display:inline-block; margin: 0 0; text-decoration: none; color: #333; border:none; background:none; border-right:solid 5px rgba(0,0,0,0); white-space: nowrap; padding: 0px 20px 0px 5px;}
 fa{min-width:48px; width:48px; text-align:center; padding: 15px 10px 15px 15px;}
-.menu table th {padding:10px 0px 0px 5px;}
-.menu table td {padding:10px 0px 0px 0px;}
+
+.menu table {background:#00000010; margin-bottom:10px; border-bottom:1px solid #00000010;}
+.menu table th {padding:10px 0px 5px 5px;}
+.menu table td {padding:10px 0px 5px 0px;}
 .menu table td select {border:0; background:rgba(255, 255 ,255, 0); font-size:18px; margin-right:10px; padding-left:0px;}
 .menu table th fa {padding: 15px 5px 15px 15px; min-width:43px; width:43px;}
 
-.content { padding: 40px; display:flex; flex-direction: row; flex-wrap: wrap; justify-content: flex-start; align-content: flex-start; gap: 20px 20px; }
+.edit-section {overflow-y:scroll; min-height: 0; flex-grow: 1;}
+
+.content { padding: 40px; display:flex; flex-direction: row; flex-wrap: wrap; justify-content: flex-start; align-content: flex-start; gap: 20px 20px; flex:1 1 auto; flex-grow: 1;}
 .content div { flex-grow: 1; min-width:300px; min-height:200px; background:rgba(0,0,0, 0.01); border:1px solid rgba(0,0,0, 0.1); border-radius: 5px; padding:25px 35px;}
 .content div table {vertical-align: middle; text-align: left; margin-top:20px; font-weight: 300; margin-bottom:20px;}
 .content div table td, .content div table th {border-top: 1px dotted rgba(0,0,0,0.1); padding:10px 15px 10px 0; vertical-align: middle; text-align: left; }
+.content div table th.hint {border:0; padding-top:0px;}
+.content div table th.hint p {opacity:0.7; margin-top:0;}
 .content div table th {font-weight: 500; color:#909090;}
 .content div table th.TOP {vertical-align: top;}
 .content div table td.r, .content div table th.r {text-align: right;}
-.content div table th label {margin:10px 0px; clear:both;}
+.content div table th label {margin:10px 0px; clear:both; color:#303030; font-weight: 400;}
 .content div table th p {margin:10px 0px; clear:both; color:#000000; font-size:80%;}
 .content div table th div.holder {clear:both; min-height: auto; margin-top:5px;}
+.content div.log-history{
+	width:100%;
+	a.submit{margin:20px 0px;}
+	table {
+		width:100%;
+		th, td {
+			border-bottom:1px dashed #30303040; border-top:0; padding:5px 10px; 
+			p{margin-bottom:10px; font-size:100%; color:#808080; font-weight: 500;}
+			input[type="checkbox"] {margin: 5px 5px 10px 0px;}
+		}
 
+		td.compact{width:0px;}
+		
+	}
+}
+.content pre{
+	font-family: 'Roboto Mono';
+	font-size:12px;
+	color:#303030;
+	min-height:200px;
+	margin:0
+}
 
 a.submit {font-weight: 400; font-size:16px; background:rgba(0,0,0,0.1); border:1px solid rgba(0,0,0,0.1);  border-radius:3px; color:#303030; padding:10px 15px; float:left; margin:0px 20px 10px 0px; cursor: pointer; text-decoration:none; white-space: nowrap;}
 a.submit:hover {background:rgba(0,0,0,0.08);}
@@ -84,6 +113,7 @@ p.error {width:100%; border:1px solid #d17e69; background: #ffcbbe; border-radiu
 p.error span {color:#9b471e; margin:0; padding:0;}
 a:hover .fa-trash-can{color:#E04020;}
 a:hover .fa-save, a:hover .fa-floppy-disk{color:#30A010;}
+a:hover .fa-power-off{color:#E04020;}
 
 select{
 	color:#404040;

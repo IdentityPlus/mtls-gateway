@@ -122,9 +122,3 @@ func Write_Service_Config(serviceFile string, config ServiceConfig) error {
 	log.Printf("Service configuration saved successfully to %s\n", serviceFile)
 	return nil
 }
-
-/*
-func Build_Service (config ServiceConfig) string {
-	return Build_Nginx_Service(config.Service)
-}
-*/

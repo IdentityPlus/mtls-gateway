@@ -206,7 +206,7 @@ func render_page(w http.ResponseWriter, tmpl string, data interface{}) {
 	err := parsedTemplate.ExecuteTemplate(w, "main", data)
 	if err != nil {
 		http.Error(w, "Error rendering template", http.StatusInternalServerError)
-		log.Printf("Error rendering template: %v\n", err)
+		log.Printf("Error rendering template %s: %v\n", tmpl, err)
 	}
 }
 
@@ -260,12 +260,15 @@ func (srv *Manager_Service) Start() {
 	mux.HandleFunc("/tcp-config/", srv.handle_tcp_config)
 	mux.HandleFunc("/http-config/", srv.handle_http_config)
 	mux.HandleFunc("/admin", srv.handle_admin)
+	mux.HandleFunc("/logs", srv.handle_logs)
+	mux.HandleFunc("/view-log", srv.handle_log_view)
+	mux.HandleFunc("/dl-log-file", srv.handle_download_log_file)
 
 	tlsConfig := srv.load_TLS_config()
 
 	// Create the HTTPS server with custom TLS configuration
 	srv.server = &http.Server{
-		Addr:      "0.0.0.0:" + global.Config__.AdminOperatingPort,
+		Addr:      "0.0.0.0:" + strconv.Itoa(global.Config__.AdminOperatingPort),
 		Handler:   mux,
 		TLSConfig: tlsConfig,
 	}
@@ -275,7 +278,7 @@ func (srv *Manager_Service) Start() {
 	mtlsid.Stats__.ValidationLatency = 0
 	mtlsid.Stats__.ValidationCount = 0
 
-	log.Printf("Starting mTLS Gateway Manager service on port (https://%s:%s) with Identity Plus mTLS-based client authentication...\n", "0.0.0.0", global.Config__.AdminOperatingPort)
+	log.Printf("Starting mTLS Gateway Manager service on port (https://%s:%v) with Identity Plus mTLS-based client authentication...\n", "0.0.0.0", global.Config__.AdminOperatingPort)
 	err := srv.server.ListenAndServeTLS("", "") // Empty strings to use certificates from TLSConfig
 	if err != nil {
 		log.Fatalf("Failed to start server: %v", err)
@@ -330,17 +333,184 @@ func (srv *Manager_Service) handle_new_serivce_route(w http.ResponseWriter, r *h
 	})
 }
 
+func atoi(s string, def int) int {
+	if i, err := strconv.Atoi(s); err == nil {
+		return i
+	}
+
+	return def
+}
+
 func (srv *Manager_Service) handle_admin(w http.ResponseWriter, r *http.Request) {
-	domain, _, _ := net.SplitHostPort(r.Host)
 	service_fonfigs := srv.Get_Configurations()
+	op_domain, _, _ := net.SplitHostPort(r.Host)
+	config := srv.Get_Service_Config(op_domain)
+	var error_msg = ""
+
+	if r.Method == http.MethodPost {
+		err := r.ParseForm()
+		if err != nil {
+			error_msg = "Unable to parse form"
+		}
+
+		if r.FormValue("action") == "edit-config" {
+
+			ttl, _ := strconv.Atoi(r.FormValue("mtls_id_ttl"))
+			if ttl <= 0 {
+				ttl = 5
+			}
+
+			new_cfg := global.Config{
+				ApplicationPort:            atoi(r.FormValue("application_port"), global.Config__.ApplicationPort),
+				ApplicationOperatingPort:   atoi(r.FormValue("application_operating_port"), global.Config__.ApplicationOperatingPort),
+				AdminPort:                  atoi(r.FormValue("admin_port"), global.Config__.AdminPort),
+				AdminOperatingPort:         atoi(r.FormValue("admin_operating_port"), global.Config__.AdminOperatingPort),
+				LocalAuthenticatorEndpoint: r.FormValue("local_authenticator_endpoint"),
+				AuthenticatorOperatingPort: atoi(r.FormValue("authenticator_operating_port"), global.Config__.AuthenticatorOperatingPort),
+				MtlsIdTtl:                  ttl,
+				Verbose:                    global.Config__.Verbose,
+				DataDirectory:              global.Config__.DataDirectory,
+				DeviceName:                 global.Config__.DeviceName,
+				RolesAllowed:               global.Config__.RolesAllowed,
+				IdentityBroker:             global.Config__.IdentityBroker,
+			}
+
+			global.Config__ = &new_cfg
+
+			error := global.Config__.Save("/etc/mtls-gateway/config.yaml")
+			if error != nil {
+				error_msg = error.Error()
+			}
+
+		} else if r.FormValue("action") == "restart" {
+			defer func() {
+				time.Sleep(500 * time.Millisecond)
+				os.Exit(0)
+			}()
+
+		} else {
+			error_msg = "no action specified"
+		}
+	}
 
 	render_page(w, "admin", map[string]interface{}{
 		"CurrentPage":  "Admin",
+		"Domain":       "All Services",
 		"SRV_Port":     global.Config__.AdminPort,
+		"Port":         global.Config__.ApplicationPort,
+		"Error":        error_msg,
+		"Service":      config.Service,
 		"DynamicPages": service_fonfigs,
-		"CacheSize":    srv.Perimeter_APIs[domain].Cache_Size(),
-		"Domain":       srv.Perimeter_APIs[domain].Domain(),
+		"Config":       global.Config__,
 	})
+
+	if f, ok := w.(http.Flusher); ok {
+		f.Flush()
+	}
+}
+
+func (srv *Manager_Service) handle_download_log_file(w http.ResponseWriter, r *http.Request) {
+	var log_content = ""
+
+	err := r.ParseForm()
+	if err != nil {
+		log_content = "Unable to parse form"
+	}
+
+	if log_content == "" && r.FormValue("file") != "" {
+		log_content, _ = utils.Log_Writer.Tail(r.FormValue("file"), int64(atoi(r.FormValue("pos"), 0)))
+	}
+
+	w.Header().Set("Content-Type", "text/plain")
+	w.WriteHeader(http.StatusOK)
+
+	_, err = w.Write([]byte(log_content))
+
+	if err != nil {
+		log.Printf("Error writing response: %v", err)
+	}
+}
+
+func (srv *Manager_Service) handle_logs(w http.ResponseWriter, r *http.Request) {
+	service_fonfigs := srv.Get_Configurations()
+	op_domain, _, _ := net.SplitHostPort(r.Host)
+	config := srv.Get_Service_Config(op_domain)
+	var error_msg = ""
+
+	if r.Method == http.MethodPost {
+		err := r.ParseForm()
+		if err != nil {
+			error_msg = "Unable to parse form"
+		}
+
+		if r.FormValue("action") == "edit-config" {
+			global.Config__.Verbose = r.FormValue("verbose") == "on"
+			global.Config__.Log_Retention = atoi(r.FormValue("log-retention"), global.Config__.Log_Retention)
+
+			error := global.Config__.Save("/etc/mtls-gateway/config.yaml")
+			if error != nil {
+				error_msg = error.Error()
+			}
+
+		} else if r.FormValue("action") == "delete" {
+			for key := range r.Form {
+				if strings.HasPrefix(key, "tick-") {
+					f := key[len("tick-"):]
+					log.Println("Deleting: " + f)
+					error_msg = utils.Log_Writer.Delete(f)
+				}
+			}
+		} else {
+			error_msg = "no action specified"
+		}
+	}
+
+	log_files, _ := utils.Log_Writer.List()
+
+	render_page(w, "logs", map[string]interface{}{
+		"CurrentPage":  "Logs",
+		"Domain":       "All Services",
+		"SRV_Port":     global.Config__.AdminPort,
+		"Port":         global.Config__.ApplicationPort,
+		"PageError":    error_msg,
+		"Service":      config.Service,
+		"DynamicPages": service_fonfigs,
+		"Config":       global.Config__,
+		"Files":        log_files,
+		"Log_File":     log_files[0],
+	})
+
+	if f, ok := w.(http.Flusher); ok {
+		f.Flush()
+	}
+}
+
+func (srv *Manager_Service) handle_log_view(w http.ResponseWriter, r *http.Request) {
+	service_fonfigs := srv.Get_Configurations()
+	op_domain, _, _ := net.SplitHostPort(r.Host)
+	config := srv.Get_Service_Config(op_domain)
+	var error_msg = ""
+
+	err := r.ParseForm()
+	if err != nil {
+		error_msg = "Unable to parse form"
+	}
+
+	render_page(w, "view-log", map[string]interface{}{
+		"CurrentPage":  "View Log",
+		"Domain":       "All Services",
+		"SRV_Port":     global.Config__.AdminPort,
+		"Port":         global.Config__.ApplicationPort,
+		"PageError":    error_msg,
+		"Service":      config.Service,
+		"DynamicPages": service_fonfigs,
+		"Config":       global.Config__,
+		"Log_File":     r.FormValue("file"),
+	})
+
+	if f, ok := w.(http.Flusher); ok {
+		f.Flush()
+	}
 }
 
 func (srv *Manager_Service) handle_overview(w http.ResponseWriter, r *http.Request) {
@@ -934,14 +1104,14 @@ func (srv *Manager_Service) update_service_config(domain string, config integrat
 	return test_result
 }
 
-func (srv *Manager_Service) Start_Openresty() {
+func (srv *Manager_Service) Start_Openresty() int {
 	if srv.openresty != nil {
-		fmt.Printf("Openresty already running. Sending reload signal ...\n")
+		log.Printf("Openresty already running. Sending reload signal ...\n")
 		if err := srv.openresty.Process.Signal(syscall.SIGHUP); err != nil {
 			log.Printf("Error reloading %v ...\n", err)
 		}
 
-		return
+		return srv.openresty.SysProcAttr.Pgid
 	}
 
 	log.Printf("Starting Openresty HTTP/TCP Proxy Server with config: %s", global.Config__.DataDirectory+"/conf/nginx.conf")
@@ -951,40 +1121,47 @@ func (srv *Manager_Service) Start_Openresty() {
 
 	// Command to start (replace with your own)
 	srv.openresty = exec.Command("/usr/local/openresty/bin/openresty", "-g", "daemon off;", "-c", global.Config__.DataDirectory+"/conf/nginx.conf")
+	srv.openresty.SysProcAttr = &syscall.SysProcAttr{
+		Setpgid:   true,
+		Pdeathsig: syscall.SIGTERM,
+	}
 
 	// Get the output pipe (stdout and stderr)
 	stdout, err := srv.openresty.StdoutPipe()
 	if err != nil {
-		fmt.Printf("Error getting stdout: %v\n", err)
-		return
+		log.Printf("Error getting stdout: %v\n", err)
+		return 0
 	}
 	stderr, err := srv.openresty.StderrPipe()
 	if err != nil {
-		fmt.Printf("Error getting stderr: %v\n", err)
-		return
+		log.Printf("Error getting stderr: %v\n", err)
+		return 0
 	}
 
 	// Start the command
 	err = srv.openresty.Start()
 	if err != nil {
-		fmt.Printf("Error starting command: %v\n", err)
-		return
+		log.Printf("Error starting command: %v\n", err)
+		return 0
 	}
 
 	// Copy stdout and stderr to the console
-	go io.Copy(os.Stdout, stdout) // Redirect stdout to console
-	go io.Copy(os.Stderr, stderr) // Redirect stderr to console
+	go io.Copy(utils.Log_Writer, stdout) // Redirect stdout to console
+	go io.Copy(utils.Log_Writer, stderr) // Redirect stderr to console
 
-	// Wait for the command to complete
-	err = srv.openresty.Wait()
-	if err != nil {
-		fmt.Printf("Command finished with error: %v\n", err)
-	} else {
-		fmt.Println("Command finished successfully!")
+	go func() {
+		err := srv.openresty.Wait()
+		log.Println("Openresty exited:", err)
+		srv.openresty = nil
+	}()
+
+	return srv.openresty.SysProcAttr.Pgid
+}
+
+func (srv *Manager_Service) Kill_Openresty() {
+	if srv.openresty != nil {
+		syscall.Kill(-srv.openresty.SysProcAttr.Pgid, syscall.SIGTERM)
 	}
-
-	fmt.Printf("Openresty exit ... \n")
-	srv.openresty = nil
 }
 
 func (srv *Manager_Service) Get_Service_Config(domain string) integrations.ServiceConfig {
@@ -1013,7 +1190,7 @@ func load_service_config(domain string) integrations.ServiceConfig {
 		log.Printf("No config file for %s, initializing service", domain)
 		config = integrations.ServiceConfig{
 			Service: integrations.ManagedService{
-				Port: 443,
+				Port: global.Config__.ApplicationOperatingPort,
 				Mode: "HTTP",
 				Upstream: integrations.Upstream{
 					Workers: []string{("w1." + domain + ":8080")},

@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 	"net/url"
+	"strconv"
 	"strings"
 	"time"
 
@@ -186,8 +187,8 @@ func (auth *OIDC_Authenticator) handle_oidc_configuration(w http.ResponseWriter,
 
 	// The base issuer URL should not end with a slash
 	auth_port := ""
-	if global.Config__.ApplicationPort != "443" {
-		auth_port = ":" + global.Config__.ApplicationPort
+	if global.Config__.ApplicationPort != 443 {
+		auth_port = ":" + strconv.Itoa(global.Config__.ApplicationPort)
 	}
 
 	config := map[string]interface{}{

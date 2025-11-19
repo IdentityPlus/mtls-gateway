@@ -1,19 +1,93 @@
 package utils
 
 import (
-	"io/ioutil"
-	"log"
-	"strings"
+	"fmt"
 	"io"
+	"log"
+	"net"
 	"os"
 	"path/filepath"
-	"fmt"
+	"strings"
 )
+
+var privateRanges = []string{
+	"10.0.0.0/8",
+	"172.16.0.0/12",
+	"192.168.0.0/16",
+	"127.0.0.0/8",    // loopback
+	"169.254.0.0/16", // link-local
+}
+
+func Parse_IP(ipStr string) net.IP {
+	ip := net.ParseIP(strings.TrimSpace(ipStr))
+	if ip == nil {
+		log.Println("Unable to parse string into IP address: " + ipStr)
+		return nil
+	}
+
+	return ip
+}
+
+func Is_IP_Private(ip net.IP) bool {
+	if ip == nil {
+		return false
+	}
+
+	for _, cidr := range privateRanges {
+		_, subnet, _ := net.ParseCIDR(cidr)
+		if subnet.Contains(ip) {
+			return true
+		}
+	}
+
+	return false
+}
+
+func Get_Local_Private_IP() (string, error) {
+	ifaces, err := net.Interfaces()
+	if err != nil {
+		return "", fmt.Errorf("cannot list interfaces: %w", err)
+	}
+
+	for _, iface := range ifaces {
+		// Skip down or loopback interfaces
+		if iface.Flags&net.FlagUp == 0 || iface.Flags&net.FlagLoopback != 0 {
+			continue
+		}
+
+		addrs, err := iface.Addrs()
+		if err != nil {
+			continue
+		}
+
+		for _, addr := range addrs {
+			var ip net.IP
+			switch v := addr.(type) {
+			case *net.IPNet:
+				ip = v.IP
+			case *net.IPAddr:
+				ip = v.IP
+			}
+
+			// Only IPv4
+			ip = ip.To4()
+			if ip == nil {
+				continue
+			}
+
+			if Is_IP_Private(ip) {
+				return ip.String(), nil
+			}
+		}
+	}
+
+	return "", fmt.Errorf("no private IPv4 address found")
+}
 
 func Build_Template(template string, replacements map[string]string) string {
 
 	// Read the template file from disk
-	content, err := ioutil.ReadFile(template)
+	content, err := os.ReadFile(template)
 	if err != nil {
 		log.Fatalf("Error reading file: %v", err)
 	}
@@ -32,7 +106,7 @@ func Build_Template(template string, replacements map[string]string) string {
 func Deploy_Template(template string, replacements map[string]string, destination string) {
 
 	// Write the modified content to a new file
-	err := ioutil.WriteFile(destination, []byte(Build_Template(template, replacements)), 0644)
+	err := os.WriteFile(destination, []byte(Build_Template(template, replacements)), 0644)
 	if err != nil {
 		log.Fatalf("Error writing file: %v", err)
 	}
@@ -145,7 +219,7 @@ func DeleteFileIfExists(filePath string) error {
 		// Some other error occurred (e.g., permission issue), return it
 		return err
 	}
-	
+
 	return nil
 }
 
@@ -155,17 +229,17 @@ func DeleteConfFiles(dirPath string) error {
 		if err != nil {
 			return err // Return an error if accessing the file failed
 		}
-		
+
 		// Check if the file has a .conf extension and is not a directory
 		if !info.IsDir() && strings.HasSuffix(info.Name(), ".conf") {
 			// Attempt to delete the file
 			if removeErr := os.Remove(path); removeErr != nil {
 				return removeErr // Return error if deletion fails
 			}
-			fmt.Printf("Deleted: %s\n", path) // Optional log to confirm deletion
+			log.Printf("Deleted: %s\n", path) // Optional log to confirm deletion
 		}
 		return nil
 	})
-	
+
 	return err // Return nil if successful or any errors encountered
 }

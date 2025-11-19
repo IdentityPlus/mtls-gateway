@@ -7,6 +7,7 @@ import (
 	// "io/ioutil"
 	"log"
 	"net/http"
+	"strconv"
 	"strings"
 
 	// "html/template"
@@ -61,11 +62,11 @@ func (srv *Authenticator_Service) Start() {
 	mux.HandleFunc("/", srv.handle_everything_else)
 
 	secondaryServer := &http.Server{
-		Addr:    "0.0.0.0:" + global.Config__.AuthenticatorOperatingPort,
+		Addr:    "0.0.0.0:" + strconv.Itoa(global.Config__.AuthenticatorOperatingPort),
 		Handler: mux,
 	}
 
-	log.Printf("Starting validation service HTTP server on http://localhost:%s...\n", global.Config__.AuthenticatorOperatingPort)
+	log.Printf("Starting validation service HTTP server on http://localhost:%v...\n", global.Config__.AuthenticatorOperatingPort)
 	err := secondaryServer.ListenAndServe()
 	if err != nil && err != http.ErrServerClosed {
 		log.Fatalf("Failed to start secondary server: %v", err)
