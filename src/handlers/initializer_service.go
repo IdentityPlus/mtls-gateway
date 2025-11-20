@@ -235,7 +235,7 @@ func handle_acme_challenges(w http.ResponseWriter, r *http.Request) {
 	data, error := os.ReadFile(global.Config__.DataDirectory + "/letsencrypt/acme-challenge/" + host + "/" + challenge)
 
 	if error != nil {
-		log.Printf("Unable to load: %s", global.Config__.DataDirectory+"/letsencrypt/acme-challenge/"+host+"/"+challenge)
+		log.Printf("Unable to load: %s\n", global.Config__.DataDirectory+"/letsencrypt/acme-challenge/"+host+"/"+challenge)
 		target := "https://" + host
 
 		if global.Config__.ApplicationPort != 443 {
