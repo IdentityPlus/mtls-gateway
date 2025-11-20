@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"html/template"
 	"log"
-	"net"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -118,7 +117,11 @@ func (srv *Initialization_Service) render_page(w http.ResponseWriter, tmpl strin
 func (srv *Initialization_Service) handle_init_service(w http.ResponseWriter, r *http.Request) {
 
 	if global.Intialized {
-		host, _, _ := net.SplitHostPort(r.Host)
+		host := r.Host
+		if i := strings.Index(host, ":"); i != -1 {
+			host = host[:i]
+		}
+
 		target := "https://" + host
 
 		if global.Config__.ApplicationPort != 443 {
@@ -226,12 +229,10 @@ func handle_download_ca(w http.ResponseWriter, r *http.Request) {
 }
 
 func handle_acme_challenges(w http.ResponseWriter, r *http.Request) {
-	host, _, err := net.SplitHostPort(r.Host)
-
-	if err != nil || host == "" {
-		log.Printf("Unable to split host from port: %s\n", r.Host)
+	host := r.Host
+	if i := strings.Index(host, ":"); i != -1 {
+		host = host[:i]
 	}
-	// os.MkdirAll(global.Config__.DataDirectory+"/letsencrypt/acme-challenge/"+host, 0755)
 
 	challenge := r.URL.RequestURI()[len("/.well-known/acme-challenge/"):]
 

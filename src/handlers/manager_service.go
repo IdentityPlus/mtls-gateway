@@ -287,7 +287,11 @@ func (srv *Manager_Service) Start() {
 
 func (srv *Manager_Service) handle_new_serivce_route(w http.ResponseWriter, r *http.Request) {
 	service_fonfigs := srv.Get_Configurations()
-	op_domain, _, _ := net.SplitHostPort(r.Host)
+	op_domain := r.Host
+	if i := strings.Index(op_domain, ":"); i != -1 {
+		op_domain = op_domain[:i]
+	}
+
 	config := srv.Get_Service_Config(op_domain)
 
 	var error_msg = ""
@@ -343,7 +347,10 @@ func atoi(s string, def int) int {
 
 func (srv *Manager_Service) handle_admin(w http.ResponseWriter, r *http.Request) {
 	service_fonfigs := srv.Get_Configurations()
-	op_domain, _, _ := net.SplitHostPort(r.Host)
+	op_domain := r.Host
+	if i := strings.Index(op_domain, ":"); i != -1 {
+		op_domain = op_domain[:i]
+	}
 	config := srv.Get_Service_Config(op_domain)
 	var error_msg = ""
 
@@ -433,7 +440,10 @@ func (srv *Manager_Service) handle_download_log_file(w http.ResponseWriter, r *h
 
 func (srv *Manager_Service) handle_logs(w http.ResponseWriter, r *http.Request) {
 	service_fonfigs := srv.Get_Configurations()
-	op_domain, _, _ := net.SplitHostPort(r.Host)
+	op_domain := r.Host
+	if i := strings.Index(op_domain, ":"); i != -1 {
+		op_domain = op_domain[:i]
+	}
 	config := srv.Get_Service_Config(op_domain)
 	var error_msg = ""
 
@@ -487,7 +497,10 @@ func (srv *Manager_Service) handle_logs(w http.ResponseWriter, r *http.Request) 
 
 func (srv *Manager_Service) handle_log_view(w http.ResponseWriter, r *http.Request) {
 	service_fonfigs := srv.Get_Configurations()
-	op_domain, _, _ := net.SplitHostPort(r.Host)
+	op_domain := r.Host
+	if i := strings.Index(op_domain, ":"); i != -1 {
+		op_domain = op_domain[:i]
+	}
 	config := srv.Get_Service_Config(op_domain)
 	var error_msg = ""
 
@@ -515,7 +528,10 @@ func (srv *Manager_Service) handle_log_view(w http.ResponseWriter, r *http.Reque
 
 func (srv *Manager_Service) handle_overview(w http.ResponseWriter, r *http.Request) {
 	service_fonfigs := srv.Get_Configurations()
-	domain, _, _ := net.SplitHostPort(r.Host)
+	domain := r.Host
+	if i := strings.Index(domain, ":"); i != -1 {
+		domain = domain[:i]
+	}
 	config := srv.Get_Service_Config(domain)
 
 	var validation__ *mtlsid.Client_Validation_Ticket
@@ -598,7 +614,10 @@ func (srv *Manager_Service) handle_overview(w http.ResponseWriter, r *http.Reque
 }
 
 func (srv *Manager_Service) handle_routes(w http.ResponseWriter, r *http.Request) {
-	domain, _, _ := net.SplitHostPort(r.Host)
+	domain := r.Host
+	if i := strings.Index(domain, ":"); i != -1 {
+		domain = domain[:i]
+	}
 	page_error := ""
 	service_fonfigs := srv.Get_Configurations()
 	config := srv.Get_Service_Config(domain)
@@ -684,7 +703,10 @@ func (srv *Manager_Service) handle_routes(w http.ResponseWriter, r *http.Request
 }
 
 func (srv *Manager_Service) handle_tcp_config(w http.ResponseWriter, r *http.Request) {
-	domain, _, _ := net.SplitHostPort(r.Host)
+	domain := r.Host
+	if i := strings.Index(domain, ":"); i != -1 {
+		domain = domain[:i]
+	}
 	page_error := ""
 	service_fonfigs := srv.Get_Configurations()
 	config := srv.Get_Service_Config(domain)
@@ -728,7 +750,10 @@ func (srv *Manager_Service) handle_tcp_config(w http.ResponseWriter, r *http.Req
 
 func (srv *Manager_Service) handle_access_control(w http.ResponseWriter, r *http.Request) {
 	service_fonfigs := srv.Get_Configurations()
-	domain, _, _ := net.SplitHostPort(r.Host)
+	domain := r.Host
+	if i := strings.Index(domain, ":"); i != -1 {
+		domain = domain[:i]
+	}
 	config := srv.Get_Service_Config(domain)
 
 	cert := r.TLS.PeerCertificates[0]
@@ -897,7 +922,10 @@ func (srv *Manager_Service) handle_access_control(w http.ResponseWriter, r *http
 
 func (srv *Manager_Service) handle_http_config(w http.ResponseWriter, r *http.Request) {
 	service_fonfigs := srv.Get_Configurations()
-	domain, _, _ := net.SplitHostPort(r.Host)
+	domain := r.Host
+	if i := strings.Index(domain, ":"); i != -1 {
+		domain = domain[:i]
+	}
 	config := srv.Get_Service_Config(domain)
 	page_error := ""
 
