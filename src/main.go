@@ -71,22 +71,20 @@ func main() {
 	go utils.Log_Writer.Log_Eraser_Process()
 
 	identities := handlers.Manager_Service__.Get_Configurations()
-	initialized := false
 
 	for _, id_dir := range identities {
 		handlers.Manager_Service__.Configure_Perimeter_API(id_dir)
-		initialized = true
+		global.Intialized = true
 	}
 
 	// run a certificate update in synch
 	update_certificates()
 
-	if initialized {
+	if global.Intialized {
 		go handlers.Manager_Service__.Start()
-	} else {
-		go handlers.Initialization_Service__.Start()
 	}
 
+	go handlers.Initialization_Service__.Start()
 	go handlers.Validation_Service__.Start()
 
 	handlers.Manager_Service__.Start_Openresty()

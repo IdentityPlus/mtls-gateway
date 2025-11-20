@@ -27,6 +27,7 @@ type Config struct {
 }
 
 var Config__ *Config
+var Intialized = false
 
 type Stats struct {
 	LaunchTime time.Time

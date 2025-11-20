@@ -6,9 +6,11 @@ import (
 	"fmt"
 	"html/template"
 	"log"
+	"net"
 	"net/http"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 
 	"identity.plus/mtls-gw/global"
@@ -114,6 +116,20 @@ func (srv *Initialization_Service) render_page(w http.ResponseWriter, tmpl strin
 }
 
 func (srv *Initialization_Service) handle_init_service(w http.ResponseWriter, r *http.Request) {
+
+	if global.Intialized {
+		host, _, _ := net.SplitHostPort(r.Host)
+		target := "https://" + host
+
+		if global.Config__.ApplicationPort != 443 {
+			target += ":" + strconv.Itoa(global.Config__.ApplicationPort)
+		}
+
+		http.Redirect(w, r, target+r.URL.RequestURI(), http.StatusFound)
+
+		return
+	}
+
 	var perimeter_api *mtlsid.Perimeter_API
 	var error_msg = ""
 	var domain = ""
@@ -209,11 +225,36 @@ func handle_download_ca(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func handle_acme_challenges(w http.ResponseWriter, r *http.Request) {
+	host, _, _ := net.SplitHostPort(r.Host)
+
+	// os.MkdirAll(global.Config__.DataDirectory+"/letsencrypt/acme-challenge/"+host, 0755)
+
+	challenge := r.URL.RequestURI()[len("/.well-known/acme-challenge/"):]
+
+	data, error := os.ReadFile(global.Config__.DataDirectory + "/letsencrypt/acme-challenge/" + host + "/" + challenge)
+
+	if error != nil {
+		log.Printf("Unable to load: %s", global.Config__.DataDirectory+"/letsencrypt/acme-challenge/"+host+"/"+challenge)
+		target := "https://" + host
+
+		if global.Config__.ApplicationPort != 443 {
+			target += ":" + strconv.Itoa(global.Config__.ApplicationPort)
+		}
+
+		http.Redirect(w, r, target+r.URL.RequestURI(), http.StatusFound)
+	} else {
+		w.WriteHeader(http.StatusOK)
+		w.Write(data)
+	}
+}
+
 func (srv *Initialization_Service) Start() {
 	mux := http.NewServeMux()
 
 	mux.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("webapp/static"))))
 	mux.HandleFunc("/download-ca", handle_download_ca)
+	mux.HandleFunc("/.well-known/acme-challenge/", handle_acme_challenges)
 	mux.HandleFunc("/", srv.handle_init_service)
 
 	initialization_servive := &http.Server{
