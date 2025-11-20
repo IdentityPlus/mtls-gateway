@@ -236,10 +236,10 @@ func handle_acme_challenges(w http.ResponseWriter, r *http.Request) {
 
 	challenge := r.URL.RequestURI()[len("/.well-known/acme-challenge/"):]
 
-	data, error := os.ReadFile(global.Config__.DataDirectory + "/letsencrypt/acme-challenge/" + host + "/.well-known/acme-challenge/" + challenge)
+	data, error := os.ReadFile(global.Config__.DataDirectory + "/letsencrypt/" + host + "/.well-known/acme-challenge/" + challenge)
 
 	if error != nil {
-		log.Printf("Unable to load: %s\n", global.Config__.DataDirectory+"/letsencrypt/acme-challenge/"+host+"/.well-known/acme-challenge/"+challenge)
+		log.Printf("Unable to load: %s\n", global.Config__.DataDirectory+"/letsencrypt/"+host+"/.well-known/acme-challenge/"+challenge)
 		target := "https://" + host
 
 		if global.Config__.ApplicationPort != 443 {
