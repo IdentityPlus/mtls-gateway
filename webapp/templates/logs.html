@@ -1,7 +1,7 @@
 {{ define "content" }}
 
     <div>
-        <h2>Logging Preferences</h2>
+        <h2><fa class="fa-solid fa-sliders"></fa>Logging Preferences</h2>
         <div class="spacer">
             <form id="mtls-behavior" method="POST">
             <table>
@@ -32,14 +32,14 @@
     </div>
 
     <div class="log-history">
-        <h2>Log History</h2>
+        <h2><fa class="fa-solid fa-pencil"></fa>Log History</h2>
         <div class="spacer">
             <a class="submit NORAGIN" href="javascript:sync_post('history', 'delete')"><span class="fa-solid fa-trash-can"></span>Delete Selected</a>
         </div>
         <div class="spacer">
             <form id="history" method="POST">
             <table>
-                <tr><th></th><th><p>Entry</p></th></tr>
+                <tr class="first"><th></th><th><p>Entry</p></th></tr>
                 {{ range $file := $.Files }}
                 <tr><td class="compact"><input type="checkbox" id="tick-{{ $file }}" name="tick-{{ $file }}"></td><td><a href="/view-log?file={{ $file }}">{{ $file }}</a></td></tr>
                 {{ end }}

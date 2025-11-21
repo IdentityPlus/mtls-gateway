@@ -60,6 +60,29 @@
 
             form.submit();
         }
+
+        function show_hide_menu(){
+            popup = document.getElementById("dropdown__menu")
+
+            if(popup.style.visibility === "visible"){
+                popup.style.visibility = "hidden";
+                popup.style.opacity = "0";
+            }
+            else {
+                popup.style.visibility = "visible";
+                popup.style.opacity = "1";
+            }
+        }
+
+        window.addEventListener("click", function(){
+            popup = document.getElementById("dropdown__menu")
+            container = document.getElementById("dropdown__header")
+
+            if(!container.contains(event.target) && popup.style.visibility === "visible"){
+                popup.style.visibility = "hidden";
+                popup.style.opacity = "0";
+            }
+        })
     </script>
 </head>
 <body>
@@ -67,12 +90,12 @@
     <div class="main-container">
         <aside class="menu">
             <table>
-            <tr><td class="dropdown__header">
+            <tr><td class="dropdown__header" id="dropdown__header">
 
                 <ul class="dropdown__categories">
                     <li class="dropdown__category">
-                    <span><fa class="fa-solid fa-gear"></fa>{{ $.Domain }}<fa class="fa-solid fa-angle-down"></fa></span>
-                    <ul class="dropdown__menu">
+                    <a class="cat_menu" href="javascript:show_hide_menu()"><fa class="fa-solid fa-gear"></fa>{{ $.Domain }}<fa class="fa-solid fa-angle-down"></fa></a>
+                    <ul id="dropdown__menu">
                         {{ range .DynamicPages }}
                             {{ if ne $.Domain . }}<li><a href="https://{{ . }}:{{ $.SRV_Port }}"><fa class="fa-solid fa-gear"></fa>{{ . }}</a></li>{{ end }}
                         {{ end }}

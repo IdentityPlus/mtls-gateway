@@ -69,6 +69,7 @@ fa{min-width:48px; width:48px; text-align:center; padding: 15px 10px 15px 15px;}
 
 .content { padding: 40px; display:flex; flex-direction: row; flex-wrap: wrap; justify-content: flex-start; align-content: flex-start; gap: 20px 20px; flex:1 1 auto; flex-grow: 1;}
 .content h2 {padding:10px 20px; background:#00000010; border-bottom:1px solid #00000010; color:#707070; font-size:18px;}
+.content h2 fa {padding:0; width:auto; min-width:auto; margin-right:10px;}
 .content div { flex-grow: 1; min-width:300px; background:rgba(0,0,0, 0.01); border:1px solid rgba(0,0,0, 0.1); border-radius: 5px; padding:0px 0px 10px 0px;}
 .content div table {vertical-align: middle; text-align: left; font-weight: 300;}
 .content div table td, .content div table th {border-top: 1px dotted rgba(0,0,0,0.1); padding:10px 15px 10px 0; vertical-align: middle; text-align: left; }
@@ -88,7 +89,7 @@ fa{min-width:48px; width:48px; text-align:center; padding: 15px 10px 15px 15px;}
 	table {
 		width:100%;
 		th, td {
-			border-bottom:1px dashed #30303040; border-top:0; padding:5px 10px; 
+			border-top:1px dashed #30303040; padding:5px 10px; 
 			p{margin-bottom:10px; font-size:100%; color:#808080; font-weight: 500;}
 			input[type="checkbox"] {margin: 5px 5px 10px 0px;}
 		}
@@ -166,14 +167,14 @@ select:focus{
 .dropdown__header{
 	& .dropdown__categories, & .dropdown__menu {
 		display: flex;	list-style: none;
-		a{padding:18px 18px 18px 0px;}
+		a{padding:13px 18px 13px 3px;}
 	}
 	* { padding: 0; margin: 0; }
 
 	& .dropdown__categories{
-		span{
-			display:flex; justify-content: space-between; align-items: center;
-			.fa-angle-down{flex-grow: 1; text-align:right; padding: 20px 10px 19px 20px;}
+		a.cat_menu{
+			display:flex; justify-content: space-between; align-items: center; margin:0;
+			.fa-angle-down{flex-grow: 1; text-align:right; padding: 9px 0px 7px 20px;}
 		}
 
 		li { 
@@ -181,12 +182,10 @@ select:focus{
 			&:hover { background: #C0C0C0; }
 		}
 
-		& ul.dropdown__menu{
-			display: block;position: absolute;background: #e5e5e5;top: 55px;height:0px;transition: all ease-out 0.2s; border-bottom:1px solid #00000010;
-			left: 0; visibility:hidden; backdrop-filter: blur(10px); height:50vh;overflow-y: auto; opacity:0;
+		& ul{
+			display: block;position: absolute;background: #e5e5e5;top: 58px; height:0px;transition: all ease-out 0.2s; border-bottom:1px solid #00000010;
+			left: 0; visibility:hidden; backdrop-filter: blur(10px); height:50vh;overflow-y: auto; opacity:0; padding-top:13px;
 		}
-
-		&:hover ul.dropdown__menu{ visibility:visible; opacity:1; }
 	}
 }
 .menu table td.dropdown__header { background: #e5e5e5; min-width:300px; padding:0;}

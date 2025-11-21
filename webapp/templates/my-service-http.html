@@ -1,7 +1,7 @@
 {{ define "content" }}
 
     <div>
-        <h2>HTTP Behavior</h2>
+        <h2><fa class="fa-solid fa-link"></fa>HTTP Behavior</h2>
         <div class="spacer">
             <form id="http-behavior" method="POST">
             <table>
@@ -21,7 +21,7 @@
 
     {{ range $location := .Service.HTTP.Locations }}
     <div>
-        <h2>Location "{{$location.Path}}"</h2>
+        <h2><fa class="fa-solid fa-location-pin-lock"></fa>Location "{{$location.Path}}"</h2>
         <div class="spacer">
             <table>
                 <tr class="first">

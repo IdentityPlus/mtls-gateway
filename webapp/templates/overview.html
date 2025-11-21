@@ -1,6 +1,6 @@
 {{ define "content" }}
 <div>
-    <h2>Service Details</h2>
+    <h2><fa class="fa-solid fa-circle-info"></fa>Service Details</h2>
     <div class="spacer">
         <form action="/save-service" method="POST">
             <table>
@@ -18,7 +18,7 @@
 </div>
 
 <div>
-    <h2>mTLS Gateway Manager Service</h2>
+    <h2><fa class="fa-solid fa-chart-simple"></fa>mTLS Gateway Manager Service</h2>
     <div class="spacer">
         <table>
             <tr class="first"><th><label>Up Time</label></th><td><span>{{.UpTime}}</span></td></tr>
@@ -34,7 +34,7 @@
 </div>
 
 <div>
-    <h2>Gateway mTLS Client Persona</h2>
+    <h2><fa class="fa-solid fa-gears"></fa>Gateway mTLS Client Persona</h2>
     <div class="spacer">
         <form id="interface" method="POST">
         <table>
@@ -52,7 +52,7 @@
 </div>
 
 <div>
-    <h2>Your Identity</h2>
+    <h2><fa class="fa-solid fa-user"></fa>Your Identity</h2>
     <div class="spacer">
         <table>
             <tr class="first"><th><label>mTLS ID</label></th><td><span>{{.MtlsID}}</span></td></tr>

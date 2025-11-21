@@ -1,7 +1,7 @@
 {{ define "content" }}
 
     <div>
-        <h2>mTLS Perimeter Behavior</h2>
+        <h2><fa class="fa-regular fa-circle"></fa>mTLS Perimeter Behavior</h2>
         <div class="spacer">
             <form id="mtls-behavior" method="POST">
             <table>
@@ -30,7 +30,7 @@
     {{ if eq .Service.Mode "HTTP" }}
       {{ if eq .Service.HTTP.AccessMode "Proxy" }}
         <div>
-            <h2>Trusted Proxy Headers</h2>
+            <h2><fa class="fa-solid fa-id-card"></fa>Trusted Proxy Headers</h2>
             <div class="spacer">
                 <form id="trusted-proxy-behavior" method="POST">
                 <table>
@@ -47,7 +47,7 @@
             </div>
         </div>
         <div>
-            <h2>Proxy Role Mapping</h2>
+            <h2><fa class="fa-solid fa-users-gear"></fa>Proxy Role Mapping</h2>
             <div class="spacer">
                 <form id="role-mapping" method="POST">
                 <table>
@@ -66,7 +66,7 @@
   
       {{ if eq .Service.HTTP.AccessMode "OIDC" }}
         <div>
-            <h2>OIDC / OAuth2 Client Configuration</h2>
+            <h2><fa class="fa-solid fa-key"></fa>OIDC / OAuth2 Client Configuration</h2>
             <div class="spacer">
                 <form id="oidc-behavior" method="POST">
                 <table>
@@ -82,7 +82,7 @@
             </div>
         </div>
         <div>
-            <h2>OIDC / OAuth2 Role Mapping</h2>
+            <h2><fa class="fa-solid fa-users-gear"></fa>OIDC / OAuth2 Role Mapping</h2>
             <div class="spacer">
                 <form id="role-mapping" method="POST">
                 <table>
@@ -98,7 +98,7 @@
             </div>
         </div>
         <div>
-            <h2>OIDC / OAuth2 Claims</h2>
+            <h2><fa class="fa-solid fa-id-card"></fa>OIDC / OAuth2 Claims</h2>
             <div class="spacer">
                 <table>
                     <tr class="first"><th><label for="preferred-username">ID Claim</label></th><td><input type="text" id="preferred-username" DISABLED value="preferred_username"></td><th><label>{{.OrgID}}</label></th></tr>
@@ -109,10 +109,10 @@
             </div>
         </div>
         <div>
-            <h2>OIDC / OAuth2 Service Endpoints</h2>
+            <h2><fa class="fa-solid fa-wand-sparkles"></fa>OIDC / OAuth2 Service Endpoints</h2>
             <div class="spacer">
                 <table>
-                    <tr><th colspan="3"><label>OIDC Discovery Endpoint</label><p>http://{{ .Local_Endpoint }}/mtls-gw/oidc/{{ .Domain }}/.well-known/openid-configuration</p></th></tr>
+                    <tr class="first"><th colspan="3"><label>OIDC Discovery Endpoint</label><p>http://{{ .Local_Endpoint }}/mtls-gw/oidc/{{ .Domain }}/.well-known/openid-configuration</p></th></tr>
                     <tr><th colspan="3"><label>Authorization (OIDC Login Redirect) Endpoint</label><p>https://{{ .Domain }}:{{ .App_Port }}/mtls-gw/oidc/auth</p></th></tr>
                     <tr><th colspan="3"><label>Token Endpoint</label><p>http://{{ .Local_Endpoint }}/mtls-gw/oidc/{{ .Domain }}/token</p></th></tr>
                     <tr><th colspan="3"><label>User Info Endpoint</label><p>http://{{ .Local_Endpoint }}/mtls-gw/oidc/{{ .Domain }}/userinfo</p></th></tr>
