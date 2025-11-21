@@ -2,99 +2,123 @@
 
     <div>
         <h2>mTLS Perimeter Behavior</h2>
-        <form id="mtls-behavior" method="POST">
-        <table>
-            <tr><th><label for="split">Access Control</label></th><td >
-                <select id="split" name="split">
-                    <option {{ if eq .Service.HTTP.AccessMode "Gateway" }} SELECTED {{ end }} value="Gateway">Gateway RBAC</option>
-                    {{ if eq .Service.Mode "HTTP" }}
-                      <option {{ if eq .Service.HTTP.AccessMode "Application" }} SELECTED {{ end }} value="Application" >Application</option>
-                      <option {{ if eq .Service.HTTP.AccessMode "Proxy" }} SELECTED {{ end }}  value="Proxy">Trusted Headers</option>
-                      <option {{ if eq .Service.HTTP.AccessMode "OIDC" }} SELECTED {{ end }}  value="OIDC">OIDC / OAuth2 Callback</option>
-                    {{ end }}
-                </select>
-            </td></tr>
-            {{ if eq .Service.Mode "HTTP" }}
-              <tr><th><label for="mtlsid">mTLS ID Heder</label></th><td><input type="text" id="mtlsid" name="mtlsid" value="{{ .Service.HTTP.MtlsID }}"></td></tr>
-              <tr><th><label for="agent">mTLS Agent CN Header</label></th><td><input type="text" id="agent" name="agent" value="{{ .Service.HTTP.MtlsAgent }}"></td></tr>
-            {{ end }}
-        </table>
-        </form>
-        <a class="submit" href="javascript:sync_post('mtls-behavior', 'edit-mtls')"><span class="fa-solid fa-save"></span>Save</a>
+        <div class="spacer">
+            <form id="mtls-behavior" method="POST">
+            <table>
+                <tr class="first"><th><label for="split">Access Control</label></th><td >
+                    <select id="split" name="split">
+                        <option {{ if eq .Service.HTTP.AccessMode "Gateway" }} SELECTED {{ end }} value="Gateway">Gateway RBAC</option>
+                        {{ if eq .Service.Mode "HTTP" }}
+                        <option {{ if eq .Service.HTTP.AccessMode "Application" }} SELECTED {{ end }} value="Application" >Application</option>
+                        <option {{ if eq .Service.HTTP.AccessMode "Proxy" }} SELECTED {{ end }}  value="Proxy">Trusted Headers</option>
+                        <option {{ if eq .Service.HTTP.AccessMode "OIDC" }} SELECTED {{ end }}  value="OIDC">OIDC / OAuth2 Callback</option>
+                        {{ end }}
+                    </select>
+                </td></tr>
+                {{ if eq .Service.Mode "HTTP" }}
+                <tr><th><label for="mtlsid">mTLS ID Heder</label></th><td><input type="text" id="mtlsid" name="mtlsid" value="{{ .Service.HTTP.MtlsID }}"></td></tr>
+                <tr><th><label for="agent">mTLS Agent CN Header</label></th><td><input type="text" id="agent" name="agent" value="{{ .Service.HTTP.MtlsAgent }}"></td></tr>
+                {{ end }}
+            </table>
+            </form>
+        </div>
+        <div class="spacer">
+            <a class="submit" href="javascript:sync_post('mtls-behavior', 'edit-mtls')"><span class="fa-solid fa-save"></span>Save</a>
+        </div>
     </div>
 
     {{ if eq .Service.Mode "HTTP" }}
       {{ if eq .Service.HTTP.AccessMode "Proxy" }}
         <div>
             <h2>Trusted Proxy Headers</h2>
-            <form id="trusted-proxy-behavior" method="POST">
-            <table>
-                <tr><th><label for="org-id">mTLS Org ID</label></th><td><input type="text" id="org-id" name="org-id" value="{{ .Service.HTTP.Trusted_Headers.MtlsOrgID }}"></td></tr>
-                <tr><th><label for="org-name">mTLS Org Name</label></th><td><input type="text" id="org-name" name="org-name" value="{{ .Service.HTTP.Trusted_Headers.MtlsOrgName }}"></td></tr>
-                <tr><th><label for="org-email">mTLS Org Email</label></th><td><input type="text" id="org-email" name="org-email" value="{{ .Service.HTTP.Trusted_Headers.MtlsOrgEmail }}"></td></tr>
-                <tr><th><label for="roles">mTLS Roles</label></th><td><input type="text" id="roles" name="roles" value="{{ .Service.HTTP.Trusted_Headers.MtlsRoles }}"></td></tr>
-                <tr><th><label for="local-id">mTLS Application Bound ID</label></th><td><input type="text" id="local-id" name="local-id" value="{{ .Service.HTTP.Trusted_Headers.MtlsLocalID }}"></td></tr>
-            </table>
-            </form>
-            <a class="submit" href="javascript:sync_post('trusted-proxy-behavior', 'edit-trusted-proxy')"><span class="fa-solid fa-save"></span>Save</a>
+            <div class="spacer">
+                <form id="trusted-proxy-behavior" method="POST">
+                <table>
+                    <tr class="first"><th><label for="org-id">mTLS Org ID</label></th><td><input type="text" id="org-id" name="org-id" value="{{ .Service.HTTP.Trusted_Headers.MtlsOrgID }}"></td></tr>
+                    <tr><th><label for="org-name">mTLS Org Name</label></th><td><input type="text" id="org-name" name="org-name" value="{{ .Service.HTTP.Trusted_Headers.MtlsOrgName }}"></td></tr>
+                    <tr><th><label for="org-email">mTLS Org Email</label></th><td><input type="text" id="org-email" name="org-email" value="{{ .Service.HTTP.Trusted_Headers.MtlsOrgEmail }}"></td></tr>
+                    <tr><th><label for="roles">mTLS Roles</label></th><td><input type="text" id="roles" name="roles" value="{{ .Service.HTTP.Trusted_Headers.MtlsRoles }}"></td></tr>
+                    <tr><th><label for="local-id">mTLS Application Bound ID</label></th><td><input type="text" id="local-id" name="local-id" value="{{ .Service.HTTP.Trusted_Headers.MtlsLocalID }}"></td></tr>
+                </table>
+                </form>
+            </div>
+            <div class="spacer">
+                <a class="submit" href="javascript:sync_post('trusted-proxy-behavior', 'edit-trusted-proxy')"><span class="fa-solid fa-save"></span>Save</a>
+            </div>
         </div>
         <div>
             <h2>Proxy Role Mapping</h2>
-            <form id="role-mapping" method="POST">
-            <table>
-                {{ range $mapping := .Service.HTTP.Translator.Mappings }}
-                <tr><th><label for="role-from-{{deslash $mapping.Canonical}}">Canonical</label></th><td><input type="text" id="role-from-{{deslash $mapping.Canonical}}" name="role-from-{{deslash $mapping.Canonical}}" placeholder="Empty To Delete Mapping" value="{{ $mapping.Canonical }}"></td><th><label for="role-to-{{deslash $mapping.Canonical}}">Upstream Role</label></th><td><input type="text" id="role-to-{{deslash $mapping.Canonical}}" placeholder="Empty To Delete Mapping" name="role-to-{{deslash $mapping.Canonical}}" value="{{ $mapping.Local }}"></td></tr>
-                {{ end }}
-                <tr><th><label for="new-role-from">Canonical</label></th><td><input type="text" id="new-role-from" name="new-role-from" placeholder="Add Canonical Role" value=""></td><th><label for="new-role-to">Upstream Role</label></th><td><input type="text" id="new-role-to" placeholder="Map To Local" name="new-role-to" value=""></td></tr>
-            </table>
-            </form>
-            <a class="submit" href="javascript:sync_post('role-mapping', 'edit-mapped-roles')"><span class="fa-solid fa-save"></span>Save</a>
+            <div class="spacer">
+                <form id="role-mapping" method="POST">
+                <table>
+                    <tr class="first"><th><label for="new-role-from">Canonical</label></th><td><input type="text" id="new-role-from" name="new-role-from" placeholder="Add Canonical Role" value=""></td><th><label for="new-role-to">Upstream Role</label></th><td><input type="text" id="new-role-to" placeholder="Map To Local" name="new-role-to" value=""></td></tr>
+                    {{ range $mapping := .Service.HTTP.Translator.Mappings }}
+                    <tr><th><label for="role-from-{{deslash $mapping.Canonical}}">Canonical</label></th><td><input type="text" id="role-from-{{deslash $mapping.Canonical}}" name="role-from-{{deslash $mapping.Canonical}}" placeholder="Empty To Delete Mapping" value="{{ $mapping.Canonical }}"></td><th><label for="role-to-{{deslash $mapping.Canonical}}">Upstream Role</label></th><td><input type="text" id="role-to-{{deslash $mapping.Canonical}}" placeholder="Empty To Delete Mapping" name="role-to-{{deslash $mapping.Canonical}}" value="{{ $mapping.Local }}"></td></tr>
+                    {{ end }}
+                </table>
+                </form>
+            </div>
+            <div class="spacer">
+                <a class="submit" href="javascript:sync_post('role-mapping', 'edit-mapped-roles')"><span class="fa-solid fa-save"></span>Save</a>
+            </div>
         </div>
       {{ end }}
   
       {{ if eq .Service.HTTP.AccessMode "OIDC" }}
         <div>
             <h2>OIDC / OAuth2 Client Configuration</h2>
-            <form id="oidc-behavior" method="POST">
-            <table>
-                {{ range $client := .Service.HTTP.OIDC.Clients }}
-                <tr><th><label for="client-name-{{deslash  $client.Id}}">Client ID</label></th><td><input type="text" id="client-name-{{deslash  $client.Id}}" name="client-name-{{deslash  $client.Id}}" placeholder="Empty To Delete Client" value="{{ $client.Id }}"></td><th><label for="client-secret-{{deslash  $client.Id}}">Client Secret</label></th><td><input type="text" id="client-secret-{{deslash  $client.Id}}" placeholder="Auto Random Secret" name="client-secret-{{deslash  $client.Id}}" value="{{ $client.Secret }}"></td></tr>
-                {{ end }}
-                <tr><th><label for="new-client-name">Client ID</label></th><td><input type="text" id="new-client-name" name="new-client-name" placeholder="New Client ID" value=""></td><th><label for="new-client-secret">Client Secret</label></th><td><input type="text" id="new-client-secret" placeholder="Auto Random Secret" name="new-client-secret" value=""></td></tr>
-            </table>
-            </form>
-            <a class="submit" href="javascript:sync_post('oidc-behavior', 'edit-oidc')"><span class="fa-solid fa-save"></span>Save</a>
+            <div class="spacer">
+                <form id="oidc-behavior" method="POST">
+                <table>
+                    <tr class="first"><th><label for="new-client-name">Client ID</label></th><td><input type="text" id="new-client-name" name="new-client-name" placeholder="New Client ID" value=""></td><th><label for="new-client-secret">Client Secret</label></th><td><input type="text" id="new-client-secret" placeholder="Auto Random Secret" name="new-client-secret" value=""></td></tr>
+                    {{ range $client := .Service.HTTP.OIDC.Clients }}
+                    <tr><th><label for="client-name-{{deslash  $client.Id}}">Client ID</label></th><td><input type="text" id="client-name-{{deslash  $client.Id}}" name="client-name-{{deslash  $client.Id}}" placeholder="Empty To Delete Client" value="{{ $client.Id }}"></td><th><label for="client-secret-{{deslash  $client.Id}}">Client Secret</label></th><td><input type="text" id="client-secret-{{deslash  $client.Id}}" placeholder="Auto Random Secret" name="client-secret-{{deslash  $client.Id}}" value="{{ $client.Secret }}"></td></tr>
+                    {{ end }}
+                </table>
+                </form>
+            </div>
+            <div class="spacer">
+                <a class="submit" href="javascript:sync_post('oidc-behavior', 'edit-oidc')"><span class="fa-solid fa-save"></span>Save</a>
+            </div>
         </div>
         <div>
             <h2>OIDC / OAuth2 Role Mapping</h2>
-            <form id="role-mapping" method="POST">
-            <table>
-                {{ range $mapping := .Service.HTTP.Translator.Mappings }}
-                <tr><th><label for="role-from-{{deslash $mapping.Canonical}}">Canonical</label></th><td><input type="text" id="role-from-{{deslash $mapping.Canonical}}" name="role-from-{{deslash $mapping.Canonical}}" placeholder="Empty To Delete Mapping" value="{{ $mapping.Canonical }}"></td><th><label for="role-to-{{deslash $mapping.Canonical}}">OAuth2 Role</label></th><td><input type="text" id="role-to-{{deslash $mapping.Canonical}}" placeholder="Empty To Delete Mapping" name="role-to-{{deslash $mapping.Canonical}}" value="{{ $mapping.Local }}"></td></tr>
-                {{ end }}
-                <tr><th><label for="new-role-from">Canonical</label></th><td><input type="text" id="new-role-from" name="new-role-from" placeholder="Add Canonical Role" value=""></td><th><label for="new-role-to">OAuth2 Role</label></th><td><input type="text" id="new-role-to" placeholder="Map To Local" name="new-role-to" value=""></td></tr>
-            </table>
-            </form>
-            <a class="submit" href="javascript:sync_post('role-mapping', 'edit-mapped-roles')"><span class="fa-solid fa-save"></span>Save</a>
+            <div class="spacer">
+                <form id="role-mapping" method="POST">
+                <table>
+                    <tr class="first"><th><label for="new-role-from">Canonical</label></th><td><input type="text" id="new-role-from" name="new-role-from" placeholder="Add Canonical Role" value=""></td><th><label for="new-role-to">OAuth2 Role</label></th><td><input type="text" id="new-role-to" placeholder="Map To Local" name="new-role-to" value=""></td></tr>
+                    {{ range $mapping := .Service.HTTP.Translator.Mappings }}
+                    <tr><th><label for="role-from-{{deslash $mapping.Canonical}}">Canonical</label></th><td><input type="text" id="role-from-{{deslash $mapping.Canonical}}" name="role-from-{{deslash $mapping.Canonical}}" placeholder="Empty To Delete Mapping" value="{{ $mapping.Canonical }}"></td><th><label for="role-to-{{deslash $mapping.Canonical}}">OAuth2 Role</label></th><td><input type="text" id="role-to-{{deslash $mapping.Canonical}}" placeholder="Empty To Delete Mapping" name="role-to-{{deslash $mapping.Canonical}}" value="{{ $mapping.Local }}"></td></tr>
+                    {{ end }}
+                </table>
+                </form>
+            </div>
+            <div class="spacer">
+                <a class="submit" href="javascript:sync_post('role-mapping', 'edit-mapped-roles')"><span class="fa-solid fa-save"></span>Save</a>
+            </div>
         </div>
         <div>
             <h2>OIDC / OAuth2 Claims</h2>
-            <table>
-                <tr><th><label for="preferred-username">ID Claim</label></th><td><input type="text" id="preferred-username" DISABLED value="preferred_username"></td><th><label>{{.OrgID}}</label></th></tr>
-                <tr><th><label for="full-name">Display Name Claim</label></th><td><input type="text" id="full-name" DISABLED value="name"></td><th><label>{{.OrgName}}</label></th></tr>
-                <tr><th><label for="email">Email Claim</label></th><td><input type="text" id="email" DISABLED value="email"></td><th><label>{{.OrgEmail}}</label></th></tr>
-                <tr><th><label for="groups">Groups Claim</label></th><td><input type="text" id="groups" DISABLED value="groups"></td><th><label>{{ range .OrgRoles }}<span>{{ . }}, </span>{{ end }}</td></tr></label></th></tr>
-            </table>
+            <div class="spacer">
+                <table>
+                    <tr class="first"><th><label for="preferred-username">ID Claim</label></th><td><input type="text" id="preferred-username" DISABLED value="preferred_username"></td><th><label>{{.OrgID}}</label></th></tr>
+                    <tr><th><label for="full-name">Display Name Claim</label></th><td><input type="text" id="full-name" DISABLED value="name"></td><th><label>{{.OrgName}}</label></th></tr>
+                    <tr><th><label for="email">Email Claim</label></th><td><input type="text" id="email" DISABLED value="email"></td><th><label>{{.OrgEmail}}</label></th></tr>
+                    <tr><th><label for="groups">Groups Claim</label></th><td><input type="text" id="groups" DISABLED value="groups"></td><th><label>{{ range .OrgRoles }}<span>{{ . }}, </span>{{ end }}</td></tr></label></th></tr>
+                </table>
+            </div>
         </div>
         <div>
             <h2>OIDC / OAuth2 Service Endpoints</h2>
-            <table>
-                <tr><th colspan="3"><label>OIDC Discovery Endpoint</label><p>http://{{ .Local_Endpoint }}/mtls-gw/oidc/{{ .Domain }}/.well-known/openid-configuration</p></th></tr>
-                <tr><th colspan="3"><label>Authorization (OIDC Login Redirect) Endpoint</label><p>https://{{ .Domain }}:{{ .App_Port }}/mtls-gw/oidc/auth</p></th></tr>
-                <tr><th colspan="3"><label>Token Endpoint</label><p>http://{{ .Local_Endpoint }}/mtls-gw/oidc/{{ .Domain }}/token</p></th></tr>
-                <tr><th colspan="3"><label>User Info Endpoint</label><p>http://{{ .Local_Endpoint }}/mtls-gw/oidc/{{ .Domain }}/userinfo</p></th></tr>
-                <tr><th colspan="3"><label>JWKS Endpoint</label><p>http://{{ .Local_Endpoint }}/mtls-gw/oidc/{{ .Domain }}/jwks</p></th></tr>
-            </table>
+            <div class="spacer">
+                <table>
+                    <tr><th colspan="3"><label>OIDC Discovery Endpoint</label><p>http://{{ .Local_Endpoint }}/mtls-gw/oidc/{{ .Domain }}/.well-known/openid-configuration</p></th></tr>
+                    <tr><th colspan="3"><label>Authorization (OIDC Login Redirect) Endpoint</label><p>https://{{ .Domain }}:{{ .App_Port }}/mtls-gw/oidc/auth</p></th></tr>
+                    <tr><th colspan="3"><label>Token Endpoint</label><p>http://{{ .Local_Endpoint }}/mtls-gw/oidc/{{ .Domain }}/token</p></th></tr>
+                    <tr><th colspan="3"><label>User Info Endpoint</label><p>http://{{ .Local_Endpoint }}/mtls-gw/oidc/{{ .Domain }}/userinfo</p></th></tr>
+                    <tr><th colspan="3"><label>JWKS Endpoint</label><p>http://{{ .Local_Endpoint }}/mtls-gw/oidc/{{ .Domain }}/jwks</p></th></tr>
+                </table>
+            </div>
         </div>
       {{ end }}
     {{ end }}

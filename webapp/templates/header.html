@@ -1,5 +1,5 @@
 {{define "header"}}
 <header class="top-bar">
-    <logo>mTLS Gateway - {{.Domain}}<br><span>by</span> <brand>Identity <span>Plus</span></brand></logo>
+    <logo>mTLS<br><span>Gateway</span><br></logo> <h1><small>{{ if eq .Service.Mode "TCP" }}<asterix>**</asterix>p{{ else }}http{{ end }}s<super>2</super>://</small>{{.Domain}}</h1>  <p><span>by</span> <a href="https://identity.plus" target="blank_"><brand>identity<span>plus</span></brand></a></p>
 </header>
 {{end}}

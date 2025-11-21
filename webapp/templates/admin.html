@@ -2,57 +2,61 @@
 
     <div>
         <h2>mTLS Gateway Configuration</h2>
-	
-        <form id="interface" method="POST">
-		<table>
-		<tr>
-			<th><label for="application-operating-port">Application Operating Port</label></th>
-			<td><input type="text" id="application-operating-port" name="application_operating_port" value="{{ .Config.ApplicationOperatingPort }}"></td>
-		</tr>
-		<tr><th class="hint" colspan="2"><p>The port the application proxy binds to. Normally default HTTPS (443)</p></th></tr>
+	<div class="spacer">
 
-		<tr>
-			<th><label for="application-port">Application Advertised Port</label></th>
-			<td><input type="text" id="application-port" name="application_port" value="{{ .Config.ApplicationPort }}"></td>
-		</tr>
-		<tr><th class="hint" colspan="2"><p>The port to reach backend (Gatewayed) applications. Normally same as Application Operating Port, unless you use another layer of reverse proxy, Docker, or other routing</p></th></tr>
+		<form id="interface" method="POST">
+			<table>
+			<tr class="first">
+				<th><label for="application-operating-port">Application Operating Port</label></th>
+				<td><input type="text" id="application-operating-port" name="application_operating_port" value="{{ .Config.ApplicationOperatingPort }}"></td>
+			</tr>
+			<tr><th class="hint" colspan="2"><p>The port the application proxy binds to. Normally default HTTPS (443)</p></th></tr>
 
-		<tr>
-			<th><label for="admin-operating-port">Gateway Admin Operating Port</label></th>
-			<td><input type="text" id="admin-operating-port" name="admin_operating_port" value="{{ .Config.AdminOperatingPort }}"></td>
-		</tr>
-		<tr><th class="hint" colspan="2">
-			<p>The port the Gateway Admin (this interface) binds to. Normally we use 444 to leave default HTTPS to applications.</p>
-			<p class="warning"><span class="fa-solid fa-triangle-exclamation"></span> Please exercise caution! Only change these values if you know what you are doing. Changing this port can make the gateway admin unreachable. </p>
-		</th></tr>
-		<tr>
-			<th><label for="admin-port">Gateway Admin Advertised Port</label></th>
-			<td><input type="text" id="admin-port" name="admin_port" value="{{ .Config.AdminPort }}"></td>
-		</tr>
-		<tr><th class="hint" colspan="2"><p>The port to reach the Gateway Admin. Normally same as Admin Operating Port, unless you use reverse proxy, Docker, or other routing.</p></th></tr>
+			<tr>
+				<th><label for="application-port">Application Advertised Port</label></th>
+				<td><input type="text" id="application-port" name="application_port" value="{{ .Config.ApplicationPort }}"></td>
+			</tr>
+			<tr><th class="hint" colspan="2"><p>The port to reach backend (Gatewayed) applications. Normally same as Application Operating Port, unless you use another layer of reverse proxy, Docker, or other routing</p></th></tr>
 
-		<tr>
-			<th><label for="authenticator-operating-port">Authenticator Operating Port</label></th>
-			<td><input type="text" id="authenticator-operating-port" name="authenticator_operating_port" value="{{ .Config.AuthenticatorOperatingPort }}"></td>
-		</tr>
-		<tr><th class="hint" colspan="2"><p>The port where the internal authenticator binds. Normally we use 81 to leave 80 free for other service like, Let's Encrypt Cert Bot.</p></th></tr>
+			<tr>
+				<th><label for="admin-operating-port">Gateway Admin Operating Port</label></th>
+				<td><input type="text" id="admin-operating-port" name="admin_operating_port" value="{{ .Config.AdminOperatingPort }}"></td>
+			</tr>
+			<tr><th class="hint" colspan="2">
+				<p>The port the Gateway Admin (this interface) binds to. Normally we use 444 to leave default HTTPS to applications.</p>
+				<p class="warning"><span class="fa-solid fa-triangle-exclamation"></span> Please exercise caution! Only change these values if you know what you are doing. Changing this port can make the gateway admin unreachable. </p>
+			</th></tr>
+			<tr>
+				<th><label for="admin-port">Gateway Admin Advertised Port</label></th>
+				<td><input type="text" id="admin-port" name="admin_port" value="{{ .Config.AdminPort }}"></td>
+			</tr>
+			<tr><th class="hint" colspan="2"><p>The port to reach the Gateway Admin. Normally same as Admin Operating Port, unless you use reverse proxy, Docker, or other routing.</p></th></tr>
 
-		<tr>
-			<th><label for="authenticator-endpoint">Authenticator LAN Endpoint</label></th>
-			<td><input type="text" id="authenticator-endpoint" name="local_authenticator_endpoint" value="{{ .Config.LocalAuthenticatorEndpoint }}"></td>
-		</tr>
-		<tr><th class="hint" colspan="2"><p>The complete TCP address - Local IP address and port - of the internal authenticator server, reachable vial LAN by upstream services for authentication and authorization call-back. You should never expose this externally.</p></th></tr>
+			<tr>
+				<th><label for="authenticator-operating-port">Authenticator Operating Port</label></th>
+				<td><input type="text" id="authenticator-operating-port" name="authenticator_operating_port" value="{{ .Config.AuthenticatorOperatingPort }}"></td>
+			</tr>
+			<tr><th class="hint" colspan="2"><p>The port where the internal authenticator binds. Normally we use 81 to leave 80 free for other service like, Let's Encrypt Cert Bot.</p></th></tr>
 
-		<tr>
-			<th><label for="mtls-id-ttl">mTLS ID Cache TTL</label></th>
-			<td><input type="text" id="mtls-id-ttl" name="mtls_id_ttl" value="{{ .Config.MtlsIdTtl }}"></td>
-		</tr>
-		<tr><th class="hint" colspan="2"><p>Frequency of re-validation of mTLS ID Certificates against Identity Plus. Measured in minutes.</p></th></tr>
+			<tr>
+				<th><label for="authenticator-endpoint">Authenticator LAN Endpoint</label></th>
+				<td><input type="text" id="authenticator-endpoint" name="local_authenticator_endpoint" value="{{ .Config.LocalAuthenticatorEndpoint }}"></td>
+			</tr>
+			<tr><th class="hint" colspan="2"><p>The complete TCP address - Local IP address and port - of the internal authenticator server, reachable vial LAN by upstream services for authentication and authorization call-back. You should never expose this externally.</p></th></tr>
 
-		</table>
-        </form>
-        <a class="submit" href="javascript:sync_post('interface', 'edit-config')"><span class="fa-solid fa-save"></span>Save</a>
-        <a class="submit" href="javascript:sync_post('interface', 'restart')"><span class="fa-solid fa-power-off"></span>Restart</a>
+			<tr>
+				<th><label for="mtls-id-ttl">mTLS ID Cache TTL</label></th>
+				<td><input type="text" id="mtls-id-ttl" name="mtls_id_ttl" value="{{ .Config.MtlsIdTtl }}"></td>
+			</tr>
+			<tr><th class="hint" colspan="2"><p>Frequency of re-validation of mTLS ID Certificates against Identity Plus. Measured in minutes.</p></th></tr>
+
+			</table>
+		</form>
+	</div>
+	<div class="spacer">
+		<a class="submit" href="javascript:sync_post('interface', 'edit-config')"><span class="fa-solid fa-save"></span>Save</a>
+		<a class="submit" href="javascript:sync_post('interface', 'restart')"><span class="fa-solid fa-power-off"></span>Restart</a>
+	</div>
     </div>
 
     {{ end }}

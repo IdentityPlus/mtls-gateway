@@ -23,29 +23,31 @@
     <section class="content">
         <div>
             <h2>Thank you for choosing mTLS Gateway!</h2>
-            <table>
-                <tr><td>
-                    {{ if eq .Destination "" }}
-                        <p>Let's provision the <brand>mTLS Identity Perimeter</brand> for a service to initialize the gateway. From then on, this configuration panel will only be accessible via mTLS</p>
-                        <p>Please configure the service in the <a href="https://platform.identity.plus" target="_blank">Identity Plus Perimeter Controller Dashboard</a> and grab an Autoprovisioning Token to kickstart the integration.</p>
-                        <form class="all-in-one" id="async_submit" method="post">
-                            <input type="text" name="token" id="token" value="" placeholder="Autoprovisioning Token">
-                            <img width="42" height="42" id="wait-img" class="HIDDEN" src="/static/ring-wait.svg" >
-                            <a class="submit" id="submit-link" href="javascript:async_post()"><span class="fa-solid fa-gears"></span> Provision</a>
-                        </form>
-                        <p class="error-msg">{{.Error}}</p>
-                    {{ else }}
-                        <p class="ok-msg">{{.Destination}} service route has been configured. Please take note of the following check-list before you continue:</p>
-                            <ul>
-                                <li><a href="/download-ca">Download</a> and trust (install) the Identity Plus priavete CA (Certificate Authority)</li>
-                                <li>Initialization service will now exis and not start again unless you manually remove all configuration files</li>
-                                <li>If you are not use Let's Encrypt cert-bot HTTP validation mode, you can close off the insecure (HTTP) port from the firewall</li>
-                                <li>Subsequent services can be initialized over mTLS</li>
-                            </ul>
-                        <a class="submit" target="blank_" href="https://{{.Destination}}:{{.Port}}"><span class="fa-solid fa-lock"></span> Continue over mTLS</a>
-                    {{ end }}
-                </td></tr>
-            </table>
+            <div class="spacer">
+                <table>
+                    <tr class="first"><td>
+                        {{ if eq .Destination "" }}
+                            <p>Let's provision the <brand>mTLS Identity Perimeter</brand> for a service to initialize the gateway. From then on, this configuration panel will only be accessible via mTLS</p>
+                            <p>Please configure the service in the <a href="https://platform.identity.plus" target="_blank">Identity Plus Perimeter Controller Dashboard</a> and grab an Autoprovisioning Token to kickstart the integration.</p>
+                            <form class="all-in-one" id="async_submit" method="post">
+                                <input type="text" name="token" id="token" value="" placeholder="Autoprovisioning Token">
+                                <img width="42" height="42" id="wait-img" class="HIDDEN" src="/static/ring-wait.svg" >
+                                <a class="submit" id="submit-link" href="javascript:async_post()"><span class="fa-solid fa-gears"></span> Provision</a>
+                            </form>
+                            <p class="error-msg">{{.Error}}</p>
+                        {{ else }}
+                            <p class="ok-msg">{{.Destination}} service route has been configured. Please take note of the following check-list before you continue:</p>
+                                <ul>
+                                    <li><a href="/download-ca">Download</a> and trust (install) the Identity Plus priavete CA (Certificate Authority)</li>
+                                    <li>Initialization service will now exis and not start again unless you manually remove all configuration files</li>
+                                    <li>If you are not use Let's Encrypt cert-bot HTTP validation mode, you can close off the insecure (HTTP) port from the firewall</li>
+                                    <li>Subsequent services can be initialized over mTLS</li>
+                                </ul>
+                            <a class="submit" target="blank_" href="https://{{.Destination}}:{{.Port}}"><span class="fa-solid fa-lock"></span> Continue over mTLS</a>
+                        {{ end }}
+                    </td></tr>
+                </table>
+            </div>
         </div>
     </section>
 </body>

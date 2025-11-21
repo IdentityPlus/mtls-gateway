@@ -1,29 +1,53 @@
-* {box-sizing: border-box; font-family: Roboto; font-weight: 300; }
+@font-face {
+  font-family: 'Identity Plus'; font-weight: 400;
+  src: url(/static/Identity_Plus/Identity_Plus_v2.ttf) format('truetype');
+  font-display: swap;
+}
+
+
+* {box-sizing: border-box; font-family: Roboto; font-weight: inherit;}
 
 .TOP{vertical-align:top;}
 
-body {margin: 0; padding: 0; height:100vh; display:flex; flex-direction: column;}
-brand {color: #000000;}
-brand span {color: #4292D3;}
+body {margin: 0; padding: 0; height:100vh; display:flex; flex-direction: column; font-weight: 300; }
+brand {color: #000000; font-weight:500;}
+brand span {color: #4292D3; margin-left:10px; font-weight:500;}
+brand::before{
+	content:'2';
+	font-family: Identity Plus;
+	color:#4292D3;
+	font-size:160%;
+	position:relative;
+	top:0.05em;
+	margin-right:0.2em;
+}
 separator{margin:5px 10px; height:1px; display:inline-block; width:100px; border-bottom:1px solid rgba(0,0,0,0.2);}
-h1 {font-size:26px; font-weight:400; color:rgba(0,0,0,0.8); margin:0;}
+h1 {font-size:26px; font-weight:300; color:rgba(0,0,0,0.8); margin:0;}
 h2 {font-size:20px; font-weight:400; color:rgba(0,0,0,0.8); margin:0;}
 a {color:#4292D3; text-decoration: none;}
 p {max-width: 600px;}
 b {font-weight: 400;}
-brand {font-weight: 400;}
-brand span {color:#4292D3;}
 
+.W100{width:100%;}
 .HIDDEN{display:none;}
 .NOMARGIN{margin:0;}
 .ALIGN-R{text-align:right;}
 
-.top-bar { background-color: #111518; color: #E0E0E0; padding: 10px; text-align: left; flex:0 0 auto;}
+.top-bar { background-color: #111518; color: #E0E0E0; padding: 10px; text-align: left; flex:0 0 auto; display:flex; justify-content: space-between; align-items: center;}
 .top-bar * { display:inline-block; margin:0;}
-.top-bar logo {font-size:20px; font-weight: 400; background:url('/static/mtls-gw.svg'); background-repeat:no-repeat; background-size:contain; background-position: center left; padding:5px 10px 5px 70px; margin:5px 10px;}
-.top-bar logo span {color:#A0A0A0; font-size:66%;}
-.top-bar brand {color: #FFFFFF; font-size:66%;}
-.top-bar brand span {color: #4292D3; font-size:100%; font-weight:400;}
+.top-bar logo {font-size:18px; line-height:135%; font-weight: 400; background:url('/static/mtls-gw.svg'); background-repeat:no-repeat; background-size:contain; background-position: center left; padding:5px 30px 5px 75px; margin:5px 10px; border-right:1px solid #FFFFFF30; margin-right:25px;}
+.top-bar h1 {
+	color:#C0C0C0; font-size:28px; font-weight:300; width:100%;
+	small {
+		font-weight:400; color:#FFFFFF40; border-radius: 3px; margin-right:0.1em;
+		super{font-size:66%; position: relative; top:-0.6em;}
+	}
+	asterix {font-size:130%; position:relative; top:0.25em;}
+}
+.top-bar p {text-align: right; flex-grow: 1; white-space: nowrap; font-weight: 400; color:#FFFFFF80; margin-right:10px;}
+.top-bar logo span {color:#A0A0A0; font-size:120%; color: #4292D3;}
+.top-bar brand {color: #FFFFFF; font-weight: 300;}
+.top-bar brand span {color: #4292D3; margin-left:0.1em;}
 .top-bar div { margin-left:20px; border-left:1px solid rgba(255, 255, 255, 0.1); padding: 5px 20px; }
 
 
@@ -31,34 +55,36 @@ brand span {color:#4292D3;}
 .menu { background-color: #f4f4f4; border-right:1px solid rgba(0,0,0,0.1); width: auto; height:auto; box-shadow:inset -3px 0px 10px -9px rgba(0,0,0,0.36); padding:0; flex:0 0 auto; display:flex; flex-direction: column;}
 .menu ul { width:100%; list-style-type: none; box-shadow: initial; padding: 0; font-size:16px; font-weight: 400; margin-top:0px;}
 .menu ul.main {flex-grow: 1; border-bottom:1px solid #00000010;}
-.menu ul li{ width:100%; box-shadow: initial; margin-left:2px; }
+.menu ul li{ width:100%; box-shadow: initial; margin-left:0px; }
 .menu ul li p { width:100%; display:inline-block; margin: 0 0; background:rgba(0,0,0,0.05); border-right:solid 5px #4292D3; white-space: nowrap; padding: 0px 20px 0px 5px;}
 .menu ul li a { width:100%; display:inline-block; margin: 0 0; text-decoration: none; color: #333; border:none; background:none; border-right:solid 5px rgba(0,0,0,0); white-space: nowrap; padding: 0px 20px 0px 5px;}
 fa{min-width:48px; width:48px; text-align:center; padding: 15px 10px 15px 15px;}
 
-.menu table {background:#00000010; margin-bottom:10px; border-bottom:1px solid #00000010;}
+.menu table {background:#00000010; margin-bottom:10px; border-bottom:1px solid #00000010; border-spacing: 0; border-collapse: collapse;}
 .menu table th {padding:10px 0px 5px 5px;}
 .menu table td {padding:10px 0px 5px 0px;}
-.menu table td select {border:0; background:rgba(255, 255 ,255, 0); font-size:18px; margin-right:10px; padding-left:0px;}
 .menu table th fa {padding: 15px 5px 15px 15px; min-width:43px; width:43px;}
 
 .edit-section {overflow-y:scroll; min-height: 0; flex-grow: 1;}
 
 .content { padding: 40px; display:flex; flex-direction: row; flex-wrap: wrap; justify-content: flex-start; align-content: flex-start; gap: 20px 20px; flex:1 1 auto; flex-grow: 1;}
-.content div { flex-grow: 1; min-width:300px; min-height:200px; background:rgba(0,0,0, 0.01); border:1px solid rgba(0,0,0, 0.1); border-radius: 5px; padding:25px 35px;}
-.content div table {vertical-align: middle; text-align: left; margin-top:20px; font-weight: 300; margin-bottom:20px;}
+.content h2 {padding:10px 20px; background:#00000010; border-bottom:1px solid #00000010; color:#707070; font-size:18px;}
+.content div { flex-grow: 1; min-width:300px; background:rgba(0,0,0, 0.01); border:1px solid rgba(0,0,0, 0.1); border-radius: 5px; padding:0px 0px 10px 0px;}
+.content div table {vertical-align: middle; text-align: left; font-weight: 300;}
 .content div table td, .content div table th {border-top: 1px dotted rgba(0,0,0,0.1); padding:10px 15px 10px 0; vertical-align: middle; text-align: left; }
+.content div table tr.first td, .content div table tr.first th {border-top: 0px; }
 .content div table th.hint {border:0; padding-top:0px;}
 .content div table th.hint p {opacity:0.7; margin-top:0;}
 .content div table th {font-weight: 500; color:#909090;}
 .content div table th.TOP {vertical-align: top;}
 .content div table td.r, .content div table th.r {text-align: right;}
 .content div table th label {margin:10px 0px; clear:both; color:#303030; font-weight: 400;}
-.content div table th p {margin:10px 0px; clear:both; color:#000000; font-size:80%;}
-.content div table th div.holder {clear:both; min-height: auto; margin-top:5px;}
+.content div table th p {margin:10px 0px; clear:both; color:#000000; font-size:80%; font-weight: 300;}
+.content div table th div.holder {clear:both; min-height: auto; margin-top:5px; padding:20px;}
+.content div.spacer {background:#00000000; padding:10px 20px; border:0; min-height: auto; overflow: hidden;}
 .content div.log-history{
 	width:100%;
-	a.submit{margin:20px 0px;}
+	a.submit{margin:20px 0px 0px 0px;}
 	table {
 		width:100%;
 		th, td {
@@ -79,7 +105,7 @@ fa{min-width:48px; width:48px; text-align:center; padding: 15px 10px 15px 15px;}
 	margin:0
 }
 
-a.submit {font-weight: 400; font-size:16px; background:rgba(0,0,0,0.1); border:1px solid rgba(0,0,0,0.1);  border-radius:3px; color:#303030; padding:10px 15px; float:left; margin:0px 20px 10px 0px; cursor: pointer; text-decoration:none; white-space: nowrap;}
+a.submit {font-weight: 400; font-size:16px; background:rgba(0,0,0,0.1); border:1px solid rgba(0,0,0,0.1);  border-radius:3px; color:#303030; padding:10px 15px; float:left; margin:0px 20px 0px 0px; cursor: pointer; text-decoration:none; white-space: nowrap;}
 a.submit:hover {background:rgba(0,0,0,0.08);}
 a.submit:active {background:rgba(0,0,0,0.2);}
 a.submit span::before {margin-right:8px; font-family:'Font Awesome 6 Free'}
@@ -132,6 +158,38 @@ select option{
 	border:0;
 	margin:0;
 }
+
 select:focus{
     outline: none;
 }
+
+.dropdown__header{
+	& .dropdown__categories, & .dropdown__menu {
+		display: flex;	list-style: none;
+		a{padding:18px 18px 18px 0px;}
+	}
+	* { padding: 0; margin: 0; }
+
+	& .dropdown__categories{
+		span{
+			display:flex; justify-content: space-between; align-items: center;
+			.fa-angle-down{flex-grow: 1; text-align:right; padding: 20px 10px 19px 20px;}
+		}
+
+		li { 
+			padding: 0px 6px; position: relative; 
+			&:hover { background: #C0C0C0; }
+		}
+
+		& ul.dropdown__menu{
+			display: block;position: absolute;background: #e5e5e5;top: 55px;height:0px;transition: all ease-out 0.2s; border-bottom:1px solid #00000010;
+			left: 0; visibility:hidden; backdrop-filter: blur(10px); height:50vh;overflow-y: auto; opacity:0;
+		}
+
+		&:hover ul.dropdown__menu{ visibility:visible; opacity:1; }
+	}
+}
+.menu table td.dropdown__header { background: #e5e5e5; min-width:300px; padding:0;}
+
+
+

@@ -60,18 +60,21 @@
     {{ template "header" . }}
     <div class="main-container">
         <aside class="menu">
-            <table><tr><th><fa class="fa-solid fa-gear"></fa></th><td>
-                <script>
-                    function change_service(){
-                      window.location = document.getElementById('service-menu').value;
-                    }
-                </script>
-                <select id="service-menu" onchange="change_service()">
-                  {{ range .DynamicPages }}
-                      <option {{ if eq $.Domain . }} SELECTED {{ end }} value="https://{{ . }}:{{ $.SRV_Port }}">{{ . }}</option>
-                  {{ end }}
-                </select>
-            </td></tr></table>
+            <table>
+            <tr><td class="dropdown__header">
+
+                <ul class="dropdown__categories">
+                    <li class="dropdown__category">
+                    <span><fa class="fa-solid fa-gear"></fa>{{ $.Domain }}<fa class="fa-solid fa-angle-down"></fa></span>
+                    <ul class="dropdown__menu">
+                        {{ range .DynamicPages }}
+                            {{ if ne $.Domain . }}<li><a href="https://{{ . }}:{{ $.SRV_Port }}"><fa class="fa-solid fa-gear"></fa>{{ . }}</a></li>{{ end }}
+                        {{ end }}
+                    </ul>
+                    </li>
+                </ul>
+            </td></tr>
+            </table>
             <ul class="main">
                 <li>{{ if eq .CurrentPage "Overview" }}<p><fa class="fa-solid fa-chart-simple"></fa>Overview</p>{{ else }}<a href="/"><fa class="fa-solid fa-chart-simple"></fa>Overview</a>{{ end }}</li>
                 <li>{{ if eq .CurrentPage "Routes" }}<p><fa class="fa-solid fa-network-wired"></fa>Routes</p>{{ else }}<a href="/routes"><fa class="fa-solid fa-network-wired"></fa>Routes</a>{{ end }}</li>

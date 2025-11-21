@@ -1,60 +1,72 @@
 {{ define "content" }}
 <div>
     <h2>Service Details</h2>
-    <form action="/save-service" method="POST">
-        <table>
-            <tr><th><label>End Point</label></th><td>
-              {{ if eq .Service.Mode "HTTP" }}
-                <a href="https://{{.Domain}}{{ if ne .Port 443 }}:{{.Port}}{{ end }}" target="blank_">https://{{.Domain}}{{ if ne .Port 443 }}:{{.Port}}{{ end }}</a>
-              {{ else }}
-                <label>{{.Domain}}:{{.Port}}</label>
-              {{ end }}
-            </td></tr>
-            <tr><th><label>Last Update</label></th><td><span>{{.Updated}}</span></td></tr>
-        </table>
-    </form>
+    <div class="spacer">
+        <form action="/save-service" method="POST">
+            <table>
+                <tr class="first"><th><label>End Point</label></th><td>
+                {{ if eq .Service.Mode "HTTP" }}
+                    <a href="https://{{.Domain}}{{ if ne .Port 443 }}:{{.Port}}{{ end }}" target="blank_">https://{{.Domain}}{{ if ne .Port 443 }}:{{.Port}}{{ end }}</a>
+                {{ else }}
+                    <label>{{.Domain}}:{{.Port}}</label>
+                {{ end }}
+                </td></tr>
+                <tr><th><label>Last Update</label></th><td><span>{{.Updated}}</span></td></tr>
+            </table>
+        </form>
+    </div>
 </div>
 
 <div>
     <h2>mTLS Gateway Manager Service</h2>
-    <table>
-        <tr><th><label>Up Time</label></th><td><span>{{.UpTime}}</span></td></tr>
-        <tr><th><label>Validations</label></th><td><span>{{.ValidationCount}}</span></td></tr>
-        <tr><th><label>Identity Plus Latency / Avg. Latency</label></th><td><span>{{.Latency}}ms / {{.AvgLatency}}ms</span></td></tr>
-        <tr><th><label>Cached IDs</label></th><td><span>{{.CacheSize}}</span></td></tr>
-    </table>
-    <a class="submit" href="javascript:post('Clear Cache')"><span class="fa-solid fa-broom"></span>Clear Cache</a>
-    <a class="submit" href="javascript:post('Check Latency')"><span class="fa-solid fa-hourglass-half"></span>Check Latency</a>
+    <div class="spacer">
+        <table>
+            <tr class="first"><th><label>Up Time</label></th><td><span>{{.UpTime}}</span></td></tr>
+            <tr><th><label>Validations</label></th><td><span>{{.ValidationCount}}</span></td></tr>
+            <tr><th><label>Identity Plus Latency / Avg. Latency</label></th><td><span>{{.Latency}}ms / {{.AvgLatency}}ms</span></td></tr>
+            <tr><th><label>Cached IDs</label></th><td><span>{{.CacheSize}}</span></td></tr>
+        </table>
+    </div>
+    <div class="spacer">
+        <a class="submit" href="javascript:post('Clear Cache')"><span class="fa-solid fa-broom"></span>Clear Cache</a>
+        <a class="submit" href="javascript:post('Check Latency')"><span class="fa-solid fa-hourglass-half"></span>Check Latency</a>
+    </div>
 </div>
 
 <div>
     <h2>Gateway mTLS Client Persona</h2>
-    <form id="interface" method="POST">
-    <table>
-        <tr><th><label>Serial Number</label></th><td>{{ .ClientSerial }}</td></tr>
-        <tr><th><label>Common Name</label></th><td>{{ .ServiceAgentName }}</td></tr>
-        <tr><th><label>Expires</label></th><td><p style="background: linear-gradient(90deg, rgba(149,255,216,1) 0%, rgba(149,225,255,1) {{ .Age }}%, rgba(240,240,240,1) {{ .Age }}%); display:block; margin:0; padding:5px; text-align:center; border:1px solid rgba(0,0,0,0.2);">{{ .Expires }}</p></td></tr>
-        <tr><th><label>Renewal Due In</label></th><td>{{ .RenewalDue }}</td></tr>
-    </table>
-    </form>
-    <img width="42" height="42" id="wait-client-img" class="HIDDEN" src="/static/ring-wait.svg" >
-    <a class="submit" id="renew_client_link" href="javascript:rotate('client')"><span class="fa-solid fa-rotate"></span>Rotate Now</a>
+    <div class="spacer">
+        <form id="interface" method="POST">
+        <table>
+            <tr class="first"><th><label>Serial Number</label></th><td>{{ .ClientSerial }}</td></tr>
+            <tr><th><label>Common Name</label></th><td>{{ .ServiceAgentName }}</td></tr>
+            <tr><th><label>Expiration</label></th><td><p style="background: linear-gradient(90deg, rgba(149,255,216,1) 0%, rgba(149,225,255,1) {{ .Age }}%, rgba(240,240,240,1) {{ .Age }}%); display:block; margin:0; padding:5px; text-align:center; border:1px solid rgba(0,0,0,0.2);">{{ .Expires }}</p></td></tr>
+            <tr><th class="hint" colspan="2"><p>Auto-renewal in {{ .RenewalDue }}</p></th></tr>
+        </table>
+        </form>
+    </div>
+    <div class="spacer">
+        <img width="42" height="42" id="wait-client-img" class="HIDDEN" src="/static/ring-wait.svg" >
+        <a class="submit" id="renew_client_link" href="javascript:rotate('client')"><span class="fa-solid fa-rotate"></span>Renew Now</a>
+    </div>
 </div>
 
 <div>
     <h2>Your Identity</h2>
-    <table>
-        <tr><th><label>mTLS ID</label></th><td><span>{{.MtlsID}}</span></td></tr>
-        <tr><th><label>Agent Name</label></th><td><span>{{.AgentName}}</span></td></tr>
-        <tr><th><label>Agent Type</label></th><td><span>{{.AgentType}}</span></td></tr>
-        <tr><th><label>Org. ID</label></th><td><span>{{.OrgID}}</span></td></tr>
-        <tr><th><label>Org. Name</label></th><td><span>{{.OrgName}}</span></td></tr>
-        <tr><th><label>Org. Email</label></th><td><span>{{.OrgEmail}}</span></td></tr>
-        <tr><th class="TOP"><label>Organizational Roles</label></th><td>
-        {{ range .OrgRoles }}
-        <span>{{ . }}</span><br>
-        {{ end }}</td></tr>
-  </table>    
+    <div class="spacer">
+        <table>
+            <tr class="first"><th><label>mTLS ID</label></th><td><span>{{.MtlsID}}</span></td></tr>
+            <tr><th><label>Agent Name</label></th><td><span>{{.AgentName}}</span></td></tr>
+            <tr><th><label>Agent Type</label></th><td><span>{{.AgentType}}</span></td></tr>
+            <tr><th><label>Org. ID</label></th><td><span>{{.OrgID}}</span></td></tr>
+            <tr><th><label>Org. Name</label></th><td><span>{{.OrgName}}</span></td></tr>
+            <tr><th><label>Org. Email</label></th><td><span>{{.OrgEmail}}</span></td></tr>
+            <tr><th class="TOP"><label>Organizational Roles</label></th><td>
+            {{ range .OrgRoles }}
+            <span>{{ . }}</span><br>
+            {{ end }}</td></tr>
+        </table>    
+    </div>
 </div>
 
 {{ end }}

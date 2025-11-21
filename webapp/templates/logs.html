@@ -2,41 +2,49 @@
 
     <div>
         <h2>Logging Preferences</h2>
-        <form id="mtls-behavior" method="POST">
-        <table>
-            <tr>
-                <th><label for="log-retention">Log Retention Period</label></th>
-                <td >
-                    <select id="log-retention" name="log-retention">
-                        <option {{ if eq .Config.Log_Retention 1 }} SELECTED {{ end }} value="1" >1 Month</option>
-                        <option {{ if eq .Config.Log_Retention 3 }} SELECTED {{ end }} value="3" >3 Months</option>
-                        <option {{ if eq .Config.Log_Retention 6 }} SELECTED {{ end }} value="6" >6 Months</option>
-                        <option {{ if eq .Config.Log_Retention 12 }} SELECTED {{ end }} value="12" >12 Months</option>
-                        <option {{ if eq .Config.Log_Retention 18 }} SELECTED {{ end }} value="18" >18 Months</option>
-                        <option {{ if eq .Config.Log_Retention 24 }} SELECTED {{ end }} value="24" >24 Months</option>
-                        <option {{ if eq .Config.Log_Retention 36 }} SELECTED {{ end }} value="36" >36 Months</option>
-                    </select>
-                </td>
-            </tr>
-    		<tr><th class="hint" colspan="2"><p>Logs older than {{.Config.Log_Retention}} month(s) will be automatically deleted!</p></th></tr>
-            <tr>
-                <th colspan="2"><input type="checkbox" id="verbose" name="verbose" {{ if eq .Config.Verbose true }} CHECKED {{ end }}><label for="verbose">Verbose Logging</label></th>
-            </tr>
-        </table>
-        </form>
-        <a class="submit" href="javascript:sync_post('mtls-behavior', 'edit-config')"><span class="fa-solid fa-save"></span>Save</a>
+        <div class="spacer">
+            <form id="mtls-behavior" method="POST">
+            <table>
+                <tr class="first">
+                    <th><label for="log-retention">Log Retention Period</label></th>
+                    <td >
+                        <select id="log-retention" name="log-retention">
+                            <option {{ if eq .Config.Log_Retention 1 }} SELECTED {{ end }} value="1" >1 Month</option>
+                            <option {{ if eq .Config.Log_Retention 3 }} SELECTED {{ end }} value="3" >3 Months</option>
+                            <option {{ if eq .Config.Log_Retention 6 }} SELECTED {{ end }} value="6" >6 Months</option>
+                            <option {{ if eq .Config.Log_Retention 12 }} SELECTED {{ end }} value="12" >12 Months</option>
+                            <option {{ if eq .Config.Log_Retention 18 }} SELECTED {{ end }} value="18" >18 Months</option>
+                            <option {{ if eq .Config.Log_Retention 24 }} SELECTED {{ end }} value="24" >24 Months</option>
+                            <option {{ if eq .Config.Log_Retention 36 }} SELECTED {{ end }} value="36" >36 Months</option>
+                        </select>
+                    </td>
+                </tr>
+                <tr><th class="hint" colspan="2"><p>Logs older than {{.Config.Log_Retention}} month(s) will be automatically deleted!</p></th></tr>
+                <tr>
+                    <th colspan="2"><input type="checkbox" id="verbose" name="verbose" {{ if eq .Config.Verbose true }} CHECKED {{ end }}><label for="verbose">Verbose Logging</label></th>
+                </tr>
+            </table>
+            </form>
+        </div>
+        <div class="spacer">
+            <a class="submit" href="javascript:sync_post('mtls-behavior', 'edit-config')"><span class="fa-solid fa-save"></span>Save</a>
+        </div>
     </div>
 
     <div class="log-history">
         <h2>Log History</h2>
-        <a class="submit" href="javascript:sync_post('history', 'delete')"><span class="fa-solid fa-trash-can"></span>Delete Selected</a>
-        <form id="history" method="POST">
-        <table>
-            <tr><th></th><th><p>Entry</p></th></tr>
-            {{ range $file := $.Files }}
-            <tr><td class="compact"><input type="checkbox" id="tick-{{ $file }}" name="tick-{{ $file }}"></td><td><a href="/view-log?file={{ $file }}">{{ $file }}</a></td></tr>
-            {{ end }}
-        </table>
-        </form>
+        <div class="spacer">
+            <a class="submit NORAGIN" href="javascript:sync_post('history', 'delete')"><span class="fa-solid fa-trash-can"></span>Delete Selected</a>
+        </div>
+        <div class="spacer">
+            <form id="history" method="POST">
+            <table>
+                <tr><th></th><th><p>Entry</p></th></tr>
+                {{ range $file := $.Files }}
+                <tr><td class="compact"><input type="checkbox" id="tick-{{ $file }}" name="tick-{{ $file }}"></td><td><a href="/view-log?file={{ $file }}">{{ $file }}</a></td></tr>
+                {{ end }}
+            </table>
+            </form>
+        </div>
     </div>
 {{ end }}

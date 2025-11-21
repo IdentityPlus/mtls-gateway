@@ -248,6 +248,7 @@ func handle_acme_challenges(w http.ResponseWriter, r *http.Request) {
 
 		http.Redirect(w, r, target+r.URL.RequestURI(), http.StatusFound)
 	} else {
+		log.Printf("Serving certbot challenge: %s\n", r.Host+r.URL.RequestURI())
 		w.WriteHeader(http.StatusOK)
 		w.Write(data)
 	}
