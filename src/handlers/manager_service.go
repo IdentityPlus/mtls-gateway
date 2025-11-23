@@ -665,7 +665,6 @@ func Issue_Lets_Encrypt_cert(domain string, dry_run bool) string {
 		"certonly",
 		"--agree-tos",
 		"--non-interactive",
-		"--standalone",
 		"--no-autorenew",
 		"--register-unsafely-without-email",
 		"--webroot",
