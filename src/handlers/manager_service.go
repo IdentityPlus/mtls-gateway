@@ -676,6 +676,12 @@ func Issue_Lets_Encrypt_cert(domain string, dry_run bool) string {
 		args = append(args, "--dry-run")
 	}
 
+	if false {
+		log.Println("Mocking certbot ... ")
+		log.Printf("comand: certbot %v\n", args)
+		return "success"
+	}
+
 	cmd := exec.Command("certbot", args...)
 
 	// Capture stdout and stderr
@@ -711,7 +717,7 @@ func Issue_Lets_Encrypt_cert(domain string, dry_run bool) string {
 		return "Let's Encrypt Certbot failed. More details are available in the logs."
 	}
 
-	return "Success."
+	return "success"
 
 }
 
