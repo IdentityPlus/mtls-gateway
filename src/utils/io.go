@@ -188,6 +188,35 @@ func MoveFile(srcFile, destFile string) error {
 	return nil
 }
 
+func FileExists(path string) bool {
+	_, err := os.Stat(path)
+	return err == nil
+}
+
+func CopyFile(srcFile, destFile string) error {
+	// Open source file
+	src, err := os.Open(srcFile)
+	if err != nil {
+		return fmt.Errorf("failed to open source file: %w", err)
+	}
+	defer src.Close()
+
+	// Create destination file
+	dest, err := os.Create(destFile)
+	if err != nil {
+		return fmt.Errorf("failed to create destination file: %w", err)
+	}
+	defer dest.Close()
+
+	// Copy content from source to destination
+	_, err = io.Copy(dest, src)
+	if err != nil {
+		return fmt.Errorf("failed to copy file: %w", err)
+	}
+
+	return nil
+}
+
 func WriteToFile(destination string, data []byte) error {
 	// Ensure the directory exists
 	dir := filepath.Dir(destination)

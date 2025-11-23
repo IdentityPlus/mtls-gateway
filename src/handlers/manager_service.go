@@ -658,14 +658,15 @@ func (srv *Manager_Service) handle_overview(w http.ResponseWriter, r *http.Reque
 }
 
 func Issue_Lets_Encrypt_cert(domain string, dry_run bool) string {
-	//certbot certonly --agree-tos --noninteractive --register-unsafely-without-email --dry-run --webroot -w /var/mtls-gateway/letsencrypt/wiki.identityplus.org/ -d wiki.identityplus.org
-	webroot := "/var/mtls-gateway/letsencrypt/" + domain + "/"
-	os.MkdirAll(webroot, 0755)
+	webroot := global.Config__.DataDirectory + "/letsencrypt/" + domain + "/"
+	os.MkdirAll(webroot+"service-id", 0755)
 
 	args := []string{
 		"certonly",
 		"--agree-tos",
 		"--non-interactive",
+		"--standalone",
+		"--no-autorenew",
 		"--register-unsafely-without-email",
 		"--webroot",
 		"-w", webroot,
@@ -712,9 +713,20 @@ func Issue_Lets_Encrypt_cert(domain string, dry_run bool) string {
 	// Wait for exit
 	err = cmd.Wait()
 
-	// Return both output and error (if any)
 	if err != nil {
 		return "Let's Encrypt Certbot failed. More details are available in the logs."
+	}
+
+	err = utils.CopyFile("/etc/letsencrypt/live/code.identityplus.org/fullchain.pem", global.Config__.DataDirectory+"/letsencrypt/"+domain+"/service-id/"+domain+".cer")
+	if err != nil {
+		log.Printf("Unable to copy certificate file: %s", err.Error())
+		return "Unable to copy certificate files. More details are available in the logs."
+	}
+
+	utils.CopyFile("/etc/letsencrypt/live/code.identityplus.org/privkey.pem", global.Config__.DataDirectory+"/letsencrypt/"+domain+"/service-id/"+domain+".key")
+	if err != nil {
+		log.Printf("Unable to copy key file: %s", err.Error())
+		return "Unable to copy key files. More details are available in the logs."
 	}
 
 	return "success"
@@ -765,8 +777,7 @@ func (srv *Manager_Service) handle_perimeter(w http.ResponseWriter, r *http.Requ
 			if result != "success" {
 				page_error = result
 			} else {
-				srv.get_service_certificate(domain, config, true)
-				srv.Start_Openresty()
+				page_error = srv.update_service_config(domain, config)
 			}
 
 		} else if r.FormValue("action") == "test-letsencrypt" {

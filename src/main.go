@@ -46,21 +46,27 @@ func certificate_update_service() {
 
 func main() {
 
-	err := os.MkdirAll("/var/mtls-gateway/logs", 0755)
-	if err != nil {
-		log.Printf("Unable to create log directory: %s", err)
-		return
-	}
-
 	config_file := "/etc/mtls-gateway/config.yaml"
 	if len(os.Args) > 1 {
 		config_file = os.Args[1]
 	}
 
-	utils.Log_Writer, _ = utils.NewDailyRotatingWriter("/var/mtls-gateway/logs")
+	global.Load_Config(config_file)
+
+	err := os.MkdirAll(global.Config__.DataDirectory+"/logs", 0755)
+	if err != nil {
+		log.Printf("Unable to create log directory: %s", err)
+		return
+	}
+
+	utils.Log_Writer, _ = utils.NewDailyRotatingWriter(global.Config__.DataDirectory + "/logs")
 	log.SetOutput(utils.Log_Writer)
 
-	global.Load_Config(config_file)
+	log.Printf("-----------------------------------------------------------------\n")
+	log.Printf("Gateway starting...\n")
+	log.Printf("Configuration file: /etc/mtls-gateway/config.yaml")
+	log.Printf("Working directory:%s\n", global.Config__.DataDirectory)
+	log.Printf("Logging directory:%s/logs\n", global.Config__.DataDirectory)
 	local_ip, _ := utils.Get_Local_Private_IP()
 	log.Printf("Local Private IP Address is: %s\n", local_ip)
 	if strings.HasPrefix(global.Config__.LocalAuthenticatorEndpoint, "$") {

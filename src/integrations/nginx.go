@@ -42,9 +42,18 @@ func (cfg Nginx_Builder) build_upstream() string {
 
 func (cfg Nginx_Builder) build_tls() string {
 
+	certificate_dir := cfg.MtlsIdDirectory
+
+	if cfg.Service.Authority == "letsencrypt" && utils.FileExists(global.Config__.DataDirectory+"/letsencrypt/"+cfg.domain()+"/service-id/"+cfg.domain()+".cer") && utils.FileExists(global.Config__.DataDirectory+"/letsencrypt/"+cfg.domain()+"/service-id/"+cfg.domain()+".key") {
+		certificate_dir += "/letsencrypt"
+	} else {
+		certificate_dir += "/identity"
+	}
+
 	return utils.Build_Template("./webapp/templates/nginx/tls-config.conf", map[string]string{
-		"{{DOMAIN}}": cfg.domain(),
-		"{{ID-DIR}}": cfg.MtlsIdDirectory,
+		"{{DOMAIN}}":   cfg.domain(),
+		"{{ID-DIR}}":   cfg.MtlsIdDirectory,
+		"{{CERT-DIR}}": certificate_dir,
 	})
 }
 
