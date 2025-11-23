@@ -717,16 +717,18 @@ func Issue_Lets_Encrypt_cert(domain string, dry_run bool) string {
 		return "Let's Encrypt Certbot failed. More details are available in the logs."
 	}
 
-	err = utils.CopyFile("/etc/letsencrypt/live/code.identityplus.org/fullchain.pem", global.Config__.DataDirectory+"/letsencrypt/"+domain+"/service-id/"+domain+".cer")
-	if err != nil {
-		log.Printf("Unable to copy certificate file: %s", err.Error())
-		return "Unable to copy certificate files. More details are available in the logs."
-	}
+	if !dry_run {
+		err = utils.CopyFile("/etc/letsencrypt/live/code.identityplus.org/fullchain.pem", global.Config__.DataDirectory+"/letsencrypt/"+domain+"/service-id/"+domain+".cer")
+		if err != nil {
+			log.Printf("Unable to copy certificate file: %s", err.Error())
+			return "Unable to copy certificate files. More details are available in the logs."
+		}
 
-	err = utils.CopyFile("/etc/letsencrypt/live/code.identityplus.org/privkey.pem", global.Config__.DataDirectory+"/letsencrypt/"+domain+"/service-id/"+domain+".key")
-	if err != nil {
-		log.Printf("Unable to copy key file: %s", err.Error())
-		return "Unable to copy key files. More details are available in the logs."
+		err = utils.CopyFile("/etc/letsencrypt/live/code.identityplus.org/privkey.pem", global.Config__.DataDirectory+"/letsencrypt/"+domain+"/service-id/"+domain+".key")
+		if err != nil {
+			log.Printf("Unable to copy key file: %s", err.Error())
+			return "Unable to copy key files. More details are available in the logs."
+		}
 	}
 
 	return "success"
