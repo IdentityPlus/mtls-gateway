@@ -669,9 +669,9 @@ func Issue_Lets_Encrypt_cert(domain string, dry_run bool) string {
 		"--no-autorenew",
 		"--register-unsafely-without-email",
 		"--webroot",
-		"--test-cert",
 		"-w", webroot,
 		"-d", domain,
+		"--test-cert",
 	}
 
 	if dry_run {
