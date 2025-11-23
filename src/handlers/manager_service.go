@@ -755,7 +755,7 @@ func (srv *Manager_Service) handle_perimeter(w http.ResponseWriter, r *http.Requ
 			page_error = srv.update_service_config(domain, config)
 
 		} else if r.FormValue("action") == "issue-letsencrypt" {
-			result := Issue_Lets_Encrypt_cert(domain, true)
+			result := Issue_Lets_Encrypt_cert(domain, false)
 			if result != "success" {
 				page_error = result
 			} else {
