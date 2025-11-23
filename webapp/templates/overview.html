@@ -1,5 +1,5 @@
 {{ define "content" }}
-<div>
+<div class="W500">
     <h2><fa class="fa-solid fa-circle-info"></fa>Service Details</h2>
     <div class="spacer">
         <form action="/save-service" method="POST">
@@ -8,7 +8,7 @@
                 {{ if eq .Service.Mode "HTTP" }}
                     <a href="https://{{.Domain}}{{ if ne .Port 443 }}:{{.Port}}{{ end }}" target="blank_">https://{{.Domain}}{{ if ne .Port 443 }}:{{.Port}}{{ end }}</a>
                 {{ else }}
-                    <label>{{.Domain}}:{{.Port}}</label>
+                    <label>{{.Domain}}:{{.Port}} (TCP)</label>
                 {{ end }}
                 </td></tr>
                 <tr><th><label>Last Update</label></th><td><span>{{.Updated}}</span></td></tr>
@@ -17,7 +17,7 @@
     </div>
 </div>
 
-<div>
+<div class="W500">
     <h2><fa class="fa-solid fa-chart-simple"></fa>mTLS Gateway Manager Service</h2>
     <div class="spacer">
         <table>
@@ -33,32 +33,69 @@
     </div>
 </div>
 
-<div>
+<div class="W500">
     <h2><fa class="fa-solid fa-gears"></fa>Gateway mTLS Client Persona</h2>
     <div class="spacer">
         <form id="interface" method="POST">
         <table>
-            <tr class="first"><th><label>Serial Number</label></th><td>{{ .ClientSerial }}</td></tr>
+            <tr class="first"><th><label>Issuer</label></th><td><span>Identity Plus Self-Authority</span></td></tr>
+            <tr><th><label>Serial Number</label></th><td>{{ .ClientSerial }}</td></tr>
             <tr><th><label>Common Name</label></th><td>{{ .ServiceAgentName }}</td></tr>
-            <tr><th><label>Expiration</label></th><td><p style="background: linear-gradient(90deg, rgba(149,255,216,1) 0%, rgba(149,225,255,1) {{ .Age }}%, rgba(240,240,240,1) {{ .Age }}%); display:block; margin:0; padding:5px; text-align:center; border:1px solid rgba(0,0,0,0.2);">{{ .Expires }}</p></td></tr>
+            <tr><th><label>Expiration</label></th><td><p class="expiration" style="background: linear-gradient(90deg, rgba(149,255,216,1) 0%, rgba(149,225,255,1) {{ .Age }}%, rgba(240,240,240,1) {{ .Age }}%); ">{{ .Expires }}</p></td></tr>
             <tr><th class="hint" colspan="2"><p>Auto-renewal in {{ .RenewalDue }}</p></th></tr>
         </table>
         </form>
     </div>
     <div class="spacer">
-        <img width="42" height="42" id="wait-client-img" class="HIDDEN" src="/static/ring-wait.svg" >
+        <img width="37" height="37" id="wait-client-img" class="HIDDEN" src="/static/ring-wait.svg" >
         <a class="submit" id="renew_client_link" href="javascript:rotate('client')"><span class="fa-solid fa-rotate"></span>Renew Now</a>
     </div>
 </div>
 
-<div>
-    <h2><fa class="fa-solid fa-user"></fa>Your Identity</h2>
+<div class="W500">
+    <h2><fa class="fa-solid fa-certificate"></fa>Gateway TLS Identity</h2>
+    <div class="spacer">
+        <form id="interface" method="POST">
+        <table>
+            <tr class="first"><th><label>Issuer</label></th><td>{{ .Issuer }}</td></tr>
+            <tr><th><label>Serial Number</label></th><td>{{ .ServerSerial }}</td></tr>
+            <tr><th><label>Common Name</label></th><td>{{ .ServerCN }}</td></tr>
+            <tr><th><label>Expiration</label></th><td><p class="expiration" style="background: linear-gradient(90deg, rgba(149,255,216,1) 0%, rgba(149,225,255,1) {{ .ServerAge }}%, rgba(240,240,240,1) {{ .ServerAge }}%); ">{{ .ServerExpires }}</p></td></tr>
+            <tr><th class="hint" colspan="2"><p>Auto-renewal in {{ .ServerRenewalDue }}</p></th></tr>
+        </table>
+        </form>
+        <script>
+            function rotate(cert){
+                document.getElementById("wait-" + cert + "-img").className = "";
+                document.getElementById("renew_" + cert + "_link").className = "HIDDEN";
+                post('rotate-' + cert);
+            }
+        </script>
+    </div>
+    <div class="spacer">
+        <img width="37" height="37" id="wait-service-img" class="HIDDEN" src="/static/ring-wait.svg" >
+        <a class="submit" id="renew_service_link" href="javascript:rotate('service')"><span class="fa-solid fa-rotate"></span>Renew Now</a>
+    </div>
+</div>
+
+
+<div class="W500">
+    <h2><fa class="fa-solid fa-user"></fa>Your mTLS ID</h2>
     <div class="spacer">
         <table>
-            <tr class="first"><th><label>mTLS ID</label></th><td><span>{{.MtlsID}}</span></td></tr>
+            <tr class="first"><th><label>Issuer</label></th><td><span>Identity Plus Self-Authority</span></td></tr>
+            <tr><th><label>Serial Number</label></th><td><span>{{.MtlsID}}</span></td></tr>
             <tr><th><label>Agent Name</label></th><td><span>{{.AgentName}}</span></td></tr>
             <tr><th><label>Agent Type</label></th><td><span>{{.AgentType}}</span></td></tr>
-            <tr><th><label>Org. ID</label></th><td><span>{{.OrgID}}</span></td></tr>
+        </table>    
+    </div>
+</div>
+
+<div class="W500">
+    <h2><fa class="fa-solid fa-building-user"></fa>Your Relationship With {{.Domain}}</h2>
+    <div class="spacer">
+        <table>
+            <tr class="first"><th><label>Org. ID</label></th><td><span>{{.OrgID}}</span></td></tr>
             <tr><th><label>Org. Name</label></th><td><span>{{.OrgName}}</span></td></tr>
             <tr><th><label>Org. Email</label></th><td><span>{{.OrgEmail}}</span></td></tr>
             <tr><th class="TOP"><label>Organizational Roles</label></th><td>

@@ -1,0 +1,86 @@
+{{ define "content" }}
+
+    <div class="W500">
+        <h2><fa class="fa-solid fa-right-left"></fa>TLS Connection Interface</h2>
+        <div class="spacer">
+            <form id="interface" method="POST">
+            <table>
+                <tr class="first"><th><label for="mode">Mode</label></th><td>
+                    <select id="mode" name="mode">
+                        <option {{ if eq .Service.Mode "HTTP" }} SELECTED {{ end }} >HTTP</option>
+                        <option {{ if eq .Service.Mode "TCP" }} SELECTED {{ end }} >TCP</option>
+                    </select>
+                </td></tr>
+                <tr><th><label for="port">Port</label></th><td><input type="text" id="port" name="port" value="{{ .Service.Port }}"></td></tr>
+                <tr class="first"><th><label for="authority">Certificate Authority</label></th><td>
+                    <select id="authority" name="authority">
+                        <option {{ if ne .Service.Authority "letsencrypt" }} SELECTED {{ end }} value="identityplus">Identity Plus Self-Authority</option>
+                        <option {{ if eq .Service.Authority "letsencrypt" }} SELECTED {{ end }} value="letsencrypt">Let's Encrypt</option>
+                    </select>
+                </td></tr>
+            </table>
+            </form>
+        </div>
+        <div class="spacer">
+            <a class="submit" href="javascript:sync_post('interface', 'edit-interface')"><span class="fa-solid fa-save"></span>Save</a>
+        </div>
+    </div>
+
+    <div class="W500">
+        <h2><fa class="fa-solid fa-certificate"></fa>Server TLS Identity</h2>
+        <div class="spacer">
+            <form id="interface" method="POST">
+            <table>
+                <tr class="first"><th><label>Issuer</label></th><td>{{ .Issuer }}</td></tr>
+                <tr><th><label>Serial Number</label></th><td>{{ .ServerSerial }}</td></tr>
+                <tr><th><label>Common Name</label></th><td>{{ .ServerCN }}</td></tr>
+                <tr><th><label>Expiration</label></th><td><p class="expiration" style="background: linear-gradient(90deg, rgba(149,255,216,1) 0%, rgba(149,225,255,1) {{ .ServerAge }}%, rgba(240,240,240,1) {{ .ServerAge }}%); ">{{ .ServerExpires }}</p></td></tr>
+                <tr><th class="hint" colspan="2"><p class="NOMARGIN">Auto-renewal in {{ .ServerRenewalDue }}</p></th></tr>
+            </table>
+            </form>
+            <script>
+                function rotate(cert){
+                    document.getElementById("wait-img").className = "";
+                    document.getElementById("issue-letsencrypt-link").className = "HIDDEN";
+                    post(cert);
+                }
+            </script>
+        </div>
+        <div class="spacer">
+            {{ if eq .Service.Authority "letsencrypt" }}
+                {{ if eq .ServerSerial "not issued" }}
+                    <p class="HINT MARGIN_BELOW W300">By issuing this certificate you certify that you have read and agree to the <a href="{{.ToS}}" target="blank_">Let's Encrypt Terms of Service</a>.</p>
+                    <img width="37" height="37" id="wait-img" class="HIDDEN" src="/static/ring-wait.svg" >
+                    <p id="issue-letsencrypt-link" class="NOMARGIN">
+                        {{ if eq $.Test_Success "true" }}
+                            <a class="submit" href="javascript:rotate('issue-letsencrypt')"><span class="fa-solid fa-anchor-lock"></span>Agree & Issue Certificate</a>
+                        {{ else }}
+                            <a class="submit" href="javascript:rotate('test-letsencrypt')"><span class="fa-solid fa-anchor-lock"></span>Test Configuration</a>
+                        {{ end }}
+                    </p>
+                {{ else }}
+                    <a class="submit" id="rotate-letsencrypt-link" href="javascript:rotate('rotate-letsencrypt')"><span class="fa-solid fa-rotate"></span>Renew Now</a>
+                {{ end }}
+            {{ else }}
+                Same as <a href="/overview">Gateway</a> ...
+            {{ end }}
+        </div>
+    </div>
+
+    <div class="W500">
+        <h2><fa class="fa-solid fa-arrow-right"></fa>Origin Servers</h2>
+        <div class="spacer">
+            <table>
+                <tr class="first"><th><label for="worker">Route To</label></th><td>
+                    <form class="all-in-one" id="add-worker" method="POST">
+                        <input type="text" value="" id="woker" name="worker" placeholder="domain.com:port">
+                        <a class="submit" href="javascript:sync_post('add-worker', 'add-worker')"><span class="fa-solid nomargin fa-plus"></span></a>
+                    </form>
+                </td></tr>
+                {{ range $worker := .Service.Upstream.Workers }}
+                <tr class="first"><td colspan="2"><a class="submit" title="Click to delete upstream destination" href="javascript:context_post({'action':'remove-worker', 'worker':'{{ . }}'})"><span class="fa-solid fa-trash-can"></span>{{ . }}</a></td></tr>
+                {{ end }}
+            </table>
+        </div>
+    </div>
+{{ end }}

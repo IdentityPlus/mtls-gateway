@@ -72,11 +72,12 @@ type Upstream struct {
 }
 
 type ManagedService struct {
-	Port     int      `yaml:"port"`
-	Mode     string   `yaml:"mode"`
-	Upstream Upstream `yaml:"upstream"`
-	TCP      Tcp      `yaml:"tcp"`
-	HTTP     Http     `yaml:"http"`
+	Port      int      `yaml:"port"`
+	Mode      string   `yaml:"mode"`
+	Upstream  Upstream `yaml:"upstream"`
+	TCP       Tcp      `yaml:"tcp"`
+	HTTP      Http     `yaml:"http"`
+	Authority string   `yaml:"authority"`
 }
 
 type ServiceConfig struct {

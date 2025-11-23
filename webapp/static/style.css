@@ -31,8 +31,12 @@ b {font-weight: 400;}
 .W100{width:100%;}
 .HIDDEN{display:none;}
 .NOMARGIN{margin:0;}
+.MARGIN_BELOW{margin:0px 0px 10px 0px;}
 .ALIGN-R{text-align:right;}
-
+.W500{width: 400px;}
+.W600{width: 600px;}
+.W300{max-width: 300px;}
+.HINT{font-size:80%;}
 .top-bar { background-color: #111518; color: #E0E0E0; padding: 10px; text-align: left; flex:0 0 auto; display:flex; justify-content: space-between; align-items: center;}
 .top-bar * { display:inline-block; margin:0;}
 .top-bar logo {font-size:18px; line-height:135%; font-weight: 400; background:url('/static/mtls-gw.svg'); background-repeat:no-repeat; background-size:contain; background-position: center left; padding:5px 30px 5px 75px; margin:5px 10px; border-right:1px solid #FFFFFF30; margin-right:25px;}
@@ -79,8 +83,9 @@ fa{min-width:48px; width:48px; text-align:center; padding: 15px 10px 15px 15px;}
 .content div table th {font-weight: 500; color:#909090;}
 .content div table th.TOP {vertical-align: top;}
 .content div table td.r, .content div table th.r {text-align: right;}
-.content div table th label {margin:10px 0px; clear:both; color:#303030; font-weight: 400;}
+.content div table th label {margin:10px 0px; clear:both; color:#303030; font-weight: 400; white-space:nowrap;}
 .content div table th p {margin:10px 0px; clear:both; color:#000000; font-size:80%; font-weight: 300;}
+.content div table th p.NOMARGIN {margin:0px;}
 .content div table th div.holder {clear:both; min-height: auto; margin-top:5px; padding:20px;}
 .content div.spacer {background:#00000000; padding:10px 20px; border:0; min-height: auto; overflow: hidden;}
 .content div.log-history{
@@ -132,11 +137,12 @@ textarea {border:1px solid rgba(0,0,0,0.1); font-size:16px; padding:8px 15px; mi
 textarea:focus {outline:none; background:rgba(255, 255, 200, 0.1);}
 
 form.all-in-one input[type="text"] {border:0; width:100%;}
-p.error-msg {color:rgba(155, 80, 60, 0.8); margin-left:3px;}
+p.error-msg {color:rgba(155, 80, 60, 0.8); margin-left:3px; font-size:90%;}
+p.expiration{display:block; margin:0; padding:5px; text-align:center; border:1px solid rgba(0,0,0,0.2); font-size:80%; font-weight: 500; color:#00000080;}
 p.ok-msg {color:rgba(80, 155, 60, 0.8); margin-left:3px;}
 p.warning {border:1px solid #E0B060; background: #F0E080; border-radius:3px; padding:10px 20px 10px 20px; color:#404040;}
 p.warning span {color:#A08030; margin:0; padding:0;}
-p.error {width:100%; border:1px solid #d17e69; background: #ffcbbe; border-radius:3px; padding:10px 20px 10px 20px; color:#400000; margin-left:40px;}
+p.error {width:100%; max-width:initial; border:1px solid #d17e69; background: #ffcbbe; border-radius:3px; padding:10px 20px 10px 20px; color:#400000; }
 p.error span {color:#9b471e; margin:0; padding:0;}
 a:hover .fa-trash-can{color:#E04020;}
 a:hover .fa-save, a:hover .fa-floppy-disk{color:#30A010;}

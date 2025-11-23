@@ -1,8 +1,10 @@
 package utils
 
 import (
-	"time"
+	"crypto/x509"
+	"math"
 	"strconv"
+	"time"
 )
 
 func FormatDuration(start, end time.Time) string {
@@ -31,16 +33,15 @@ func FormatDuration(start, end time.Time) string {
 	hours := int(end.Sub(start).Hours()) % 24
 	minutes := int(end.Sub(start).Minutes()) % 60
 
-
-	if(years > 0){
+	if years > 0 {
 		result += strconv.Itoa(years) + " y, "
 	}
 
-	if(months > 0){
+	if months > 0 {
 		result += months.String() + " m, "
 	}
 
-	if(days > 0){
+	if days > 0 {
 		result += strconv.Itoa(days) + " d, "
 	}
 
@@ -49,4 +50,13 @@ func FormatDuration(start, end time.Time) string {
 
 	// Format the output
 	return result
+}
+
+func Compute_Renewal_Timeline(x509_cert *x509.Certificate) int {
+	totalLifetime := x509_cert.NotAfter.Sub(x509_cert.NotBefore).Hours() / 24
+	now := time.Now()
+	seventyFivePercentDays := totalLifetime * 0.75
+	targetDate := x509_cert.NotBefore.Add(time.Duration(seventyFivePercentDays*24) * time.Hour)
+
+	return int(math.Round(targetDate.Sub(now).Hours() / 24))
 }

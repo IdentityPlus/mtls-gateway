@@ -106,7 +106,7 @@
             </table>
             <ul class="main">
                 <li>{{ if eq .CurrentPage "Overview" }}<p><fa class="fa-solid fa-chart-simple"></fa>Overview</p>{{ else }}<a href="/"><fa class="fa-solid fa-chart-simple"></fa>Overview</a>{{ end }}</li>
-                <li>{{ if eq .CurrentPage "Routes" }}<p><fa class="fa-solid fa-network-wired"></fa>Routes</p>{{ else }}<a href="/routes"><fa class="fa-solid fa-network-wired"></fa>Routes</a>{{ end }}</li>
+                <li>{{ if eq .CurrentPage "Perimeter" }}<p><fa class="fa-regular fa-circle"></fa>Perimeter</p>{{ else }}<a href="/perimeter"><fa class="fa-regular fa-circle"></fa>Perimeter</a>{{ end }}</li>
                 <li>{{ if eq .CurrentPage "Access Control" }}<p><fa class="fa-solid fa-lock"></fa>Access Control</p>{{ else }}<a href="/access-control"><fa class="fa-solid fa-lock"></fa>Access Control</a>{{ end }}</li>
                 {{ if eq .Service.Mode "HTTP" }}
                     <li>{{ if eq .CurrentPage "HTTP Config" }}<p><fa class="fa-solid fa-link"></fa>HTTP Config</p>{{ else }}<a href="/http-config"><fa class="fa-solid fa-link"></fa>HTTP Config</a>{{ end }}</li>
@@ -117,18 +117,18 @@
                 {{ end }}
             </ul>
             <ul>
-                <li>{{ if eq .CurrentPage "Add Service Route" }}<p><fa class="fa-solid fa-circle-plus"></fa>New Service Perimeter</p>{{ else }}<a href="/add-service-route"><fa class="fa-solid fa-circle-plus"></fa>New Service Perimeter</a>{{ end }}</li>
+                <li>{{ if eq .CurrentPage "New mTLS Perimeter" }}<p><fa class="fa-solid fa-circle-plus"></fa>New mTLS Perimeter</p>{{ else }}<a href="/new-mtls-perimeter"><fa class="fa-solid fa-circle-plus"></fa>New mTLS Perimeter</a>{{ end }}</li>
                 <li>{{ if eq .CurrentPage "Logs" }}<p><fa class="fa-solid fa-pencil"></fa>Logs</p>{{ else }} {{ if eq .CurrentPage "View Log" }}<a href="/logs"><fa class="fa-solid fa-arrow-left"></fa>All Logs</a>{{ else }}<a href="/logs"><fa class="fa-solid fa-pencil"></fa>Logs</a>{{ end }} {{ end }}</li>
                 <li>{{ if eq .CurrentPage "Admin" }}<p><fa class="fa-solid fa-wrench"></fa>Admin</p>{{ else }}<a href="/admin"><fa class="fa-solid fa-wrench"></fa>Admin</a>{{ end }}</li>
             </ul>
         </aside>
 
         <section id="edit-section" class="edit-section">
-            {{ if and (ne .PageError nil) (ne .PageError "") }}
-            <p class="error"><span class="fa-solid fa-circle-exclamation"></span> {{ .PageError }}</p>
-            {{ end }}
             <div class="content">
-                {{ template "content" . }}
+                    {{ if and (ne .PageError nil) (ne .PageError "") }}
+                    <p class="error"><span class="fa-solid fa-circle-exclamation"></span> {{ .PageError }}</p>
+                    {{ end }}
+                    {{ template "content" . }}
             </div>
         </section>
     </div>

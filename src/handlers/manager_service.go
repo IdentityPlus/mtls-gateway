@@ -1,12 +1,12 @@
 package handlers
 
 import (
+	"bytes"
 	"crypto/tls"
 	"crypto/x509"
 	"fmt"
 	"html/template"
 	"log"
-	"math"
 	"net"
 	"net/http"
 	"regexp"
@@ -107,7 +107,7 @@ func (srv *Manager_Service) authenticate_client(domain string, cert *x509.Certif
 	}
 }
 
-func (srv *Manager_Service) certificate_for(domain string, no_cache bool) *tls.Certificate {
+func (srv *Manager_Service) get_gateway_certificate(domain string, no_cache bool) *tls.Certificate {
 	if srv.certificates == nil {
 		srv.certificates = make(map[string]*tls.Certificate)
 	}
@@ -132,6 +132,24 @@ func (srv *Manager_Service) certificate_for(domain string, no_cache bool) *tls.C
 	return &loaded_cert
 }
 
+func (srv *Manager_Service) get_service_certificate(domain string, config integrations.ServiceConfig, no_cache bool) *tls.Certificate {
+	if config.Service.Authority != "letsencrypt" {
+		return srv.get_gateway_certificate(domain, no_cache)
+	}
+
+	// Load the server certificate and key
+	loaded_cert, err := tls.LoadX509KeyPair(
+		global.Config__.DataDirectory+"/letsencrypt/"+domain+"/service-id/"+domain+".cer",
+		global.Config__.DataDirectory+"/letsencrypt/"+domain+"/service-id/"+domain+".key")
+
+	if err != nil {
+		log.Printf("Failed to load server certificate and key: %v", err)
+		return nil
+	}
+
+	return &loaded_cert
+}
+
 func (srv *Manager_Service) load_TLS_config() *tls.Config {
 	identities := srv.Get_Configurations()
 
@@ -147,7 +165,7 @@ func (srv *Manager_Service) load_TLS_config() *tls.Config {
 	tlsConfig := &tls.Config{
 		// Dynamically retrieve certificates again in this specific config, if needed
 		GetCertificate: func(chi *tls.ClientHelloInfo) (*tls.Certificate, error) {
-			return srv.certificate_for(chi.ServerName, false), nil
+			return srv.get_gateway_certificate(chi.ServerName, false), nil
 		},
 		// CA certificate pool
 		ClientCAs: caCertPool,
@@ -161,7 +179,7 @@ func (srv *Manager_Service) load_TLS_config() *tls.Config {
 			return &tls.Config{
 				// Dynamically retrieve certificates again in this specific config, if needed
 				GetCertificate: func(chi *tls.ClientHelloInfo) (*tls.Certificate, error) {
-					return srv.certificate_for(domain, false), nil
+					return srv.get_gateway_certificate(domain, false), nil
 				},
 				ClientCAs:  caCertPool,               // CA certificate pool
 				ClientAuth: tls.RequireAnyClientCert, // Require client certificate
@@ -254,8 +272,8 @@ func (srv *Manager_Service) Start() {
 	mux.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("webapp/static"))))
 	mux.HandleFunc("/", srv.handle_overview)
 	mux.HandleFunc("/download-ca", handle_download_ca)
-	mux.HandleFunc("/add-service-route/", srv.handle_new_serivce_route)
-	mux.HandleFunc("/routes/", srv.handle_routes)
+	mux.HandleFunc("/new-mtls-perimeter/", srv.handle_new_mtls_perimeter)
+	mux.HandleFunc("/perimeter/", srv.handle_perimeter)
 	mux.HandleFunc("/access-control/", srv.handle_access_control)
 	mux.HandleFunc("/tcp-config/", srv.handle_tcp_config)
 	mux.HandleFunc("/http-config/", srv.handle_http_config)
@@ -285,7 +303,7 @@ func (srv *Manager_Service) Start() {
 	}
 }
 
-func (srv *Manager_Service) handle_new_serivce_route(w http.ResponseWriter, r *http.Request) {
+func (srv *Manager_Service) handle_new_mtls_perimeter(w http.ResponseWriter, r *http.Request) {
 	service_fonfigs := srv.Get_Configurations()
 	op_domain := r.Host
 	if i := strings.Index(op_domain, ":"); i != -1 {
@@ -326,13 +344,14 @@ func (srv *Manager_Service) handle_new_serivce_route(w http.ResponseWriter, r *h
 
 	render_page(w, "new-service", map[string]interface{}{
 		"Domain":       op_domain,
+		"Title":        "new.perimeter...",
 		"Host_IP":      host_ip,
 		"SRV_Port":     global.Config__.AdminPort,
 		"Error":        error_msg,
 		"Destination":  new_domain,
 		"Service":      config.Service,
 		"Port":         global.Config__.AdminPort,
-		"CurrentPage":  "Add Service Route",
+		"CurrentPage":  "New mTLS Perimeter",
 		"DynamicPages": service_fonfigs,
 	})
 }
@@ -402,7 +421,8 @@ func (srv *Manager_Service) handle_admin(w http.ResponseWriter, r *http.Request)
 
 	render_page(w, "admin", map[string]interface{}{
 		"CurrentPage":  "Admin",
-		"Domain":       "All Services",
+		"Domain":       op_domain,
+		"Title":        "gateway admin - all services",
 		"SRV_Port":     global.Config__.AdminPort,
 		"Port":         global.Config__.ApplicationPort,
 		"Error":        error_msg,
@@ -479,7 +499,8 @@ func (srv *Manager_Service) handle_logs(w http.ResponseWriter, r *http.Request) 
 
 	render_page(w, "logs", map[string]interface{}{
 		"CurrentPage":  "Logs",
-		"Domain":       "All Services",
+		"Domain":       op_domain,
+		"Title":        "gateway logs - all services",
 		"SRV_Port":     global.Config__.AdminPort,
 		"Port":         global.Config__.ApplicationPort,
 		"PageError":    error_msg,
@@ -511,7 +532,8 @@ func (srv *Manager_Service) handle_log_view(w http.ResponseWriter, r *http.Reque
 
 	render_page(w, "view-log", map[string]interface{}{
 		"CurrentPage":  "View Log",
-		"Domain":       "All Services",
+		"Title":        "gateway log - " + r.FormValue("file") + " - all services",
+		"Domain":       op_domain,
 		"SRV_Port":     global.Config__.AdminPort,
 		"Port":         global.Config__.ApplicationPort,
 		"PageError":    error_msg,
@@ -535,31 +557,10 @@ func (srv *Manager_Service) handle_overview(w http.ResponseWriter, r *http.Reque
 	config := srv.Get_Service_Config(domain)
 
 	var validation__ *mtlsid.Client_Validation_Ticket
-	var device_name, client_serial, device_type, srv_agent_name, renewal_due, expires string
+	var device_name, client_serial, device_type, srv_agent_name, renewal_due, expires, page_error string
 	var age int
 
 	cert := r.TLS.PeerCertificates[0]
-
-	client_certificate, no_cc_err := srv.Perimeter_APIs[domain].Self_Authority.Client_Certificate()
-	if no_cc_err == nil {
-		x509_cert, _ := x509.ParseCertificate(client_certificate.Certificate[0])
-		client_serial = x509_cert.SerialNumber.String()
-		srv_agent_name = x509_cert.Subject.CommonName
-		expires = x509_cert.NotAfter.Format("2006-01-02 15:04:05 MST")
-
-		totalLifetime := x509_cert.NotAfter.Sub(x509_cert.NotBefore).Hours() / 24
-		now := time.Now()
-		seventyFivePercentDays := totalLifetime * 0.75
-		targetDate := x509_cert.NotBefore.Add(time.Duration(seventyFivePercentDays*24) * time.Hour)
-		daysUntil75Percent := strconv.Itoa(int(math.Round(targetDate.Sub(now).Hours() / 24)))
-		renewal_due = fmt.Sprintf("%s days", daysUntil75Percent)
-
-		elapsedDays := now.Sub(x509_cert.NotBefore).Hours() / 24
-		age = int(elapsedDays / totalLifetime * 100)
-
-	} else {
-		srv_agent_name = no_cc_err.Error()
-	}
 
 	if r.Method == http.MethodPost {
 		err := r.ParseForm()
@@ -575,6 +576,20 @@ func (srv *Manager_Service) handle_overview(w http.ResponseWriter, r *http.Reque
 			srv.Perimeter_APIs[domain].Purge_Cache()
 			validation__, device_name, device_type, _ = srv.Perimeter_APIs[domain].Validate_Client_Identity(cert, "", true)
 
+		} else if r.FormValue("action") == "rotate-client" {
+			result := srv.Perimeter_APIs[domain].Self_Authority.Renew(false)
+			if result != "renewed" {
+				page_error = result
+			}
+
+		} else if r.FormValue("action") == "rotate-service" {
+			result := srv.Perimeter_APIs[domain].Self_Authority.Issue_service_identity(true)
+			if result != "renewed" {
+				page_error = result
+			}
+			srv.get_gateway_certificate(domain, true)
+			srv.Start_Openresty()
+
 		} else {
 			log.Printf("unknown action: %s", r.FormValue("action"))
 		}
@@ -584,6 +599,26 @@ func (srv *Manager_Service) handle_overview(w http.ResponseWriter, r *http.Reque
 		validation__, device_name, device_type, _ = srv.Perimeter_APIs[domain].Validate_Client_Identity(cert, "", true)
 	}
 
+	client_certificate, no_cc_err := srv.Perimeter_APIs[domain].Self_Authority.Client_Certificate()
+	if no_cc_err == nil {
+		x509_cert, _ := x509.ParseCertificate(client_certificate.Certificate[0])
+		client_serial = x509_cert.SerialNumber.String()
+		srv_agent_name = x509_cert.Subject.CommonName
+		expires = x509_cert.NotAfter.Format("2006-01-02 15:04:05 MST")
+
+		renewal_due = strconv.Itoa(utils.Compute_Renewal_Timeline(x509_cert)) + " days"
+
+	} else {
+		srv_agent_name = no_cc_err.Error()
+	}
+
+	gw_certificate := srv.get_gateway_certificate(domain, false)
+	x509_cert, _ := x509.ParseCertificate(gw_certificate.Certificate[0])
+	gw_agent_name := x509_cert.Subject.CommonName
+	gw_expires := x509_cert.NotAfter.Format("2006-01-02 15:04:05 MST")
+	gw_serial := x509_cert.SerialNumber.String()
+	gw_renewal_due := strconv.Itoa(utils.Compute_Renewal_Timeline(x509_cert)) + " days"
+
 	render_page(w, "overview", map[string]interface{}{
 		"CurrentPage":     "Overview",
 		"SRV_Port":        global.Config__.AdminPort,
@@ -591,6 +626,7 @@ func (srv *Manager_Service) handle_overview(w http.ResponseWriter, r *http.Reque
 		"DynamicPages":    service_fonfigs,
 		"CacheSize":       srv.Perimeter_APIs[domain].Cache_Size(),
 		"Domain":          srv.Perimeter_APIs[domain].Domain(),
+		"Title":           domain,
 		"Latency":         mtlsid.Stats__.ValidationLatency,
 		"AvgLatency":      mtlsid.Stats__.TotalLatency / mtlsid.Stats__.ValidationCount,
 		"ValidationCount": mtlsid.Stats__.ValidationCount,
@@ -610,10 +646,76 @@ func (srv *Manager_Service) handle_overview(w http.ResponseWriter, r *http.Reque
 		"ServiceAgentName": srv_agent_name,
 		"Expires":          expires,
 		"RenewalDue":       renewal_due,
+
+		"ServerSerial":     gw_serial,
+		"ServerCN":         gw_agent_name,
+		"ServerExpires":    gw_expires,
+		"ServerRenewalDue": gw_renewal_due,
+		"Issuer":           "Identity Plus Self-Authority",
+
+		"PageError": page_error,
 	})
 }
 
-func (srv *Manager_Service) handle_routes(w http.ResponseWriter, r *http.Request) {
+func Issue_Lets_Encrypt_cert(domain string, dry_run bool) string {
+	//certbot certonly --agree-tos --noninteractive --register-unsafely-without-email --dry-run --webroot -w /var/mtls-gateway/letsencrypt/wiki.identityplus.org/ -d wiki.identityplus.org
+	webroot := "/var/mtls-gateway/letsencrypt/" + domain + "/"
+	os.MkdirAll(webroot, 0755)
+
+	args := []string{
+		"certonly",
+		"--agree-tos",
+		"--non-interactive",
+		"--register-unsafely-without-email",
+		"--webroot",
+		"-w", webroot,
+		"-d", domain,
+	}
+
+	if dry_run {
+		args = append(args, "--dry-run")
+	}
+
+	cmd := exec.Command("certbot", args...)
+
+	// Capture stdout and stderr
+	stdout, err := cmd.StdoutPipe()
+	if err != nil {
+		return "Let's Encrypt Certbot failed. More details are available in the logs."
+	}
+	stderr, err := cmd.StderrPipe()
+	if err != nil {
+		return "Let's Encrypt Certbot failed. More details are available in the logs."
+	}
+
+	// Full output buffer (also streamed to log writer)
+	var output bytes.Buffer
+
+	// Live copy to logs + capture to buffer
+	multiOut := io.MultiWriter(utils.Log_Writer, &output)
+	multiErr := io.MultiWriter(utils.Log_Writer, &output)
+
+	go io.Copy(multiOut, stdout)
+	go io.Copy(multiErr, stderr)
+
+	// Start the process
+	if err := cmd.Start(); err != nil {
+		return "Let's Encrypt Certbot failed. More details are available in the logs."
+	}
+
+	// Wait for exit
+	err = cmd.Wait()
+
+	// Return both output and error (if any)
+	if err != nil {
+		return "Let's Encrypt Certbot failed. More details are available in the logs."
+	}
+
+	return "Success."
+
+}
+
+func (srv *Manager_Service) handle_perimeter(w http.ResponseWriter, r *http.Request) {
 	domain := r.Host
 	if i := strings.Index(domain, ":"); i != -1 {
 		domain = domain[:i]
@@ -621,7 +723,7 @@ func (srv *Manager_Service) handle_routes(w http.ResponseWriter, r *http.Request
 	page_error := ""
 	service_fonfigs := srv.Get_Configurations()
 	config := srv.Get_Service_Config(domain)
-
+	test_successful := "false"
 	if r.Method == http.MethodPost {
 		err := r.ParseForm()
 		if err != nil {
@@ -632,6 +734,7 @@ func (srv *Manager_Service) handle_routes(w http.ResponseWriter, r *http.Request
 		if r.FormValue("action") == "edit-interface" {
 			config.Service.Port, _ = strconv.Atoi(r.FormValue("port"))
 			config.Service.Mode = r.FormValue("mode")
+			config.Service.Authority = r.FormValue("authority")
 
 			page_error = srv.update_service_config(domain, config)
 
@@ -651,53 +754,66 @@ func (srv *Manager_Service) handle_routes(w http.ResponseWriter, r *http.Request
 
 			page_error = srv.update_service_config(domain, config)
 
-		} else if r.FormValue("action") == "rotate-client" {
-			result := srv.Perimeter_APIs[domain].Self_Authority.Renew(false)
-			if result != "renewed" {
+		} else if r.FormValue("action") == "issue-letsencrypt" {
+			result := Issue_Lets_Encrypt_cert(domain, true)
+			if result != "success" {
 				page_error = result
+			} else {
+				srv.get_service_certificate(domain, config, true)
+				srv.Start_Openresty()
 			}
 
-		} else if r.FormValue("action") == "rotate-service" {
-			result := srv.Perimeter_APIs[domain].Self_Authority.Issue_service_identity(true)
-			if result != "renewed" {
+		} else if r.FormValue("action") == "test-letsencrypt" {
+			result := Issue_Lets_Encrypt_cert(domain, true)
+			if result != "success" {
 				page_error = result
+			} else {
+				test_successful = "true"
 			}
-			srv.certificate_for(domain, true)
-			go srv.Start_Openresty()
 
 		} else {
 			log.Printf("unknown action: %s", r.FormValue("action"))
 		}
 	}
 
-	var sv_srv_agent_name, sv_expires, sv_renewal_due, sv_client_serial string
-	var sv_age int
+	var sv_agent_name, sv_expires, sv_renewal_due, sv_serial, issuer string
+	var x509_cert *x509.Certificate
 
-	sv_client_certificate := srv.certificate_for(domain, false)
-	x509_cert, _ := x509.ParseCertificate(sv_client_certificate.Certificate[0])
-	sv_srv_agent_name = x509_cert.Subject.CommonName
-	sv_expires = x509_cert.NotAfter.Format("2006-01-02 15:04:05 MST")
-	sv_client_serial = x509_cert.SerialNumber.String()
-	totalLifetime := x509_cert.NotAfter.Sub(x509_cert.NotBefore).Hours() / 24
-	now := time.Now()
-	elapsedDays := now.Sub(x509_cert.NotBefore).Hours() / 24
-	sv_age = int(elapsedDays / totalLifetime * 100)
-	seventyFivePercentDays := totalLifetime * 0.75
-	targetDate := x509_cert.NotBefore.Add(time.Duration(seventyFivePercentDays*24) * time.Hour)
-	daysUntil75Percent := strconv.Itoa(int(math.Round(targetDate.Sub(now).Hours() / 24)))
-	sv_renewal_due = fmt.Sprintf("%s days", daysUntil75Percent)
+	sv_certificate := srv.get_service_certificate(domain, config, false)
 
-	render_page(w, "routes", map[string]interface{}{
-		"CurrentPage":      "Routes",
+	if sv_certificate != nil {
+		x509_cert, _ = x509.ParseCertificate(sv_certificate.Certificate[0])
+		sv_agent_name = x509_cert.Subject.CommonName
+		sv_expires = x509_cert.NotAfter.Format("2006-01-02 15:04:05 MST")
+		sv_serial = x509_cert.SerialNumber.String()
+		sv_renewal_due = strconv.Itoa(utils.Compute_Renewal_Timeline(x509_cert)) + " days"
+		issuer = x509_cert.Issuer.Organization[0]
+	} else {
+		issuer = "Let's Encrypt"
+		sv_agent_name = domain
+		sv_expires = "non issued"
+		sv_serial = "not issued"
+		sv_renewal_due = "( n/a )"
+	}
+
+	if strings.Contains(issuer, "Identity Plus") {
+		issuer = "Identity Plus Self-Authority"
+	}
+
+	render_page(w, "perimeter", map[string]interface{}{
+		"CurrentPage":      "Perimeter",
 		"SRV_Port":         global.Config__.AdminPort,
 		"DynamicPages":     service_fonfigs,
 		"Service":          config.Service,
 		"Domain":           srv.Perimeter_APIs[domain].Domain(),
-		"ServerSerial":     sv_client_serial,
-		"ServerCN":         sv_srv_agent_name,
+		"Title":            domain,
+		"ServerSerial":     sv_serial,
+		"ServerCN":         sv_agent_name,
 		"ServerExpires":    sv_expires,
 		"ServerRenewalDue": sv_renewal_due,
-		"ServerAge":        sv_age,
+		"Issuer":           issuer,
+		"ToS":              utils.FetchLets_Encrypt_ToS(),
+		"Test_Success":     test_successful,
 		"PageError":        page_error,
 	})
 }
@@ -744,6 +860,7 @@ func (srv *Manager_Service) handle_tcp_config(w http.ResponseWriter, r *http.Req
 		"DynamicPages": service_fonfigs,
 		"Service":      config.Service,
 		"Domain":       srv.Perimeter_APIs[domain].Domain(),
+		"Title":        domain,
 		"PageError":    page_error,
 	})
 }
@@ -911,6 +1028,7 @@ func (srv *Manager_Service) handle_access_control(w http.ResponseWriter, r *http
 		"DynamicPages":   service_fonfigs,
 		"Service":        config.Service,
 		"Domain":         srv.Perimeter_APIs[domain].Domain(),
+		"Title":          domain,
 		"App_Port":       global.Config__.ApplicationPort,
 		"PageError":      page_error,
 		"OrgID":          validation__.Cache.OrgID,
@@ -1080,6 +1198,7 @@ func (srv *Manager_Service) handle_http_config(w http.ResponseWriter, r *http.Re
 		"DynamicPages":   service_fonfigs,
 		"Service":        config.Service,
 		"Domain":         srv.Perimeter_APIs[domain].Domain(),
+		"Title":          domain,
 		"App_Port":       global.Config__.ApplicationPort,
 		"PageError":      page_error,
 	})
@@ -1121,7 +1240,7 @@ func (srv *Manager_Service) update_service_config(domain string, config integrat
 	if test_result == "" {
 		err := utils.MoveFile(global.Config__.DataDirectory+"/services/work"+destination_file, global.Config__.DataDirectory+destination_file)
 		if err == nil {
-			go srv.Start_Openresty()
+			srv.Start_Openresty()
 		} else {
 			log.Printf("Error moving config file: %v\n", err)
 		}

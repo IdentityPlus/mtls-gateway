@@ -1,7 +1,7 @@
 {{ define "content" }}
 
-    <div>
-        <h2><fa class="fa-regular fa-circle"></fa>mTLS Perimeter Behavior</h2>
+    <div class="W600">
+        <h2><fa class="fa-regular fa-circle-right"></fa>mTLS Perimeter Behavior</h2>
         <div class="spacer">
             <form id="mtls-behavior" method="POST">
             <table>
@@ -29,7 +29,7 @@
 
     {{ if eq .Service.Mode "HTTP" }}
       {{ if eq .Service.HTTP.AccessMode "Proxy" }}
-        <div>
+        <div class="W600">
             <h2><fa class="fa-solid fa-id-card"></fa>Trusted Proxy Headers</h2>
             <div class="spacer">
                 <form id="trusted-proxy-behavior" method="POST">
@@ -46,7 +46,7 @@
                 <a class="submit" href="javascript:sync_post('trusted-proxy-behavior', 'edit-trusted-proxy')"><span class="fa-solid fa-save"></span>Save</a>
             </div>
         </div>
-        <div>
+        <div class="W600">
             <h2><fa class="fa-solid fa-users-gear"></fa>Proxy Role Mapping</h2>
             <div class="spacer">
                 <form id="role-mapping" method="POST">
@@ -65,7 +65,7 @@
       {{ end }}
   
       {{ if eq .Service.HTTP.AccessMode "OIDC" }}
-        <div>
+        <div class="W600">
             <h2><fa class="fa-solid fa-key"></fa>OIDC / OAuth2 Client Configuration</h2>
             <div class="spacer">
                 <form id="oidc-behavior" method="POST">
@@ -81,7 +81,7 @@
                 <a class="submit" href="javascript:sync_post('oidc-behavior', 'edit-oidc')"><span class="fa-solid fa-save"></span>Save</a>
             </div>
         </div>
-        <div>
+        <div class="W600">
             <h2><fa class="fa-solid fa-users-gear"></fa>OIDC / OAuth2 Role Mapping</h2>
             <div class="spacer">
                 <form id="role-mapping" method="POST">
@@ -97,18 +97,18 @@
                 <a class="submit" href="javascript:sync_post('role-mapping', 'edit-mapped-roles')"><span class="fa-solid fa-save"></span>Save</a>
             </div>
         </div>
-        <div>
+        <div class="W600">
             <h2><fa class="fa-solid fa-id-card"></fa>OIDC / OAuth2 Claims</h2>
             <div class="spacer">
                 <table>
-                    <tr class="first"><th><label for="preferred-username">ID Claim</label></th><td><input type="text" id="preferred-username" DISABLED value="preferred_username"></td><th><label>{{.OrgID}}</label></th></tr>
-                    <tr><th><label for="full-name">Display Name Claim</label></th><td><input type="text" id="full-name" DISABLED value="name"></td><th><label>{{.OrgName}}</label></th></tr>
-                    <tr><th><label for="email">Email Claim</label></th><td><input type="text" id="email" DISABLED value="email"></td><th><label>{{.OrgEmail}}</label></th></tr>
-                    <tr><th><label for="groups">Groups Claim</label></th><td><input type="text" id="groups" DISABLED value="groups"></td><th><label>{{ range .OrgRoles }}<span>{{ . }}, </span>{{ end }}</td></tr></label></th></tr>
+                    <tr class="first"><th><label for="preferred-username">ID Claim</label></th><td><input type="text" id="preferred-username" DISABLED value="preferred_username"></td><th><p class="hint NOMARGIN">{{.OrgID}}</p></th></tr>
+                    <tr><th><label for="full-name">Display Name Claim</label></th><td><input type="text" id="full-name" DISABLED value="name"></td><th><p class="hint NOMARGIN">{{.OrgName}}</p></th></tr>
+                    <tr><th><label for="email">Email Claim</label></th><td><input type="text" id="email" DISABLED value="email"></td><th><p class="hint NOMARGIN">{{.OrgEmail}}</p></th></tr>
+                    <tr><th><label for="groups">Groups Claim</label></th><td><input type="text" id="groups" DISABLED value="groups"></td><th><p class="hint NOMARGIN">{{ range .OrgRoles }}<span>{{ . }}, </span>{{ end }}</td></tr></p></th></tr>
                 </table>
             </div>
         </div>
-        <div>
+        <div class="W600">
             <h2><fa class="fa-solid fa-wand-sparkles"></fa>OIDC / OAuth2 Service Endpoints</h2>
             <div class="spacer">
                 <table>
