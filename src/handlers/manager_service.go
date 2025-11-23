@@ -669,6 +669,7 @@ func Issue_Lets_Encrypt_cert(domain string, dry_run bool) string {
 		"--no-autorenew",
 		"--register-unsafely-without-email",
 		"--webroot",
+		"--test-cert",
 		"-w", webroot,
 		"-d", domain,
 	}
@@ -723,7 +724,7 @@ func Issue_Lets_Encrypt_cert(domain string, dry_run bool) string {
 		return "Unable to copy certificate files. More details are available in the logs."
 	}
 
-	utils.CopyFile("/etc/letsencrypt/live/code.identityplus.org/privkey.pem", global.Config__.DataDirectory+"/letsencrypt/"+domain+"/service-id/"+domain+".key")
+	err = utils.CopyFile("/etc/letsencrypt/live/code.identityplus.org/privkey.pem", global.Config__.DataDirectory+"/letsencrypt/"+domain+"/service-id/"+domain+".key")
 	if err != nil {
 		log.Printf("Unable to copy key file: %s", err.Error())
 		return "Unable to copy key files. More details are available in the logs."
