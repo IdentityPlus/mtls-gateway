@@ -605,7 +605,7 @@ func (srv *Manager_Service) handle_overview(w http.ResponseWriter, r *http.Reque
 		client_serial = x509_cert.SerialNumber.String()
 		srv_agent_name = x509_cert.Subject.CommonName
 		expires = x509_cert.NotAfter.Format("2006-01-02 15:04:05 MST")
-		age = int(time.Since(x509_cert.NotBefore).Hours()) / 24
+		age = max(1, int(time.Since(x509_cert.NotBefore).Hours()*100/x509_cert.NotAfter.Sub(x509_cert.NotBefore).Hours()))
 		renewal_due = strconv.Itoa(utils.Compute_Renewal_Timeline(x509_cert)) + " days"
 
 	} else {
@@ -618,7 +618,7 @@ func (srv *Manager_Service) handle_overview(w http.ResponseWriter, r *http.Reque
 	gw_expires := x509_cert.NotAfter.Format("2006-01-02 15:04:05 MST")
 	gw_serial := x509_cert.SerialNumber.String()
 	gw_renewal_due := strconv.Itoa(utils.Compute_Renewal_Timeline(x509_cert)) + " days"
-	gw_age = int(time.Since(x509_cert.NotBefore).Hours()) / 24
+	gw_age = max(1, int(time.Since(x509_cert.NotBefore).Hours()*100/x509_cert.NotAfter.Sub(x509_cert.NotBefore).Hours()))
 
 	render_page(w, "overview", map[string]interface{}{
 		"CurrentPage":     "Overview",
@@ -744,7 +744,7 @@ func (srv *Manager_Service) handle_perimeter(w http.ResponseWriter, r *http.Requ
 		sv_serial = x509_cert.SerialNumber.String()
 		sv_renewal_due = strconv.Itoa(utils.Compute_Renewal_Timeline(x509_cert)) + " days"
 		issuer = x509_cert.Issuer.Organization[0]
-		gw_age = int(time.Since(x509_cert.NotBefore).Hours()) / 24
+		gw_age = max(1, int(time.Since(x509_cert.NotBefore).Hours()*100/x509_cert.NotAfter.Sub(x509_cert.NotBefore).Hours()))
 	} else {
 		issuer = "Let's Encrypt"
 		if config.Service.Authority == "letsencrypt-staging" {
