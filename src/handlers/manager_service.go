@@ -700,7 +700,7 @@ func (srv *Manager_Service) handle_perimeter(w http.ResponseWriter, r *http.Requ
 			page_error = srv.update_service_config(domain, config)
 
 		} else if r.FormValue("action") == "issue-letsencrypt" {
-			result := utils.Issue_Lets_Encrypt_cert(domain, config.Service.Authority == "letsenecrypt-staging", false, false)
+			result := utils.Issue_Lets_Encrypt_Cert(domain, config.Service.Authority == "letsencrypt-staging", false, false)
 
 			if result != "renewed" {
 				page_error = result
@@ -709,7 +709,7 @@ func (srv *Manager_Service) handle_perimeter(w http.ResponseWriter, r *http.Requ
 			}
 
 		} else if r.FormValue("action") == "renew-letsencrypt" {
-			result := utils.Issue_Lets_Encrypt_cert(domain, config.Service.Authority == "letsenecrypt-staging", true, false)
+			result := utils.Issue_Lets_Encrypt_Cert(domain, config.Service.Authority == "letsencrypt-staging", true, false)
 
 			if result != "renewed" {
 				page_error = result
@@ -718,7 +718,7 @@ func (srv *Manager_Service) handle_perimeter(w http.ResponseWriter, r *http.Requ
 			}
 
 		} else if r.FormValue("action") == "test-letsencrypt" {
-			result := utils.Issue_Lets_Encrypt_cert(domain, config.Service.Authority == "letsenecrypt-staging", false, true)
+			result := utils.Issue_Lets_Encrypt_Cert(domain, config.Service.Authority == "letsencrypt-staging", false, true)
 
 			if result != "success" {
 				page_error = result

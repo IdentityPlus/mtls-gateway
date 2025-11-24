@@ -49,7 +49,7 @@ func FetchLets_Encrypt_ToS() string {
 	return directory.Meta.TermsOfService
 }
 
-func Issue_Lets_Encrypt_cert(domain string, staging bool, force bool, dry_run bool) string {
+func Issue_Lets_Encrypt_Cert(domain string, staging bool, force bool, dry_run bool) string {
 	// letsencrypt certonly --agree-tos --non-interactive --no-autorenew --register-unsafely-without-email --webroot -w /var/mtls-gateway/letsencrypt/code.identityplus.org -d code.identityplus.org --test-cert
 	webroot := global.Config__.DataDirectory + "/letsencrypt/" + domain + "/"
 	os.MkdirAll(webroot+"service-id", 0755)
@@ -115,13 +115,13 @@ func Issue_Lets_Encrypt_cert(domain string, staging bool, force bool, dry_run bo
 
 	if strings.Contains(outStr, "Successfully received certificate") {
 
-		err := CopyFile("/etc/letsencrypt/live/code.identityplus.org/fullchain.pem", global.Config__.DataDirectory+"/letsencrypt/"+domain+"/service-id/"+domain+".cer")
+		err := CopyFile("/etc/letsencrypt/live/"+domain+"/fullchain.pem", global.Config__.DataDirectory+"/letsencrypt/"+domain+"/service-id/"+domain+".cer")
 		if err != nil {
 			log.Printf("Unable to copy certificate file: %s", err.Error())
 			return "Unable to copy certificate files. More details are available in the logs."
 		}
 
-		err = CopyFile("/etc/letsencrypt/live/code.identityplus.org/privkey.pem", global.Config__.DataDirectory+"/letsencrypt/"+domain+"/service-id/"+domain+".key")
+		err = CopyFile("/etc/letsencrypt/live/"+domain+"/privkey.pem", global.Config__.DataDirectory+"/letsencrypt/"+domain+"/service-id/"+domain+".key")
 		if err != nil {
 			log.Printf("Unable to copy key file: %s", err.Error())
 			return "Unable to copy key files. More details are available in the logs."
