@@ -59,7 +59,8 @@
                         {{ end }}
                     </p>
                 {{ else }}
-                    <a class="submit" id="rotate-letsencrypt-link" href="javascript:rotate('rotate-letsencrypt')"><span class="fa-solid fa-rotate"></span>Renew Now</a>
+                <p class="HINT MARGIN_BELOW W300">Let's Encrypt will issue a maximum of 5 certificates per week for the same domain name and a maximum of 50 for one domain (incliding sub-domains).</a>.</p>
+                <a class="submit" id="rotate-letsencrypt-link" href="javascript:rotate('rotate-letsencrypt')"><span class="fa-solid fa-rotate"></span>Renew Now</a>
                 {{ end }}
             {{ else }}
                 Same as <a href="/overview">Gateway</a> ...

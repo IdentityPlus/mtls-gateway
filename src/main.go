@@ -14,6 +14,7 @@ import (
 func update_certificates() bool {
 	restart_openresty := false
 
+	// update Identity Plus Gateway mTLS ID (Client Certificate) and Service IDs (Server Certificates)
 	for key, perimeter_api := range handlers.Manager_Service__.Perimeter_APIs {
 		log.Printf("Updating agent certificate for %s: %s", key, perimeter_api.Self_Authority.Renew(true))
 
@@ -22,6 +23,19 @@ func update_certificates() bool {
 
 		if ans == "renewed" {
 			restart_openresty = true
+		}
+	}
+
+	// update Let's Encrypt Server Certificates
+	for _, domain := range handlers.Manager_Service__.Get_Configurations() {
+
+		config := handlers.Manager_Service__.Get_Service_Config(domain)
+		if config.Service.Authority == "letsencrypt" {
+			result := utils.Issue_Lets_Encrypt_cert(domain, false, false)
+
+			if result == "renewed" {
+				restart_openresty = true
+			}
 		}
 	}
 
@@ -34,13 +48,17 @@ func update_certificates() bool {
 func certificate_update_service() {
 	log.Printf("Starting certificate update service ...")
 
+	// sleep one minute to allow for system boot
+	time.Sleep(1 * time.Minute)
+
 	for {
-		// We start by sleeping for a day, because we run an update in synch at startup
-		time.Sleep(24 * time.Hour)
 
 		if update_certificates() {
 			handlers.Manager_Service__.Start_Openresty()
 		}
+
+		// sleep half a day - Let's Encrypt recommends twice a day update attempt
+		time.Sleep(12 * time.Hour)
 	}
 }
 
@@ -82,9 +100,6 @@ func main() {
 		handlers.Manager_Service__.Configure_Perimeter_API(id_dir)
 		global.Intialized = true
 	}
-
-	// run a certificate update in synch
-	update_certificates()
 
 	if global.Intialized {
 		go handlers.Manager_Service__.Start()

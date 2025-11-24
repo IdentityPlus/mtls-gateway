@@ -12,7 +12,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
@@ -238,22 +237,22 @@ func (cli *Self_Authority_API) do_enroll(token string) string {
 		log.Printf("writing certificate information into: " + cli.Identity_Dir + "/")
 	}
 
-	ioutil.WriteFile(cli.Identity_Dir+"/"+cli.Device_Name+".p12", p12_cert, 0644)
-	ioutil.WriteFile(cli.Identity_Dir+"/"+cli.Device_Name+".password", []byte(agent_identity.Result.Password), 0644)
+	os.WriteFile(cli.Identity_Dir+"/"+cli.Device_Name+".p12", p12_cert, 0644)
+	os.WriteFile(cli.Identity_Dir+"/"+cli.Device_Name+".password", []byte(agent_identity.Result.Password), 0644)
 
 	pem_cert, derr := base64.StdEncoding.DecodeString(agent_identity.Result.Certificate)
 	if derr != nil {
 		return "Failed decoding certificate: " + err
 	}
 
-	ioutil.WriteFile(cli.Identity_Dir+"/"+cli.Device_Name+".cer", pem_cert, 0644)
+	os.WriteFile(cli.Identity_Dir+"/"+cli.Device_Name+".cer", pem_cert, 0644)
 
 	pem_key, derr := base64.StdEncoding.DecodeString(agent_identity.Result.PrivateKey)
 	if derr != nil {
 		return "Failed decoding certificate: " + err
 	}
 
-	ioutil.WriteFile(cli.Identity_Dir+"/"+cli.Device_Name+".key", pem_key, 0644)
+	os.WriteFile(cli.Identity_Dir+"/"+cli.Device_Name+".key", pem_key, 0644)
 
 	return "success"
 }
@@ -312,22 +311,22 @@ func (cli *Self_Authority_API) Employ_service_agent(authorization string) string
 		log.Println(err)
 	}
 
-	ioutil.WriteFile(cli.Identity_Dir+"/"+cli.Device_Name+".p12", p12_cert, 0644)
-	ioutil.WriteFile(cli.Identity_Dir+"/"+cli.Device_Name+".password", []byte(agent_identity.Result.Password), 0644)
+	os.WriteFile(cli.Identity_Dir+"/"+cli.Device_Name+".p12", p12_cert, 0644)
+	os.WriteFile(cli.Identity_Dir+"/"+cli.Device_Name+".password", []byte(agent_identity.Result.Password), 0644)
 
 	pem_cert, derr := base64.StdEncoding.DecodeString(agent_identity.Result.Certificate)
 	if derr != nil {
 		return "Failed decoding certificate: " + err
 	}
 
-	ioutil.WriteFile(cli.Identity_Dir+"/"+cli.Device_Name+".cer", pem_cert, 0644)
+	os.WriteFile(cli.Identity_Dir+"/"+cli.Device_Name+".cer", pem_cert, 0644)
 
 	pem_key, derr := base64.StdEncoding.DecodeString(agent_identity.Result.PrivateKey)
 	if derr != nil {
 		return "Failed decoding certificate: " + err
 	}
 
-	ioutil.WriteFile(cli.Identity_Dir+"/"+cli.Device_Name+".key", pem_key, 0644)
+	os.WriteFile(cli.Identity_Dir+"/"+cli.Device_Name+".key", pem_key, 0644)
 
 	return "success"
 }
@@ -382,22 +381,22 @@ func (cli *Self_Authority_API) Enroll_unified(authorization string) string {
 		log.Printf("writing certificate information into: " + cli.Identity_Dir + "/...")
 	}
 
-	ioutil.WriteFile(cli.Identity_Dir+"/"+cli.Device_Name+".p12", p12_cert, 0644)
-	ioutil.WriteFile(cli.Identity_Dir+"/"+cli.Device_Name+".password", []byte(agent_identity.Result.Password), 0644)
+	os.WriteFile(cli.Identity_Dir+"/"+cli.Device_Name+".p12", p12_cert, 0644)
+	os.WriteFile(cli.Identity_Dir+"/"+cli.Device_Name+".password", []byte(agent_identity.Result.Password), 0644)
 
 	pem_cert, derr := base64.StdEncoding.DecodeString(agent_identity.Result.Certificate)
 	if derr != nil {
 		return "Failed decoding certificate: " + err
 	}
 
-	ioutil.WriteFile(cli.Identity_Dir+"/"+cli.Device_Name+".cer", pem_cert, 0644)
+	os.WriteFile(cli.Identity_Dir+"/"+cli.Device_Name+".cer", pem_cert, 0644)
 
 	pem_key, derr := base64.StdEncoding.DecodeString(agent_identity.Result.PrivateKey)
 	if derr != nil {
 		return "Failed decoding certificate: " + err
 	}
 
-	ioutil.WriteFile(cli.Identity_Dir+"/"+cli.Device_Name+".key", pem_key, 0644)
+	os.WriteFile(cli.Identity_Dir+"/"+cli.Device_Name+".key", pem_key, 0644)
 
 	return "success"
 }
@@ -424,22 +423,22 @@ func (cli *Self_Authority_API) Renew(tentative bool) string {
 			return "Failed decoding certificate: " + err
 		}
 
-		ioutil.WriteFile(cli.Identity_Dir+"/"+cli.Device_Name+".p12", p12_cert, 0644)
-		ioutil.WriteFile(cli.Identity_Dir+"/"+cli.Device_Name+".password", []byte(agent_identity.Result.Password), 0644)
+		os.WriteFile(cli.Identity_Dir+"/"+cli.Device_Name+".p12", p12_cert, 0644)
+		os.WriteFile(cli.Identity_Dir+"/"+cli.Device_Name+".password", []byte(agent_identity.Result.Password), 0644)
 
 		pem_cert, derr := base64.StdEncoding.DecodeString(agent_identity.Result.Certificate)
 		if derr != nil {
 			return "Failed decoding certificate: " + err
 		}
 
-		ioutil.WriteFile(cli.Identity_Dir+"/"+cli.Device_Name+".cer", pem_cert, 0644)
+		os.WriteFile(cli.Identity_Dir+"/"+cli.Device_Name+".cer", pem_cert, 0644)
 
 		pem_key, derr := base64.StdEncoding.DecodeString(agent_identity.Result.PrivateKey)
 		if derr != nil {
 			return "Failed decoding certificate: " + err
 		}
 
-		ioutil.WriteFile(cli.Identity_Dir+"/"+cli.Device_Name+".key", pem_key, 0644)
+		os.WriteFile(cli.Identity_Dir+"/"+cli.Device_Name+".key", pem_key, 0644)
 
 		cli.Invalidate()
 	}
@@ -477,22 +476,22 @@ func (cli *Self_Authority_API) Issue_service_identity(force bool) string {
 			log.Println(err)
 		}
 
-		ioutil.WriteFile(cli.Identity_Dir+"/service-id/"+service_identity.Result.Name+".p12", p12_cert, 0644)
-		ioutil.WriteFile(cli.Identity_Dir+"/service-id/"+service_identity.Result.Name+".password", []byte(service_identity.Result.Password), 0644)
+		os.WriteFile(cli.Identity_Dir+"/service-id/"+service_identity.Result.Name+".p12", p12_cert, 0644)
+		os.WriteFile(cli.Identity_Dir+"/service-id/"+service_identity.Result.Name+".password", []byte(service_identity.Result.Password), 0644)
 
 		pem_cert, derr := base64.StdEncoding.DecodeString(service_identity.Result.Certificate)
 		if derr != nil {
 			return "Failed decoding certificate: " + err
 		}
 
-		ioutil.WriteFile(cli.Identity_Dir+"/service-id/"+service_identity.Result.Name+".cer", pem_cert, 0644)
+		os.WriteFile(cli.Identity_Dir+"/service-id/"+service_identity.Result.Name+".cer", pem_cert, 0644)
 
 		pem_key, derr := base64.StdEncoding.DecodeString(service_identity.Result.PrivateKey)
 		if derr != nil {
 			return "Failed decoding certificate: " + err
 		}
 
-		ioutil.WriteFile(cli.Identity_Dir+"/service-id/"+service_identity.Result.Name+".key", pem_key, 0644)
+		os.WriteFile(cli.Identity_Dir+"/service-id/"+service_identity.Result.Name+".key", pem_key, 0644)
 	}
 
 	return service_identity.Result.Outcome
@@ -510,7 +509,7 @@ func (cli *Self_Authority_API) Get_trust_chain() string {
 		log.Println(err)
 	}
 
-	ioutil.WriteFile(cli.Identity_Dir+"/service-id/identity-plus-root-ca.cer", ans, 0644)
+	os.WriteFile(cli.Identity_Dir+"/service-id/identity-plus-root-ca.cer", ans, 0644)
 
 	return "trust chain saved: " + cli.Identity_Dir + "/service-id/identity-plus-root-ca.cer"
 }

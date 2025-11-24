@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"bytes"
 	"crypto/tls"
 	"crypto/x509"
 	"fmt"
@@ -657,84 +656,6 @@ func (srv *Manager_Service) handle_overview(w http.ResponseWriter, r *http.Reque
 	})
 }
 
-func Issue_Lets_Encrypt_cert(domain string, dry_run bool) string {
-	webroot := global.Config__.DataDirectory + "/letsencrypt/" + domain + "/"
-	os.MkdirAll(webroot+"service-id", 0755)
-
-	args := []string{
-		"certonly",
-		"--agree-tos",
-		"--non-interactive",
-		"--no-autorenew",
-		"--register-unsafely-without-email",
-		"--webroot",
-		"-w", webroot,
-		"-d", domain,
-		"--test-cert",
-	}
-
-	if dry_run {
-		args = append(args, "--dry-run")
-	}
-
-	if false {
-		log.Println("Mocking certbot ... ")
-		log.Printf("comand: certbot %v\n", args)
-		return "success"
-	}
-
-	cmd := exec.Command("certbot", args...)
-
-	// Capture stdout and stderr
-	stdout, err := cmd.StdoutPipe()
-	if err != nil {
-		return "Let's Encrypt Certbot failed. More details are available in the logs."
-	}
-	stderr, err := cmd.StderrPipe()
-	if err != nil {
-		return "Let's Encrypt Certbot failed. More details are available in the logs."
-	}
-
-	// Full output buffer (also streamed to log writer)
-	var output bytes.Buffer
-
-	// Live copy to logs + capture to buffer
-	multiOut := io.MultiWriter(utils.Log_Writer, &output)
-	multiErr := io.MultiWriter(utils.Log_Writer, &output)
-
-	go io.Copy(multiOut, stdout)
-	go io.Copy(multiErr, stderr)
-
-	// Start the process
-	if err := cmd.Start(); err != nil {
-		return "Let's Encrypt Certbot failed. More details are available in the logs."
-	}
-
-	// Wait for exit
-	err = cmd.Wait()
-
-	if err != nil {
-		return "Let's Encrypt Certbot failed. More details are available in the logs."
-	}
-
-	if !dry_run {
-		err = utils.CopyFile("/etc/letsencrypt/live/code.identityplus.org/fullchain.pem", global.Config__.DataDirectory+"/letsencrypt/"+domain+"/service-id/"+domain+".cer")
-		if err != nil {
-			log.Printf("Unable to copy certificate file: %s", err.Error())
-			return "Unable to copy certificate files. More details are available in the logs."
-		}
-
-		err = utils.CopyFile("/etc/letsencrypt/live/code.identityplus.org/privkey.pem", global.Config__.DataDirectory+"/letsencrypt/"+domain+"/service-id/"+domain+".key")
-		if err != nil {
-			log.Printf("Unable to copy key file: %s", err.Error())
-			return "Unable to copy key files. More details are available in the logs."
-		}
-	}
-
-	return "success"
-
-}
-
 func (srv *Manager_Service) handle_perimeter(w http.ResponseWriter, r *http.Request) {
 	domain := r.Host
 	if i := strings.Index(domain, ":"); i != -1 {
@@ -775,15 +696,26 @@ func (srv *Manager_Service) handle_perimeter(w http.ResponseWriter, r *http.Requ
 			page_error = srv.update_service_config(domain, config)
 
 		} else if r.FormValue("action") == "issue-letsencrypt" {
-			result := Issue_Lets_Encrypt_cert(domain, false)
-			if result != "success" {
+			result := utils.Issue_Lets_Encrypt_cert(domain, false, false)
+
+			if result != "renewed" {
+				page_error = result
+			} else {
+				page_error = srv.update_service_config(domain, config)
+			}
+
+		} else if r.FormValue("action") == "renew-letsencrypt" {
+			result := utils.Issue_Lets_Encrypt_cert(domain, true, false)
+
+			if result != "renewed" {
 				page_error = result
 			} else {
 				page_error = srv.update_service_config(domain, config)
 			}
 
 		} else if r.FormValue("action") == "test-letsencrypt" {
-			result := Issue_Lets_Encrypt_cert(domain, true)
+			result := utils.Issue_Lets_Encrypt_cert(domain, false, true)
+
 			if result != "success" {
 				page_error = result
 			} else {
