@@ -83,7 +83,7 @@ fa{min-width:48px; width:48px; text-align:center; padding: 15px 10px 15px 15px;}
 .content div table th {font-weight: 500; color:#909090;}
 .content div table th.TOP {vertical-align: top;}
 .content div table td.r, .content div table th.r {text-align: right;}
-.content div table th label {margin:10px 0px; clear:both; color:#303030; font-weight: 400; white-space:nowrap;}
+.content div table th label {margin:10px 0px; clear:both; color:#303030A0; font-weight: 400; white-space:nowrap;}
 .content div table th p {margin:10px 0px; clear:both; color:#000000; font-size:80%; font-weight: 300;}
 .content div table th p.NOMARGIN {margin:0px;}
 .content div table th div.holder {clear:both; min-height: auto; margin-top:5px; padding:20px;}
@@ -133,7 +133,7 @@ input[type="number"]:focus {outline:none; background:rgba(255, 255, 200, 0.1);}
 input[type="checkbox"] {margin: 10px 10px 10px 0px;}
 .holder input[type="checkbox"] {margin: 0px 10px 15px 0px;}
 input[type="text"].path::before{content: '/'; padding:10px;}
-textarea {border:1px solid rgba(0,0,0,0.1); font-size:16px; padding:8px 15px; min-width:600px; min-height: 150px; margin:5px 0px; border-radius:3px; }
+textarea {border:1px solid rgba(0,0,0,0.1); font-size:16px; padding:8px 15px; min-width:600px; min-height: 150px; margin:5px 0px; border-radius:3px; font-weight: 300; color:#000000A0; font-family: 'Roboto Mono';}
 textarea:focus {outline:none; background:rgba(255, 255, 200, 0.1);}
 
 form.all-in-one input[type="text"] {border:0; width:100%;}

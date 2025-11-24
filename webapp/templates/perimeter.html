@@ -16,6 +16,7 @@
                     <select id="authority" name="authority">
                         <option {{ if ne .Service.Authority "letsencrypt" }} SELECTED {{ end }} value="identityplus">Identity Plus Self-Authority</option>
                         <option {{ if eq .Service.Authority "letsencrypt" }} SELECTED {{ end }} value="letsencrypt">Let's Encrypt</option>
+                        <option {{ if eq .Service.Authority "letsencrypt-staging" }} SELECTED {{ end }} value="letsencrypt-staging">Let's Encrypt Staging</option>
                     </select>
                 </td></tr>
             </table>
@@ -47,7 +48,7 @@
             </script>
         </div>
         <div class="spacer">
-            {{ if eq .Service.Authority "letsencrypt" }}
+            {{ if contains .Service.Authority "letsencrypt" }}
                 {{ if eq .ServerSerial "not issued" }}
                     <p class="HINT MARGIN_BELOW W300">By issuing this certificate you certify that you have read and agree to the <a href="{{.ToS}}" target="blank_">Let's Encrypt Terms of Service</a>.</p>
                     <img width="37" height="37" id="wait-img" class="HIDDEN" src="/static/ring-wait.svg" >

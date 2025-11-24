@@ -49,7 +49,7 @@ func FetchLets_Encrypt_ToS() string {
 	return directory.Meta.TermsOfService
 }
 
-func Issue_Lets_Encrypt_cert(domain string, force bool, dry_run bool) string {
+func Issue_Lets_Encrypt_cert(domain string, staging bool, force bool, dry_run bool) string {
 	// letsencrypt certonly --agree-tos --non-interactive --no-autorenew --register-unsafely-without-email --webroot -w /var/mtls-gateway/letsencrypt/code.identityplus.org -d code.identityplus.org --test-cert
 	webroot := global.Config__.DataDirectory + "/letsencrypt/" + domain + "/"
 	os.MkdirAll(webroot+"service-id", 0755)
@@ -63,7 +63,6 @@ func Issue_Lets_Encrypt_cert(domain string, force bool, dry_run bool) string {
 		"--webroot",
 		"-w", webroot,
 		"-d", domain,
-		"--test-cert",
 	}
 
 	if dry_run {
@@ -72,6 +71,10 @@ func Issue_Lets_Encrypt_cert(domain string, force bool, dry_run bool) string {
 
 	if force {
 		args = append(args, "--force-renewal")
+	}
+
+	if staging {
+		args = append(args, "--test-cert")
 	}
 
 	cmd := exec.Command("certbot", args...)

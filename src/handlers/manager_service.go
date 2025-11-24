@@ -132,7 +132,7 @@ func (srv *Manager_Service) get_gateway_certificate(domain string, no_cache bool
 }
 
 func (srv *Manager_Service) get_service_certificate(domain string, config integrations.ServiceConfig, no_cache bool) *tls.Certificate {
-	if config.Service.Authority != "letsencrypt" {
+	if !strings.Contains(config.Service.Authority, "letsencrypt") {
 		return srv.get_gateway_certificate(domain, no_cache)
 	}
 
@@ -208,8 +208,9 @@ func render_page(w http.ResponseWriter, tmpl string, data interface{}) {
 
 	// Create the FuncMap before parsing the template files
 	funcMap := template.FuncMap{
-		"join":    utils.Join,
-		"deslash": escape_slash,
+		"join":     utils.Join,
+		"deslash":  escape_slash,
+		"contains": strings.Contains,
 	}
 
 	// Parse templates and apply FuncMap
@@ -557,7 +558,7 @@ func (srv *Manager_Service) handle_overview(w http.ResponseWriter, r *http.Reque
 
 	var validation__ *mtlsid.Client_Validation_Ticket
 	var device_name, client_serial, device_type, srv_agent_name, renewal_due, expires, page_error string
-	var age int
+	var age, gw_age int
 
 	cert := r.TLS.PeerCertificates[0]
 
@@ -604,7 +605,7 @@ func (srv *Manager_Service) handle_overview(w http.ResponseWriter, r *http.Reque
 		client_serial = x509_cert.SerialNumber.String()
 		srv_agent_name = x509_cert.Subject.CommonName
 		expires = x509_cert.NotAfter.Format("2006-01-02 15:04:05 MST")
-
+		age = int(time.Since(x509_cert.NotBefore).Hours()) / 24
 		renewal_due = strconv.Itoa(utils.Compute_Renewal_Timeline(x509_cert)) + " days"
 
 	} else {
@@ -617,6 +618,7 @@ func (srv *Manager_Service) handle_overview(w http.ResponseWriter, r *http.Reque
 	gw_expires := x509_cert.NotAfter.Format("2006-01-02 15:04:05 MST")
 	gw_serial := x509_cert.SerialNumber.String()
 	gw_renewal_due := strconv.Itoa(utils.Compute_Renewal_Timeline(x509_cert)) + " days"
+	gw_age = int(time.Since(x509_cert.NotBefore).Hours()) / 24
 
 	render_page(w, "overview", map[string]interface{}{
 		"CurrentPage":     "Overview",
@@ -646,6 +648,7 @@ func (srv *Manager_Service) handle_overview(w http.ResponseWriter, r *http.Reque
 		"Expires":          expires,
 		"RenewalDue":       renewal_due,
 
+		"ServerAge":        gw_age,
 		"ServerSerial":     gw_serial,
 		"ServerCN":         gw_agent_name,
 		"ServerExpires":    gw_expires,
@@ -665,6 +668,7 @@ func (srv *Manager_Service) handle_perimeter(w http.ResponseWriter, r *http.Requ
 	service_fonfigs := srv.Get_Configurations()
 	config := srv.Get_Service_Config(domain)
 	test_successful := "false"
+
 	if r.Method == http.MethodPost {
 		err := r.ParseForm()
 		if err != nil {
@@ -696,7 +700,7 @@ func (srv *Manager_Service) handle_perimeter(w http.ResponseWriter, r *http.Requ
 			page_error = srv.update_service_config(domain, config)
 
 		} else if r.FormValue("action") == "issue-letsencrypt" {
-			result := utils.Issue_Lets_Encrypt_cert(domain, false, false)
+			result := utils.Issue_Lets_Encrypt_cert(domain, config.Service.Authority == "letsenecrypt-staging", false, false)
 
 			if result != "renewed" {
 				page_error = result
@@ -705,7 +709,7 @@ func (srv *Manager_Service) handle_perimeter(w http.ResponseWriter, r *http.Requ
 			}
 
 		} else if r.FormValue("action") == "renew-letsencrypt" {
-			result := utils.Issue_Lets_Encrypt_cert(domain, true, false)
+			result := utils.Issue_Lets_Encrypt_cert(domain, config.Service.Authority == "letsenecrypt-staging", true, false)
 
 			if result != "renewed" {
 				page_error = result
@@ -714,7 +718,7 @@ func (srv *Manager_Service) handle_perimeter(w http.ResponseWriter, r *http.Requ
 			}
 
 		} else if r.FormValue("action") == "test-letsencrypt" {
-			result := utils.Issue_Lets_Encrypt_cert(domain, false, true)
+			result := utils.Issue_Lets_Encrypt_cert(domain, config.Service.Authority == "letsenecrypt-staging", false, true)
 
 			if result != "success" {
 				page_error = result
@@ -729,6 +733,7 @@ func (srv *Manager_Service) handle_perimeter(w http.ResponseWriter, r *http.Requ
 
 	var sv_agent_name, sv_expires, sv_renewal_due, sv_serial, issuer string
 	var x509_cert *x509.Certificate
+	gw_age := 0
 
 	sv_certificate := srv.get_service_certificate(domain, config, false)
 
@@ -739,8 +744,12 @@ func (srv *Manager_Service) handle_perimeter(w http.ResponseWriter, r *http.Requ
 		sv_serial = x509_cert.SerialNumber.String()
 		sv_renewal_due = strconv.Itoa(utils.Compute_Renewal_Timeline(x509_cert)) + " days"
 		issuer = x509_cert.Issuer.Organization[0]
+		gw_age = int(time.Since(x509_cert.NotBefore).Hours()) / 24
 	} else {
 		issuer = "Let's Encrypt"
+		if config.Service.Authority == "letsencrypt-staging" {
+			issuer = "(STAGING) " + issuer
+		}
 		sv_agent_name = domain
 		sv_expires = "non issued"
 		sv_serial = "not issued"
@@ -762,6 +771,7 @@ func (srv *Manager_Service) handle_perimeter(w http.ResponseWriter, r *http.Requ
 		"ServerCN":         sv_agent_name,
 		"ServerExpires":    sv_expires,
 		"ServerRenewalDue": sv_renewal_due,
+		"ServerAge":        gw_age,
 		"Issuer":           issuer,
 		"ToS":              utils.FetchLets_Encrypt_ToS(),
 		"Test_Success":     test_successful,

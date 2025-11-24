@@ -30,8 +30,8 @@ func update_certificates() bool {
 	for _, domain := range handlers.Manager_Service__.Get_Configurations() {
 
 		config := handlers.Manager_Service__.Get_Service_Config(domain)
-		if config.Service.Authority == "letsencrypt" {
-			result := utils.Issue_Lets_Encrypt_cert(domain, false, false)
+		if strings.Contains(config.Service.Authority, "letsencrypt") {
+			result := utils.Issue_Lets_Encrypt_cert(domain, config.Service.Authority == "letsenecrypt-staging", false, false)
 
 			if result == "renewed" {
 				restart_openresty = true

@@ -44,7 +44,7 @@ func (cfg Nginx_Builder) build_tls() string {
 
 	certificate_dir := cfg.MtlsIdDirectory
 
-	if cfg.Service.Authority == "letsencrypt" && utils.FileExists(global.Config__.DataDirectory+"/letsencrypt/"+cfg.domain()+"/service-id/"+cfg.domain()+".cer") && utils.FileExists(global.Config__.DataDirectory+"/letsencrypt/"+cfg.domain()+"/service-id/"+cfg.domain()+".key") {
+	if strings.Contains(cfg.Service.Authority, "letsencrypt") && utils.FileExists(global.Config__.DataDirectory+"/letsencrypt/"+cfg.domain()+"/service-id/"+cfg.domain()+".cer") && utils.FileExists(global.Config__.DataDirectory+"/letsencrypt/"+cfg.domain()+"/service-id/"+cfg.domain()+".key") {
 		certificate_dir += "/letsencrypt"
 	} else {
 		certificate_dir += "/identity"
