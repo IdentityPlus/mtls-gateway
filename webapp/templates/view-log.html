@@ -10,7 +10,7 @@
             const container = document.getElementById("edit-section");
 
             const file = "{{$.Log_File}}";
-
+            var time_out = 1000;
             try {
                 // Detect if user is already at the bottom (with 5px tolerance)
                 const isAtBottom =
@@ -34,6 +34,9 @@
                 else pre.textContent += text;
 
                 size += text.length;
+                if(text.length == 100*1024){
+                    timeout = 1;
+                }
 
                 // Only auto-scroll if user was already at the bottom
                 if (isAtBottom) {
@@ -43,13 +46,12 @@
             } catch (err) {
                 pre.textContent = "Network error: " + err;
             }
+
+            setTimeout(loadLogFile, timeout);
         }
 
         // Load immediately
         loadLogFile();
-
-        // Reload every 1 second
-        setInterval(loadLogFile, 1000);
     </script>
 
 {{ end }}

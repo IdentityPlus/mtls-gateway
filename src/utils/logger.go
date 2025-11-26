@@ -147,7 +147,8 @@ func (w *DailyRotatingWriter) Tail(path string, start int64) (string, int64) {
 	}
 
 	// Read the rest of the file
-	data, err := io.ReadAll(f)
+	r := io.LimitReader(f, 100*1024)
+	data, err := io.ReadAll(r)
 	if err != nil {
 		return "unable to read: " + err.Error(), size
 	}
