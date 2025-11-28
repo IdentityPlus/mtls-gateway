@@ -74,6 +74,8 @@ func Enroll(token string) (*mtlsid.Perimeter_API, string) {
 		sourceDir := filepath.Join(global.Config__.DataDirectory, "identity", "_")
 		destDir := filepath.Join(global.Config__.DataDirectory, "identity", domain)
 
+		_ = os.RemoveAll(destDir)
+
 		if err := os.Rename(sourceDir, destDir); err != nil {
 			return nil, fmt.Sprintf("failed to move file: %v", err)
 		}

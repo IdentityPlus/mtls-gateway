@@ -150,7 +150,7 @@ func (cli *Self_Authority_API) client(client_certificate *tls.Certificate) (*htt
 }
 
 func (cli *Self_Authority_API) Interactive_enroll_user_agent() string {
-	err, ans := cli.insecure_call("https://signon."+cli.Service+"/api/v1", "POST", "{\"operation\": \"request_oob_unlock\", \"args\": {\"no-redundancy\":false}}")
+	err, ans := cli.insecure_call("https://selfauthority."+cli.Service+"/api/v1", "POST", "{\"operation\": \"request_oob_unlock\", \"args\": {\"no-redundancy\":false}}")
 
 	if err != "" {
 		return "Failed requesting login intent: " + err
@@ -190,7 +190,7 @@ func (cli *Self_Authority_API) Interactive_enroll_user_agent() string {
 	fmt.Print("Waiting ...")
 
 	for i := 0; i < 10; i++ {
-		err, ans = cli.insecure_call("https://signon."+cli.Service+"/api/v1", "POST", "{\"operation\": \"oob_unlock\", \"args\": {\"token\": \""+response.Result.Token+"\", \"intent\": \""+response.Result.Intent+"\", \"keep-alive\":10}}}")
+		err, ans = cli.insecure_call("https://selfauthority."+cli.Service+"/api/v1", "POST", "{\"operation\": \"oob_unlock\", \"args\": {\"token\": \""+response.Result.Token+"\", \"intent\": \""+response.Result.Intent+"\", \"keep-alive\":10}}}")
 
 		if err != "" {
 			return string(err)
@@ -215,7 +215,7 @@ func (cli *Self_Authority_API) Interactive_enroll_user_agent() string {
 }
 
 func (cli *Self_Authority_API) do_enroll(token string) string {
-	err, ans := cli.insecure_call("https://signon."+cli.Service+"/api/v1", "POST", "{\"operation\": \"issue_certificate\", \"args\": {\"token\": \""+token+"\", \"device\": \""+cli.Device_Name+"\", \"protect\":true}}")
+	err, ans := cli.insecure_call("https://selfauthority."+cli.Service+"/api/v1", "POST", "{\"operation\": \"issue_certificate\", \"args\": {\"token\": \""+token+"\", \"device\": \""+cli.Device_Name+"\", \"protect\":true}}")
 
 	if err != "" {
 		return "Failed issuing certificate: " + err
@@ -258,7 +258,7 @@ func (cli *Self_Authority_API) do_enroll(token string) string {
 }
 
 func (cli *Self_Authority_API) Enroll_user_agent(authorization string) string {
-	err, ans := cli.insecure_call("https://signon."+cli.Service+"/api/v1", "POST", "{\"operation\": \"qrc_unlock\", \"args\": {\"code\": \""+authorization+"\"}}")
+	err, ans := cli.insecure_call("https://selfauthority."+cli.Service+"/api/v1", "POST", "{\"operation\": \"qrc_unlock\", \"args\": {\"code\": \""+authorization+"\"}}")
 
 	if err != "" {
 		return "Login failed: " + err
@@ -284,7 +284,7 @@ func (cli *Self_Authority_API) Enroll_user_agent(authorization string) string {
 
 func (cli *Self_Authority_API) Employ_service_agent(authorization string) string {
 
-	err, ans := cli.insecure_call("https://signon."+cli.Service+"/api/v1", "POST", "{\"operation\": \"issue_service_agent_identity\", \"args\": {\"authorization\": \""+authorization+"\", \"agent-name\": \""+cli.Device_Name+"\", \"protect\":true}}")
+	err, ans := cli.insecure_call("https://selfauthority."+cli.Service+"/api/v1", "POST", "{\"operation\": \"issue_service_agent_identity\", \"args\": {\"authorization\": \""+authorization+"\", \"agent-name\": \""+cli.Device_Name+"\", \"protect\":true}}")
 
 	if err != "" {
 		return "Failed issuing certificate: " + err
@@ -332,7 +332,7 @@ func (cli *Self_Authority_API) Employ_service_agent(authorization string) string
 }
 
 func (cli *Self_Authority_API) Assist_enroll(managed_service string) string {
-	err, ans := cli.secure_call("https://signon."+cli.Service+"/api/v1", "POST", "{\"operation\": \"assist\", \"args\": {\"managed-service\": \""+managed_service+"\"}}")
+	err, ans := cli.secure_call("https://selfauthority."+cli.Service+"/api/v1", "POST", "{\"operation\": \"assist\", \"args\": {\"managed-service\": \""+managed_service+"\"}}")
 
 	if err != "" {
 		return "Failed generating autoprovisioning token: " + err
@@ -350,7 +350,7 @@ func (cli *Self_Authority_API) Assist_enroll(managed_service string) string {
 
 func (cli *Self_Authority_API) Enroll_unified(authorization string) string {
 
-	err, ans := cli.insecure_call("https://signon."+cli.Service+"/api/v1", "POST", "{\"operation\": \"enroll\", \"args\": {\"authorization\": \""+authorization+"\", \"agent-name\": \""+cli.Device_Name+"\", \"protect\":true}}")
+	err, ans := cli.insecure_call("https://selfauthority."+cli.Service+"/api/v1", "POST", "{\"operation\": \"enroll\", \"args\": {\"authorization\": \""+authorization+"\", \"agent-name\": \""+cli.Device_Name+"\", \"protect\":true}}")
 
 	if err != "" {
 		return "Failed issuing certificate: " + err
@@ -403,7 +403,7 @@ func (cli *Self_Authority_API) Enroll_unified(authorization string) string {
 
 func (cli *Self_Authority_API) Renew(tentative bool) string {
 
-	err, ans := cli.secure_call("https://signon."+cli.Service+"/api/v1", "POST", "{\"operation\": \"renew_certificate\", \"args\": {\"device\": \""+cli.Device_Name+"\", \"protect\":true, \"tentative\":"+strconv.FormatBool(tentative)+"}}")
+	err, ans := cli.secure_call("https://selfauthority."+cli.Service+"/api/v1", "POST", "{\"operation\": \"renew_certificate\", \"args\": {\"device\": \""+cli.Device_Name+"\", \"protect\":true, \"tentative\":"+strconv.FormatBool(tentative)+"}}")
 
 	if err != "" {
 		return "Failed issuing certificate: " + err
@@ -447,7 +447,7 @@ func (cli *Self_Authority_API) Renew(tentative bool) string {
 }
 
 func (cli *Self_Authority_API) Issue_service_identity(force bool) string {
-	err, ans := cli.secure_call("https://signon."+cli.Service+"/api/v1", "POST", "{\"operation\": \"issue_service_certificate\", \"args\": {\"force-renew\":"+strconv.FormatBool(force)+"}}")
+	err, ans := cli.secure_call("https://selfauthority."+cli.Service+"/api/v1", "POST", "{\"operation\": \"issue_service_certificate\", \"args\": {\"force-renew\":"+strconv.FormatBool(force)+"}}")
 
 	if cli.Verbose {
 		log.Printf(string(ans))
@@ -515,7 +515,7 @@ func (cli *Self_Authority_API) Get_trust_chain() string {
 }
 
 func (cli *Self_Authority_API) List_devices() string {
-	err, ans := cli.secure_call("https://signon."+cli.Service+"/api/v1", "POST", "{\"operation\": \"get_active_identities\", \"args\": {}}")
+	err, ans := cli.secure_call("https://selfauthority."+cli.Service+"/api/v1", "POST", "{\"operation\": \"get_active_identities\", \"args\": {}}")
 
 	if err != "" {
 		return "Failed to list active mTLS IDs for agent: " + err
@@ -528,7 +528,7 @@ func (cli *Self_Authority_API) List_devices() string {
 }
 
 func (cli *Self_Authority_API) List_service_roles() string {
-	err, ans := cli.secure_call("https://signon."+cli.Service+"/api/v1", "POST", "{\"operation\": \"get_service_roles\", \"args\": {}}")
+	err, ans := cli.secure_call("https://selfauthority."+cli.Service+"/api/v1", "POST", "{\"operation\": \"get_service_roles\", \"args\": {}}")
 
 	if err != "" {
 		return "Failed to get service roles: " + err
