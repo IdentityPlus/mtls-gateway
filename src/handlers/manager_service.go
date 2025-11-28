@@ -8,6 +8,7 @@ import (
 	"log"
 	"net"
 	"net/http"
+	"path/filepath"
 	"regexp"
 	"strconv"
 	"strings"
@@ -44,6 +45,24 @@ var Manager_Service__ = Manager_Service{
 	Perimeter_APIs:   make(map[string]*mtlsid.Perimeter_API),
 	managed_services: make(map[string]*integrations.ServiceConfig),
 	running:          false,
+}
+
+func (srv *Manager_Service) Delete_Service(domain string) string {
+	delete(srv.Perimeter_APIs, domain)
+	delete(srv.managed_services, domain)
+	delete(srv.certificates, domain)
+	log.Printf("Deleting identity ...")
+	os.RemoveAll(filepath.Join(global.Config__.DataDirectory, "identity", domain))
+	log.Printf("Deleting configuration ...")
+	os.RemoveAll(filepath.Join(global.Config__.DataDirectory, "services", domain+".yaml"))
+	log.Printf("Deleting proxy http configurations ...")
+	os.RemoveAll(filepath.Join(global.Config__.DataDirectory, "conf", "http", domain+".conf"))
+	log.Printf("Deleting proxy tcp configurations ...")
+	os.RemoveAll(filepath.Join(global.Config__.DataDirectory, "conf", "tcp", domain+".conf"))
+
+	srv.configuration_files = nil
+
+	return ""
 }
 
 func (srv *Manager_Service) Get_Configurations() []string {
@@ -272,7 +291,7 @@ func (srv *Manager_Service) Start() {
 	mux.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("webapp/static"))))
 	mux.HandleFunc("/", srv.handle_overview)
 	mux.HandleFunc("/download-ca", handle_download_ca)
-	mux.HandleFunc("/new-mtls-perimeter/", srv.handle_new_mtls_perimeter)
+	mux.HandleFunc("/manage-perimeters/", srv.handle_manage_perimeters)
 	mux.HandleFunc("/perimeter/", srv.handle_perimeter)
 	mux.HandleFunc("/access-control/", srv.handle_access_control)
 	mux.HandleFunc("/tcp-config/", srv.handle_tcp_config)
@@ -303,14 +322,11 @@ func (srv *Manager_Service) Start() {
 	}
 }
 
-func (srv *Manager_Service) handle_new_mtls_perimeter(w http.ResponseWriter, r *http.Request) {
-	service_fonfigs := srv.Get_Configurations()
+func (srv *Manager_Service) handle_manage_perimeters(w http.ResponseWriter, r *http.Request) {
 	op_domain := r.Host
 	if i := strings.Index(op_domain, ":"); i != -1 {
 		op_domain = op_domain[:i]
 	}
-
-	config := srv.Get_Service_Config(op_domain)
 
 	var error_msg = ""
 	var new_domain = ""
@@ -336,11 +352,18 @@ func (srv *Manager_Service) handle_new_mtls_perimeter(w http.ResponseWriter, r *
 				new_domain = new_perimeter_api.Domain()
 				srv.Register_Service(new_domain)
 			}
-
+		} else if r.FormValue("action") == "remove-perimeter" {
+			domain := r.FormValue("domain")
+			log.Printf("Deleting perimeter \"%s\"\n", domain)
+			srv.Delete_Service(domain)
+			srv.Start_Openresty()
 		} else {
 			error_msg = "no action specified"
 		}
 	}
+
+	service_fonfigs := srv.Get_Configurations()
+	config := srv.Get_Service_Config(op_domain)
 
 	render_page(w, "new-service", map[string]interface{}{
 		"Domain":       op_domain,

@@ -8,7 +8,7 @@
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono&family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono&family=Roboto+Condensed&family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
 
     <link href="/static/fontawesome-6.6/css/all.css" rel="stylesheet" />
 	<link rel="icon" type="image/png" href="/static/mtls-gw-256.png" sizes="256x256" />
@@ -117,7 +117,7 @@
                 {{ end }}
             </ul>
             <ul>
-                <li>{{ if eq .CurrentPage "New mTLS Perimeter" }}<p><fa class="fa-solid fa-circle-plus"></fa>New mTLS Perimeter</p>{{ else }}<a href="/new-mtls-perimeter"><fa class="fa-solid fa-circle-plus"></fa>New mTLS Perimeter</a>{{ end }}</li>
+                <li>{{ if eq .CurrentPage "New mTLS Perimeter" }}<p><fa class="fa-solid fa-circle-plus"></fa>Manage Perimeters</p>{{ else }}<a href="/manage-perimeters"><fa class="fa-solid fa-circle-plus"></fa>Manage Perimeters</a>{{ end }}</li>
                 <li>{{ if eq .CurrentPage "Logs" }}<p><fa class="fa-solid fa-pencil"></fa>Logs</p>{{ else }} {{ if eq .CurrentPage "View Log" }}<a href="/logs"><fa class="fa-solid fa-arrow-left"></fa>All Logs</a>{{ else }}<a href="/logs"><fa class="fa-solid fa-pencil"></fa>Logs</a>{{ end }} {{ end }}</li>
                 <li>{{ if eq .CurrentPage "Admin" }}<p><fa class="fa-solid fa-wrench"></fa>Admin</p>{{ else }}<a href="/admin"><fa class="fa-solid fa-wrench"></fa>Admin</a>{{ end }}</li>
             </ul>

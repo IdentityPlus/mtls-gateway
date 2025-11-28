@@ -77,6 +77,7 @@ fa{min-width:48px; width:48px; text-align:center; padding: 15px 10px 15px 15px;}
 .content div { flex-grow: 1; min-width:300px; background:rgba(0,0,0, 0.01); border:1px solid rgba(0,0,0, 0.1); border-radius: 5px; padding:0px 0px 10px 0px;}
 .content div table {vertical-align: middle; text-align: left; font-weight: 300;}
 .content div table td, .content div table th {border-top: 1px dotted rgba(0,0,0,0.1); padding:10px 15px 10px 0; vertical-align: middle; text-align: left; }
+.content div table td span.sn {font-size:80%; border:1px solid #00000020; background: #00000007; padding:5px 10px; font-family:'Roboto Condensed'; color:#000000A0;}
 .content div table tr.first td, .content div table tr.first th {border-top: 0px; }
 .content div table th.hint {border:0; padding-top:0px;}
 .content div table th.hint p {opacity:0.7; margin-top:0;}
@@ -121,8 +122,9 @@ a.submit span.nomargin::before {margin-right:0px; font-family:'Font Awesome 6 Fr
 .top-bar div a.submit:hover {background:rgba(255,255,255,0.15);}
 .top-bar div a.submit:active {background:rgba(255,255,255,0.05);}
 
-form.all-in-one {border:1px solid rgba(0,0,0,0.1); padding:2px; display:flex; border-radius:3px; }
+form.all-in-one {border:1px solid rgba(0,0,0,0.1); padding:2px; display:flex; border-radius:3px; margin-right:20px; min-width:160px;}
 form.all-in-one a {font-weight: 400; font-size:16px; background:rgba(0,0,0,0.1); border:1px solid rgba(0,0,0,0.1); color:#303030; padding:8px 13px; float:left; cursor: pointer; text-decoration:none; margin:0;}
+.holder form.all-in-one a {margin:0;}
 form.all-in-one a:hover {background:rgba(0,0,0,0.08);}
 form.all-in-one a:active {background:rgba(0,0,0,0.2);}
 
@@ -132,8 +134,10 @@ input[type="number"] {border:1px solid rgba(0,0,0,0.1); font-size:16px; padding:
 input[type="number"]:focus {outline:none; background:rgba(255, 255, 200, 0.1);}
 input[type="checkbox"] {margin: 10px 10px 10px 0px;}
 .holder input[type="checkbox"] {margin: 0px 10px 15px 0px;}
+.holder a.submit, .holder form.all-in-one {margin:5px 10px 10px 0px; display:float;}
+a.disabled {opacity:0.5; pointer-events: none; cursor: pointer; outline:none;}
 input[type="text"].path::before{content: '/'; padding:10px;}
-textarea {border:1px solid rgba(0,0,0,0.1); font-size:16px; padding:8px 15px; min-width:600px; min-height: 150px; margin:5px 0px; border-radius:3px; font-weight: 300; color:#000000A0; font-family: 'Roboto Mono';}
+textarea {border:1px solid rgba(0,0,0,0.1); font-size:16px; padding:8px 15px; width: 100%; min-height: 150px; margin:5px 0px; border-radius:3px; font-weight: 300; color:#000000A0; font-family: 'Roboto Mono';}
 textarea:focus {outline:none; background:rgba(255, 255, 200, 0.1);}
 
 form.all-in-one input[type="text"] {border:0; width:100%;}

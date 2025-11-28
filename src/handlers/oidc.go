@@ -31,6 +31,7 @@ type OIDCKeySet struct {
 
 // OIDC token response
 type OIDCTokenResponse struct {
+	Reference    string
 	AccessToken  string `json:"access_token"`
 	TokenType    string `json:"token_type"`
 	ExpiresIn    int    `json:"expires_in"`

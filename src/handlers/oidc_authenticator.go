@@ -192,19 +192,20 @@ func (auth *OIDC_Authenticator) handle_oidc_configuration(w http.ResponseWriter,
 	}
 
 	config := map[string]interface{}{
-		"issuer":                                "http://" + global.Config__.LocalAuthenticatorEndpoint + "/mtls-gw/oidc/" + auth.domain,
-		"authorization_endpoint":                "https://" + auth.domain + auth_port + "/mtls-gw/oidc/auth",
-		"token_endpoint":                        "http://" + global.Config__.LocalAuthenticatorEndpoint + "/mtls-gw/oidc/" + auth.domain + "/token",
-		"userinfo_endpoint":                     "http://" + global.Config__.LocalAuthenticatorEndpoint + "/mtls-gw/oidc/" + auth.domain + "/userinfo",
-		"jwks_uri":                              "http://" + global.Config__.LocalAuthenticatorEndpoint + "/mtls-gw/oidc/" + auth.domain + "/jwks",
-		"response_types_supported":              []string{"code"},
-		"subject_types_supported":               []string{"public"},
-		"id_token_signing_alg_values_supported": []string{"RS256"},
-		"scopes_supported":                      []string{"openid", "profile", "email"},
-		"token_endpoint_auth_methods_supported": []string{"client_secret_post"},
-		"grant_types_supported":                 []string{"authorization_code", "refresh_token"},
-		"claims_supported":                      []string{"sub", "email", "name", "preferred_username", "groups"},
-		"code_challenge_methods_supported":      []string{"S256"},
+		"issuer":                                    "http://" + global.Config__.LocalAuthenticatorEndpoint + "/mtls-gw/oidc/" + auth.domain,
+		"authorization_endpoint":                    "https://" + auth.domain + auth_port + "/mtls-gw/oidc/auth",
+		"token_endpoint":                            "http://" + global.Config__.LocalAuthenticatorEndpoint + "/mtls-gw/oidc/" + auth.domain + "/token",
+		"userinfo_endpoint":                         "http://" + global.Config__.LocalAuthenticatorEndpoint + "/mtls-gw/oidc/" + auth.domain + "/userinfo",
+		"jwks_uri":                                  "http://" + global.Config__.LocalAuthenticatorEndpoint + "/mtls-gw/oidc/" + auth.domain + "/jwks",
+		"response_types_supported":                  []string{"code"},
+		"subject_types_supported":                   []string{"public"},
+		"id_token_signing_alg_values_supported":     []string{"RS256"},
+		"access_token_signing_alg_values_supported": []string{"RS256"},
+		"token_endpoint_auth_methods_supported":     []string{"client_secret_post"},
+		"grant_types_supported":                     []string{"authorization_code", "refresh_token"},
+		"scopes_supported":                          []string{"openid", "profile", "email"},
+		"claims_supported":                          []string{"sub", "email", "name", "preferred_username", "groups"},
+		"code_challenge_methods_supported":          []string{"S256"},
 	}
 
 	w.Header().Set("Content-Type", "application/json")
@@ -263,7 +264,7 @@ func (auth *OIDC_Authenticator) handle_oidc_user_info(w http.ResponseWriter, r *
 	}
 
 	// Prepare userinfo response per OIDC spec
-	userInfo := map[string]interface{}{
+	userInfo := map[string]any{
 		"sub":                claims["sub"],
 		"preferred_username": claims["preferred_username"],
 		"name":               claims["name"],

@@ -69,6 +69,10 @@ func (w *DailyRotatingWriter) Log_Eraser_Process() {
 	time.Sleep(30 * time.Second)
 
 	for {
+		if global.Config__.Log_Retention == 0 {
+			global.Config__.Log_Retention = 1
+		}
+
 		log.Printf("Cleaning up logs older than %v nonths.\n", global.Config__.Log_Retention)
 
 		files, err := os.ReadDir(w.dir)

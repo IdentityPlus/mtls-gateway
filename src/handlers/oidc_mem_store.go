@@ -82,8 +82,28 @@ func (m *MemoryStore) Issue_Claim(domain string, client_id string, iss string, a
 		"email_verified":     true,
 	}
 
+	token := jwt.NewWithClaims(jwt.SigningMethodRS256, claims)
+	token.Header["kid"] = m.keyset.kid
+	id_token, _ := token.SignedString(m.keyset.privateKey)
+
+	// ----- Create ACCESS TOKEN as JWT -----
+	accessClaims := jwt.MapClaims{
+		"sub":    auth_request.Mtls_ID,
+		"aud":    client_id,
+		"iss":    iss,
+		"scope":  "openid profile email",
+		"exp":    time.Now().Add(time.Hour).Unix(),
+		"iat":    time.Now().Unix(),
+		"groups": groups,
+	}
+
+	accessToken := jwt.NewWithClaims(jwt.SigningMethodRS256, accessClaims)
+	accessToken.Header["kid"] = m.keyset.kid
+	signedAccessToken, _ := accessToken.SignedString(m.keyset.privateKey)
+
 	ctx := OIDCAuthContext{
-		Code:         randomToken(32),
+		Code: signedAccessToken,
+		// Code:         randomToken(32),
 		Mtls_ID:      auth_request.Mtls_ID,
 		ExpiresAt:    time.Now().Add(3600 * time.Second), // one hour
 		RefreshToken: randomToken(32),
@@ -93,12 +113,8 @@ func (m *MemoryStore) Issue_Claim(domain string, client_id string, iss string, a
 
 	m.Put(domain, &ctx)
 
-	token := jwt.NewWithClaims(jwt.SigningMethodRS256, claims)
-	token.Header["kid"] = m.keyset.kid
-	id_token, _ := token.SignedString(m.keyset.privateKey)
-
 	return OIDCTokenResponse{
-		AccessToken:  ctx.Code,
+		AccessToken:  signedAccessToken,
 		TokenType:    "Bearer",
 		ExpiresIn:    3600,
 		RefreshToken: ctx.RefreshToken,

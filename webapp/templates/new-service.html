@@ -1,6 +1,6 @@
 {{ define "content" }}
 <div>
-    <h2><fa class="fa-solid fa-gear"></fa>Provision mTLS Identity Perimeter For A Service</h2>
+    <h2><fa class="fa-solid fa-gear"></fa>Provision or Reprovision mTLS Identity Perimeter For A Service</h2>
     <div class="spacer">
         <table>
             <tr class="first"><td>
@@ -40,5 +40,45 @@
             </td></tr>
         </table>
     </div>
+</div>
+
+<div class="W500">
+    <h2><fa class="fa-solid fa-trash-can"></fa>Delete mTLS Perimeters</h2>
+    <div class="spacer">
+        <table>
+            <tr class="first"><th class="hint">
+                <p class="warning"><span class="fa-solid fa-triangle-exclamation"></span> Deleting a perimeter will erase it's configuration file. Settings will no longer be recoverable. To repair a Gateway mTLS ID, re-provision instead with a new autoprovisioning token.</p>
+            </th></tr>
+        </table>
+        <table>
+            <tr class="first"><th><label>Manual Confirmation</label></th><th class="first"><label>Service Domain</label></th></tr>
+            {{ range .DynamicPages }}
+            <tr>
+                <td><label><input type="text" id="confirm-{{.}}" name="confirm-{{.}}" placeholder="Type Delete" value="" oninput="enable_delete(event)"></label></td>
+                <td><label><a id="delete-{{.}}" class="submit disabled" title="Click to delete service" href="javascript:context_post({'action':'remove-perimeter', 'domain': '{{ . }}'})"><span class="fa-solid fa-trash-can"></span> {{ . }}</a></label></td>
+            </tr>
+            {{ end }}</td></tr>
+        </table>    
+        <script>
+            function enable_delete(e) {
+                const input = e.target;
+                const val = input.value.trim().toLowerCase();
+            
+                // Extract the identifier after "confirm-"
+                const id = input.id.replace("confirm-", "");
+            
+                // Find the corresponding delete link
+                const del = document.getElementById("delete-" + id);
+            
+                if (val === "delete") {
+                    del.removeAttribute("disabled");
+                    del.classList.remove("disabled");
+                } else {
+                    del.setAttribute("disabled", "disabled");
+                    del.classList.add("disabled");
+                }
+            }
+            </script>
+        </div>
 </div>
 {{ end }}
