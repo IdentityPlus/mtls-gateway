@@ -35,7 +35,7 @@
                 <tr class="first"><th><label>Issuer</label></th><td>{{ .Issuer }}</td></tr>
                 <tr><th><label>Serial Number</label></th><td><span class="sn">{{ .ServerSerial }}</span></td></tr>
                 <tr><th><label>Common Name</label></th><td>{{ .ServerCN }}</td></tr>
-                <tr><th><label>Expiration</label></th><td><p class="expiration" style="background: linear-gradient(90deg, rgba(149,255,216,1) 0%, rgba(149,225,255,1) {{ .ServerAge }}%, rgba(240,240,240,1) {{ .ServerAge }}%); ">{{ .ServerExpires }}</p></td></tr>
+                <tr><th><label>Expiration</label></th><td><p class="expiration" style="background: linear-gradient(90deg, var(--sn-s) 0%, var(--sn-e) {{ .ServerAge }}%, var(--sn-bg) {{ .ServerAge }}%); ">{{ .ServerExpires }}</p></td></tr>
                 <tr><th class="hint" colspan="2"><p class="NOMARGIN">Auto-renewal in {{ .ServerRenewalDue }}</p></th></tr>
             </table>
             </form>

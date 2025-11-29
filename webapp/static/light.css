@@ -1,0 +1,70 @@
+:root {
+	/* foreground */
+	--fg-base: #000000FF;
+	--fg-brand-accent: #4292D3FF;
+	--fg-muted: #000000CC;
+	--fg-topbar: #E0E0E0FF;
+	--fg-topbar-muted: #C0C0C0FF;
+	--fg-topbar-faint: #FFFFFF66;
+	--fg-topbar-opaque: #FFFFFFCC;
+	--fg-menu-item-active: #000000EF;
+	--fg-menu-text: #333333FF;
+	--fg-heading: #707070FF;
+	--fg-table-header: #909090FF;
+	--fg-sn: #000000A2;
+	--fg-pre: #303030FF;
+	--fg-button: #303030FF;
+	--fg-warning: #A08030FF;
+	--fg-error: #9B5033CC;
+	--fg-label:rgba(48,48,48,0.625);
+	--fg-body:#000000BF;
+
+	/* background */
+	--body-bg: #FFFFFF;
+	--bg-topbar: #111518FF;
+	--bg-menu: #F4F4F4FF;
+	--bg-menu-item-active: #0000000D;
+	--bg-muted-1: #0000000F;
+	--bg-muted-2: #00000008;
+	--bg-content: #00000003;
+	--bg-submit: #0000001A;
+	--bg-submit-hover: #00000014;
+	--bg-submit-active: #00000033;
+	--bg-topbar-button: #FFFFFF1A;
+	--bg-topbar-button-hover: #FFFFFF26;
+	--bg-topbar-button-active: #FFFFFF0D;
+	--bg-input-focus: #FFFFC81A;
+	--bg-warning: #F0E080FF;
+	--bg-error: #FFCBBEFF;
+	--bg-select: #FFFFFFCC;
+	--bg-dropdown: #E5E5E5FF;
+	--bg-h2: #00000005;
+	--bd-menu:#00000010;
+	--bd-submit:#00000020;
+	
+	
+	/* borders */
+	--bd-light: #0000001A;
+	--bd-lighter: #0000000D;
+	--bd-strong: #00000033;
+	--bd-white-soft: #FFFFFF30;
+	--bd-topbar: #FFFFFF1A;
+	--bd-table: #0000000F;
+	--bd-warning: #E0B060FF;
+	--bd-error: #D17E69FF;
+	--bd-h2:#00000005;
+	--bd-sn:#E0E0E0;
+	
+	
+	/* icons */
+	--icon-link: #4292D3FF;
+	--icon-trash-hover: #E04020FF;
+	--icon-save-hover: #30A010FF;
+	--icon-power-hover: #E04020FF;
+	
+	
+	/* special */
+	--sn-s: #95FFD8FF;
+	--sn-e: #95E1FFFF;
+	--sn-bg: #00000010;
+}

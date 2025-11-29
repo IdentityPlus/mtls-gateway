@@ -345,6 +345,8 @@ func (srv *Manager_Service) handle_manage_perimeters(w http.ResponseWriter, r *h
 			error_msg = "Unable to parse form"
 		}
 
+		handle_actions(r.FormValue("action"), r)
+
 		if r.FormValue("token") != "" {
 			new_perimeter_api, error_msg = Enroll(r.FormValue("token"))
 
@@ -366,6 +368,7 @@ func (srv *Manager_Service) handle_manage_perimeters(w http.ResponseWriter, r *h
 	config := srv.Get_Service_Config(op_domain)
 
 	render_page(w, "new-service", map[string]interface{}{
+		"Cfg":          global.Config__,
 		"Domain":       op_domain,
 		"Title":        "new.perimeter...",
 		"Host_IP":      host_ip,
@@ -387,6 +390,30 @@ func atoi(s string, def int) int {
 	return def
 }
 
+func handle_actions(action string, r *http.Request) string {
+	if action == "lights-on-off" {
+
+		if global.Config__.Theme == "dark" {
+			global.Config__.Theme = "light"
+		} else {
+			global.Config__.Theme = "dark"
+		}
+
+		ttl, _ := strconv.Atoi(r.FormValue("mtls_id_ttl"))
+		if ttl <= 0 {
+			ttl = 5
+		}
+
+		error := global.Config__.Save("/etc/mtls-gateway/config.yaml")
+		if error != nil {
+			return error.Error()
+		}
+
+	}
+
+	return ""
+}
+
 func (srv *Manager_Service) handle_admin(w http.ResponseWriter, r *http.Request) {
 	service_fonfigs := srv.Get_Configurations()
 	op_domain := r.Host
@@ -401,6 +428,8 @@ func (srv *Manager_Service) handle_admin(w http.ResponseWriter, r *http.Request)
 		if err != nil {
 			error_msg = "Unable to parse form"
 		}
+
+		handle_actions(r.FormValue("action"), r)
 
 		if r.FormValue("action") == "edit-config" {
 
@@ -443,6 +472,7 @@ func (srv *Manager_Service) handle_admin(w http.ResponseWriter, r *http.Request)
 	}
 
 	render_page(w, "admin", map[string]interface{}{
+		"Cfg":          global.Config__,
 		"CurrentPage":  "Admin",
 		"Domain":       op_domain,
 		"Title":        "gateway admin - all services",
@@ -496,6 +526,8 @@ func (srv *Manager_Service) handle_logs(w http.ResponseWriter, r *http.Request) 
 			error_msg = "Unable to parse form"
 		}
 
+		handle_actions(r.FormValue("action"), r)
+
 		if r.FormValue("action") == "edit-config" {
 			global.Config__.Verbose = r.FormValue("verbose") == "on"
 			global.Config__.Log_Retention = atoi(r.FormValue("log-retention"), global.Config__.Log_Retention)
@@ -521,6 +553,7 @@ func (srv *Manager_Service) handle_logs(w http.ResponseWriter, r *http.Request) 
 	log_files, _ := utils.Log_Writer.List()
 
 	render_page(w, "logs", map[string]interface{}{
+		"Cfg":          global.Config__,
 		"CurrentPage":  "Logs",
 		"Domain":       op_domain,
 		"Title":        "gateway logs - all services",
@@ -553,7 +586,10 @@ func (srv *Manager_Service) handle_log_view(w http.ResponseWriter, r *http.Reque
 		error_msg = "Unable to parse form"
 	}
 
+	handle_actions(r.FormValue("action"), r)
+
 	render_page(w, "view-log", map[string]interface{}{
+		"Cfg":          global.Config__,
 		"CurrentPage":  "View Log",
 		"Title":        "gateway log - " + r.FormValue("file") + " - all services",
 		"Domain":       op_domain,
@@ -591,6 +627,8 @@ func (srv *Manager_Service) handle_overview(w http.ResponseWriter, r *http.Reque
 			http.Error(w, "Unable to parse form", http.StatusBadRequest)
 			return
 		}
+
+		handle_actions(r.FormValue("action"), r)
 
 		if r.FormValue("action") == "Check Latency" {
 			validation__, device_name, device_type, _ = srv.Perimeter_APIs[domain].Validate_Client_Identity(cert, "", false)
@@ -644,6 +682,7 @@ func (srv *Manager_Service) handle_overview(w http.ResponseWriter, r *http.Reque
 	gw_age = max(1, int(time.Since(x509_cert.NotBefore).Hours()*100/x509_cert.NotAfter.Sub(x509_cert.NotBefore).Hours()))
 
 	render_page(w, "overview", map[string]interface{}{
+		"Cfg":             global.Config__,
 		"CurrentPage":     "Overview",
 		"SRV_Port":        global.Config__.AdminPort,
 		"Port":            global.Config__.ApplicationPort,
@@ -698,6 +737,8 @@ func (srv *Manager_Service) handle_perimeter(w http.ResponseWriter, r *http.Requ
 			http.Error(w, "Unable to parse form", http.StatusBadRequest)
 			return
 		}
+
+		handle_actions(r.FormValue("action"), r)
 
 		if r.FormValue("action") == "edit-interface" {
 			config.Service.Port, _ = strconv.Atoi(r.FormValue("port"))
@@ -784,6 +825,7 @@ func (srv *Manager_Service) handle_perimeter(w http.ResponseWriter, r *http.Requ
 	}
 
 	render_page(w, "perimeter", map[string]interface{}{
+		"Cfg":              global.Config__,
 		"CurrentPage":      "Perimeter",
 		"SRV_Port":         global.Config__.AdminPort,
 		"DynamicPages":     service_fonfigs,
@@ -818,6 +860,8 @@ func (srv *Manager_Service) handle_tcp_config(w http.ResponseWriter, r *http.Req
 			return
 		}
 
+		handle_actions(r.FormValue("action"), r)
+
 		if r.FormValue("action") == "add-role" {
 			config.Service.TCP.RolesAllowed = append(config.Service.TCP.RolesAllowed, r.FormValue("role"))
 			page_error = srv.update_service_config(domain, config)
@@ -839,6 +883,7 @@ func (srv *Manager_Service) handle_tcp_config(w http.ResponseWriter, r *http.Req
 	}
 
 	render_page(w, "my-service-tcp", map[string]interface{}{
+		"Cfg":          global.Config__,
 		"CurrentPage":  "TCP Config",
 		"SRV_Port":     global.Config__.AdminPort,
 		"DynamicPages": service_fonfigs,
@@ -874,6 +919,8 @@ func (srv *Manager_Service) handle_access_control(w http.ResponseWriter, r *http
 			http.Error(w, "Unable to parse form", http.StatusBadRequest)
 			return
 		}
+
+		handle_actions(r.FormValue("action"), r)
 
 		if r.FormValue("action") == "edit-mtls" {
 			config.Service.HTTP.AccessMode = r.FormValue("split")
@@ -1006,6 +1053,7 @@ func (srv *Manager_Service) handle_access_control(w http.ResponseWriter, r *http
 	}
 
 	render_page(w, "my-service-access-ctl", map[string]interface{}{
+		"Cfg":            global.Config__,
 		"CurrentPage":    "Access Control",
 		"SRV_Port":       global.Config__.AdminPort,
 		"Local_Endpoint": global.Config__.LocalAuthenticatorEndpoint,
@@ -1037,6 +1085,8 @@ func (srv *Manager_Service) handle_http_config(w http.ResponseWriter, r *http.Re
 			http.Error(w, "Unable to parse form", http.StatusBadRequest)
 			return
 		}
+
+		handle_actions(r.FormValue("action"), r)
 
 		if r.FormValue("action") == "edit-http" {
 			config.Service.HTTP.Websockets = r.FormValue("ws") == "on"
@@ -1176,6 +1226,7 @@ func (srv *Manager_Service) handle_http_config(w http.ResponseWriter, r *http.Re
 	}
 
 	render_page(w, "my-service-http", map[string]interface{}{
+		"Cfg":            global.Config__,
 		"CurrentPage":    "HTTP Config",
 		"SRV_Port":       global.Config__.AdminPort,
 		"Local_Endpoint": global.Config__.LocalAuthenticatorEndpoint,

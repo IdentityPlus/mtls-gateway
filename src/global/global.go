@@ -11,6 +11,7 @@ import (
 
 // Struct to hold the TLS configuration parameters from the YAML file
 type Config struct {
+	Theme                      string   `yaml:"theme"`
 	AdminOperatingPort         int      `yaml:"admin_operating_port"`
 	ApplicationPort            int      `yaml:"application_port"`
 	ApplicationOperatingPort   int      `yaml:"application_operating_port"`

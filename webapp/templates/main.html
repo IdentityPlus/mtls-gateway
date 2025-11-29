@@ -17,7 +17,8 @@
 	<link rel="icon" type="image/png" href="/static/mtls-gw-32.png" sizes="32x32" />
 	<link rel="icon" type="image/png" href="/static/mtls-gw-24.png" sizes="24x24" />
 	<link rel="icon" type="image/png" href="/static/mtls-gw-16.png" sizes="16x16" />
-    <link rel="stylesheet" href="/static/style.css">
+    <link rel="stylesheet" href="/static/{{ .Cfg.Theme  }}.css">
+    <link rel="stylesheet" href="/static/layout.css">
     <script>
         function post(action){
             document.getElementById("sync_submit_action").value = action;
@@ -120,6 +121,8 @@
                 <li>{{ if eq .CurrentPage "New mTLS Perimeter" }}<p><fa class="fa-solid fa-circle-plus"></fa>Manage Perimeters</p>{{ else }}<a href="/manage-perimeters"><fa class="fa-solid fa-circle-plus"></fa>Manage Perimeters</a>{{ end }}</li>
                 <li>{{ if eq .CurrentPage "Logs" }}<p><fa class="fa-solid fa-pencil"></fa>Logs</p>{{ else }} {{ if eq .CurrentPage "View Log" }}<a href="/logs"><fa class="fa-solid fa-arrow-left"></fa>All Logs</a>{{ else }}<a href="/logs"><fa class="fa-solid fa-pencil"></fa>Logs</a>{{ end }} {{ end }}</li>
                 <li>{{ if eq .CurrentPage "Admin" }}<p><fa class="fa-solid fa-wrench"></fa>Admin</p>{{ else }}<a href="/admin"><fa class="fa-solid fa-wrench"></fa>Admin</a>{{ end }}</li>
+                <li><a title="Switch Theme" href="javascript:context_post({'action':'lights-on-off'})"><fa class="fa-solid fa-{{ if eq .Cfg.Theme "dark" }}sun{{else}}moon{{end}}"></fa></a></li>
+                
             </ul>
         </aside>
 

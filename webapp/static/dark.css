@@ -1,0 +1,75 @@
+:root {
+	/* foreground */
+	--fg-base: #E8F4FFFF;            /* cool near-white with a blue tint */
+	--fg-brand-accent: #5AAEEFFF;    /* clear soft blue */
+	--fg-muted: #A7B9CACC;           /* cool gray-blue */
+	--fg-topbar: #D0E2F4FF;          /* light muted blue */
+	--fg-topbar-muted: #B5C7D8FF;
+	--fg-topbar-faint: #FFFFFF66;
+	--fg-topbar-opaque: #FFFFFFCC;
+	--fg-menu-item-active: #FFFFFFEF;
+	--fg-menu-text: #FFFFFF70;       /* cool light gray */
+	--fg-heading: #8CA4BDAF;         /* soft steel blue */
+	--fg-table-header: #8FA6C2FF;
+	--fg-sn: #E8F4FFA2;
+	--fg-pre: #D8E8F5FF;
+	--fg-button: #E4F0FDFF;
+	--fg-warning: #E7C873FF;
+	--fg-error: #E48A6ACC;
+	--fg-label:#AFEFFF90;
+	--fg-body:#FFFFFFBF;
+
+	/* background */
+	--body-bg: #101826FF;
+	--bg-topbar: #000000;          /* dark neutral-blue charcoal */
+	--bg-menu: #00000030;            /* deeper blue-black */
+	--bg-menu-item-active: #FFFFFF0A;
+	--bg-muted-1: #FFFFFF0D;
+	--bg-muted-2: #FFFFFF10;
+	--bg-content: #FFFFFF05;
+	--bg-submit: #AFEFFF20;
+	--bg-submit-hover: #AFEFFF30;
+	--bg-submit-active: #AFEFFF10;
+	--bg-topbar-button: #FFFFFF12;
+	--bg-topbar-button-hover: #FFFFFF1F;
+	--bg-topbar-button-active: #FFFFFF0A;
+	--bg-input-focus: #5AB5FF1A;      /* blue highlight */
+	--bg-warning: #4A3A00FF;
+	--bg-error: #4A1E17FF;
+	--bg-select: #1A2530CC;          /* bluish, not green */
+	--bg-dropdown: #1E2C39FF;
+	--bg-h2: #FFFFFF10;
+
+	/* borders */
+	--bd-light: #000000A0;
+	--bd-lighter: #FFFFFF0D;
+	--bd-strong: #FFFFFF33;
+	--bd-white-soft: #FFFFFF30;
+	--bd-topbar: #FFFFFF1A;
+	--bd-table: #000000;
+	--bd-warning: #E0B060FF;
+	--bd-error: #D17E69FF;
+	--bd-h2:#00000010;
+	--bd-menu:#000000;
+	--bd-sn:#394963;
+	--bd-submit:#FFFFFF20;
+
+	/* icons */
+	--icon-link: #5AAEEFFF;
+	--icon-trash-hover: #FF6644FF;
+	--icon-save-hover: #4ADC8FFF;
+	--icon-power-hover: #FF6644FF;
+
+	/* special */
+	--sn-s: #7DF4FFFF;          /* snow-blue */
+	--sn-e: #6EC8FFFF;
+	--sn-bg: #FFFFFF10;
+}
+
+::placeholder {
+	opacity: 0.5;
+}
+      
+::-ms-input-placeholder { /* Edge 12 -18 */
+	opacity: 0.5;
+}
