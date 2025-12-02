@@ -18,6 +18,7 @@ type Location struct {
 	AllowAllRoles  bool     `yaml:"allow-all-roles"`
 	RolesAllowed   []string `yaml:"roles-allowed"`
 	CustomCommands string   `yaml:"custom-commands"`
+	IPsAllowed     []string `yaml:"ips-allowed"`
 }
 
 type Tcp struct {

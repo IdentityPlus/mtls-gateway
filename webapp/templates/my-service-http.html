@@ -38,7 +38,7 @@
                 <tr class="first"><th colspan="4">
                     <input type="checkbox" id="require-{{deslash $location.Path}}" onclick="context_post({'action':'toggle-require', 'path':'{{ $location.Path }}', 'require':'{{ if eq $location.EnforceMTLS false }}on{{ end }}'})" name="require" {{ if eq $location.EnforceMTLS true }} CHECKED {{ end }}><label for="require-{{deslash $location.Path}}">Require mTLS Identity</label><br>
                     {{ if eq $location.EnforceMTLS true }}
-                    <input type="checkbox" id="enforce-{{deslash $location.Path}}" onclick="context_post({'action':'toggle-enforce', 'path':'{{ $location.Path }}', 'enforce':'{{ if eq $location.EnforceRoles false }}on{{ end }}'})" name="enforce" {{ if eq $location.EnforceRoles true }} CHECKED {{ end }}><label for="enforce-{{deslash $location.Path}}">Enforce Roles At Gateway</label>
+                        <input type="checkbox" id="enforce-{{deslash $location.Path}}" onclick="context_post({'action':'toggle-enforce', 'path':'{{ $location.Path }}', 'enforce':'{{ if eq $location.EnforceRoles false }}on{{ end }}'})" name="enforce" {{ if eq $location.EnforceRoles true }} CHECKED {{ end }}><label for="enforce-{{deslash $location.Path}}">Enforce Roles At Gateway</label>
                         {{ if eq $location.EnforceRoles true }}
                             <div class="holder">
                                 <input type="checkbox" id="all-roles-{{deslash $location.Path}}" onclick="context_post({'action':'toggle-all-roles', 'path':'{{ $location.Path }}', 'all-roles':'{{ if eq $location.AllowAllRoles false }}on{{ end }}'})" name="all-roles" {{ if eq $location.AllowAllRoles true }} CHECKED {{ end }}><label for="all-roles-{{deslash $location.Path}}">Allow All Roles</label><br>
@@ -58,6 +58,19 @@
                         {{ else }}
                             <p class="warning"><span class="fa-solid fa-triangle-exclamation"></span> Valid mTLS ID is required, but client does not require a role to reach upstream.</p>
                         {{ end }}
+
+                        <br><label for="custom-{{deslash $location.Path}}">Exempt IP Addresses</label><br>
+                        <div class="holder">
+                            <p class="hint"><span class="fa-solid fa-triangle-exclamation"></span> mTLS ID will not be enforced on these IP addresses</p>
+                            {{ range $role := $location.IPsAllowed }}
+                                <a class="submit" title="Click to delete IP exemption" href="javascript:context_post({'action':'remove-location-ip-ex', 'path': '{{$location.Path}}', 'ip-ex':'{{ . }}'})"><span class="fa-solid fa-trash-can"></span> {{ . }}</a>
+                            {{ end }}
+                            <form class="all-in-one" id="fm-exempt-ip-{{deslash $location.Path}}" method="POST">
+                                <input type="text" value="" id="add-ip-{{deslash $location.Path}}" name="new-ip-ex" placeholder="IP Address">
+                                <a class="submit" href="javascript:sync_post('fm-exempt-ip-{{deslash $location.Path}}', 'add-location-ip-ex')"><span class="fa-solid nomargin fa-plus"></span></a>
+                                <input type="hidden" name="path" value="{{$location.Path}}">
+                            </form>
+                        </div>
                     {{ else }}
                     <p class="warning"><span class="fa-solid fa-triangle-exclamation"></span> mTLS gateway authentication is disabled for this location. Access control is deferred to upstream.</p>
                     {{ end }}

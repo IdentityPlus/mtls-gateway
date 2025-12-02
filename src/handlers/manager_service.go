@@ -1202,6 +1202,20 @@ func (srv *Manager_Service) handle_http_config(w http.ResponseWriter, r *http.Re
 
 			page_error = srv.update_service_config(domain, config)
 
+		} else if r.FormValue("action") == "add-location-ip-ex" {
+			for i, location := range config.Service.HTTP.Locations {
+				if location.Path == r.FormValue("path") {
+
+					if r.FormValue("new-ip-ex") != "" {
+						config.Service.HTTP.Locations[i].IPsAllowed = append(config.Service.HTTP.Locations[i].IPsAllowed, r.FormValue("new-ip-ex"))
+					}
+
+					break
+				}
+			}
+
+			page_error = srv.update_service_config(domain, config)
+
 		} else if r.FormValue("action") == "remove-location-role" {
 			if r.FormValue("role") != "" {
 				for i, location := range config.Service.HTTP.Locations {
@@ -1209,6 +1223,24 @@ func (srv *Manager_Service) handle_http_config(w http.ResponseWriter, r *http.Re
 						for k, role := range config.Service.HTTP.Locations[i].RolesAllowed {
 							if role == r.FormValue("role") {
 								config.Service.HTTP.Locations[i].RolesAllowed = append(config.Service.HTTP.Locations[i].RolesAllowed[:k], config.Service.HTTP.Locations[i].RolesAllowed[k+1:]...)
+								break
+							}
+						}
+
+						break
+					}
+				}
+			}
+
+			page_error = srv.update_service_config(domain, config)
+
+		} else if r.FormValue("action") == "remove-location-ip-ex" {
+			if r.FormValue("ip-ex") != "" {
+				for i, location := range config.Service.HTTP.Locations {
+					if location.Path == r.FormValue("path") {
+						for k, role := range config.Service.HTTP.Locations[i].IPsAllowed {
+							if role == r.FormValue("ip-ex") {
+								config.Service.HTTP.Locations[i].IPsAllowed = append(config.Service.HTTP.Locations[i].IPsAllowed[:k], config.Service.HTTP.Locations[i].IPsAllowed[k+1:]...)
 								break
 							}
 						}

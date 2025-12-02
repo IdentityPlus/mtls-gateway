@@ -76,8 +76,9 @@ func (cfg Nginx_Builder) build_TCP_lua_access() string {
 	}
 
 	return utils.Build_Template("./webapp/templates/nginx/tcp-access-lua.conf", map[string]string{
-		"{{SERVICE}}": cfg.domain(),
-		"{{ROLES}}":   roles,
+		"{{SERVICE}}":   cfg.domain(),
+		"{{ROLES}}":     roles,
+		"{{EXEMPTION}}": "",
 	})
 }
 
@@ -107,16 +108,8 @@ func (cfg Nginx_Builder) build_HTTP_access_mode_gw(location Location) string {
 		mtls_headers = "                identityplus.populate_mtls_headers(validation, " + mtls_headers + ")"
 	}
 
-	roles := ""
-	if !location.AllowAllRoles {
-		for _, r := range location.RolesAllowed {
-			if len(roles) > 0 {
-				roles += ", "
-			}
-
-			roles += "'" + r + "'"
-		}
-	}
+	roles := build_array(location.RolesAllowed)
+	exemption := build_array(location.IPsAllowed)
 
 	template := ""
 	if !location.EnforceRoles {
@@ -128,10 +121,25 @@ func (cfg Nginx_Builder) build_HTTP_access_mode_gw(location Location) string {
 	}
 
 	return utils.Build_Template("./webapp/templates/nginx/"+template+".conf", map[string]string{
-		"{{SERVICE}}": cfg.domain(),
-		"{{HEADERS}}": mtls_headers,
-		"{{ROLES}}":   roles,
+		"{{SERVICE}}":   cfg.domain(),
+		"{{HEADERS}}":   mtls_headers,
+		"{{ROLES}}":     roles,
+		"{{EXEMPTION}}": exemption,
 	})
+}
+
+func build_array(array []string) string {
+	result := ""
+	for _, e := range array {
+		if len(result) > 0 {
+			result += ", "
+		}
+
+		result += "'" + e + "'"
+	}
+	result += ""
+
+	return result
 }
 
 func (cfg Nginx_Builder) build_HTTP_defaults() string {

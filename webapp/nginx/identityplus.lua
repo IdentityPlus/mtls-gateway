@@ -90,12 +90,30 @@ local _M = {}
         
     end
 
+    function _M.is_exempt(exempt_ips)
+        if exempt_ips == nil then
+            return false
+        end
+
+        local remote_ip = ngx.var.remote_addr
+
+        for _, ip in ipairs(exempt_ips) do
+            if ip == remote_ip then
+                ngx.log(0, string.format("Access Granted: {\"valid-mtls-id\": \"IP exempt\", \"rule\": %s}", exempt_ips))
+                return true
+            end
+        end
+
+        return false
+    end
+
     -- chek if an mTLS ID owner has any of a given list of roles
-    function _M.ok(validation) 
-        
+    function _M.valid_mtlsid(validation) 
         if validation == nil or validation["outcome"] == nil or not string.find(validation["outcome"], "OK 0001", 0, true) then
             return false
         else
+            local serial = ngx.var.ssl_client_serial
+            ngx.log(0, string.format("Access Granted: {\"valid-mtls-id\": \"0x%s\"}", serial))
             return true
         end
 
@@ -111,9 +129,9 @@ local _M = {}
             if validation ~= nil and validation["service-roles"] ~= nil then
                 for _, role in pairs(roles) do
                     for _, assigned_role in pairs(validation["service-roles"]) do
-                    		-- ngx.log(0, assigned_role..' == '..role..' - '..tostring(string.lower(assigned_role) == string.lower(role)));
                         if string.lower(assigned_role) == string.lower(role) then
-                            -- nothing to do, audit log maybe
+                            local serial = ngx.var.ssl_client_serial
+                            ngx.log(0, string.format("Access Granted: {\"valid-mtls-id\": \"0x%s\", \"role-found\": \"%s\"}", serial, assigned_role))
                             return true
                         end
                     end
@@ -132,6 +150,8 @@ local _M = {}
 		
         if validation["outcome"] and string.find(validation["outcome"], "OK 0001", 0, true) then
             if validation ~= nil and #validation["service-roles"] > 0 then
+                local serial = ngx.var.ssl_client_serial
+                ngx.log(0, string.format("Access Granted: {\"valid-mtls-id\": \"0x%s\", \"roles-found\": %d}", serial, #validation["service-roles"]))
                 return true
             end
         end        
@@ -143,13 +163,11 @@ local _M = {}
     function _M.validate_mtls_id(service)
         local serial = ngx.var.ssl_client_serial
 
-	   -- ngx.log(0, "Vaidating: "..service.." / ", serial)
-
         if serial == nil then
             return nil
         end
 
-        -- we cache the response for 5s so that request in the same http page load
+        -- we cache the response for 15s so that request in the same http page load
         -- don't trigger cascading http local calls
         local cache = ngx.shared.http_validation_cache
         if cache == nil then
@@ -159,7 +177,7 @@ local _M = {}
         local validation = cache:get(service..'/0x'..serial)
 
         if validation == nil then
-            local result = _M.make_http_request(81, '/mtls-gw/validate/'..service..'/0x'..serial, 'GET', '')
+            local result = _M.make_http_request(81, '/mtls-gw/validate/', 'GET', '', serial, service)
 
             validation = cjson.decode(result)
 
@@ -180,7 +198,7 @@ local _M = {}
 
     -- this uses Identity Plus mTLS Gateway Manager to forward the TCP request to Identity Plus.
     -- as such, it is the Gateway Manager who handles the service agent certificate, we do not care about it in this code 
-    function _M.make_http_request(port, path, method, body)
+    function _M.make_http_request(port, path, method, body, serial, service)
         local sock = ngx.socket.tcp()
 
         -- Set timeout (in milliseconds)
@@ -192,7 +210,7 @@ local _M = {}
             ngx.log(0, "Failed to connect to Validation Service, make sure it is running on 127.0.0.1:"..port.." : ", err)
         end
 
-        _M.send_http_request(sock, "127.0.0.1:"..port, path, method, body)
+        _M.send_http_request(sock, "127.0.0.1:"..port, path, method, body, serial, service)
     
         local body = _M.receive_http_response(sock)
 
@@ -200,9 +218,10 @@ local _M = {}
     end
 
     -- utility function to make an http request over a tcp socket connection
-    function _M.send_http_request(sock, host, path, method, body)
+    function _M.send_http_request(sock, host, path, method, body, serial, service)
         -- Prepare the HTTP request
-        local request = string.format("%s %s HTTP/1.1\r\nHost: %s\r\nContent-Type: application/json\r\nContent-Length: %d\r\nConnection: keep-alive\r\n\r\n%s", method, path, host, #body, body)
+        local remote_ip = ngx.var.remote_addr
+        local request = string.format("%s %s HTTP/1.1\r\nHost: %s\r\nRemote-Ip: %s\r\nX-Tls-Client-Serial: 0x%s\r\nX-Requesting-Service: %s\r\nContent-Type: application/json\r\nContent-Length: %d\r\nConnection: keep-alive\r\n\r\n%s", method, path, host, remote_ip, serial, service, #body, body)
 
         -- ngx.log(0, "\n-------------- request -----------------\n")
         -- ngx.log(0, "", request)
