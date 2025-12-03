@@ -61,7 +61,7 @@ func Load_Config(config_file string) {
 		config.LocalAuthenticatorEndpoint = "$PRIVATE_IP:81"
 		config.DataDirectory = "/var/mtls-gateway"
 		config.MtlsIdTtl = 5
-		config.DeviceName = "Prd-Agent"
+		config.DeviceName = "Mtls-Gateway"
 		config.IdentityBroker = "identity.plus"
 		config.RolesAllowed = []string{"org. administrator", "org. manager", "administrator", "manager"}
 	}

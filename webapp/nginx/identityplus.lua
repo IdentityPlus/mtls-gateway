@@ -20,6 +20,7 @@ local _M = {}
        		ngx.say(" - No client certificate detected,")
         	ngx.say(" - Client certificate expired,")
         	ngx.say(" - Client certificate authority not trusted,")
+
 		elseif string.find(validation["outcome"], "OK 0001", 0, true) then
         	local srv_roles = "[]";
             if validation["service-roles"] ~= nil then srv_roles = table.concat(validation["service-roles"], ",") end 
@@ -27,6 +28,7 @@ local _M = {}
                 ngx.say(" - mTLS ID subject: "..ngx.var.ssl_client_s_dn)
                 ngx.say(" - Roles with this service: "..srv_roles)
             else
+
  	        ngx.say("Please check the logs for additional informtion")
         end
         
@@ -35,13 +37,16 @@ local _M = {}
 
     function _M.tcp_fail(validation, host)
         if validation == nil or validation["outcome"] == nil then
-            ngx.log(0, 'Access denied on '..host..': No client certificate presented');
+            ngx.log(0, 'Access Denied: {"mtls-id": "n/a", "status": "missing"}')
+
         elseif string.find(validation["outcome"], "OK 0001", 0, true) then
         	local srv_roles = "[]";
 			if validation["service-roles"] ~= nil then srv_roles = table.concat(validation["service-roles"], ",") end 
-            ngx.log(0, 'Access denied for mTLS ID '..ngx.var.ssl_client_serial..', on '..host..': None of the following roles are allowed '..srv_roles);
+
+            ngx.log(0, string.format('Access Denied: {"mtls-id": "0x%s", "status": "valid", "roles": "%s"}', ngx.var.ssl_client_serial, srv_roles))
         else
-            ngx.log(0, 'Access denied for mTLS ID '..ngx.var.ssl_client_serial..', on '..host..': '..validation["outcome"]);
+
+            ngx.log(0, string.format('Access Denied: {"mtls-id": "0x%s", "status": "invalid", "reason": "%s"}', ngx.var.ssl_client_serial, validation["outcome"]))
         end
 
         return 1
@@ -99,7 +104,7 @@ local _M = {}
 
         for _, ip in ipairs(exempt_ips) do
             if ip == remote_ip then
-                ngx.log(0, string.format("Access Granted: {\"valid-mtls-id\": \"IP exempt\", \"rule\": %s}", exempt_ips))
+                ngx.log(0, string.format('Access Granted: {"mtls-id": "not-enforced", "status": "IP Exempt", "ip-address": "%s"}', ip))
                 return true
             end
         end
@@ -113,7 +118,7 @@ local _M = {}
             return false
         else
             local serial = ngx.var.ssl_client_serial
-            ngx.log(0, string.format("Access Granted: {\"valid-mtls-id\": \"0x%s\"}", serial))
+            ngx.log(0, string.format('Access Granted: {"mtls-id": "0x%s", "status": "valid", "role": "not-enforced"}', serial))
             return true
         end
 
@@ -131,7 +136,7 @@ local _M = {}
                     for _, assigned_role in pairs(validation["service-roles"]) do
                         if string.lower(assigned_role) == string.lower(role) then
                             local serial = ngx.var.ssl_client_serial
-                            ngx.log(0, string.format("Access Granted: {\"valid-mtls-id\": \"0x%s\", \"role-found\": \"%s\"}", serial, assigned_role))
+                            ngx.log(0, string.format('Access Granted: {"mtls-id": "0x%s", "status": "valid", "role": "%s"}', serial, assigned_role))
                             return true
                         end
                     end
@@ -151,7 +156,7 @@ local _M = {}
         if validation["outcome"] and string.find(validation["outcome"], "OK 0001", 0, true) then
             if validation ~= nil and #validation["service-roles"] > 0 then
                 local serial = ngx.var.ssl_client_serial
-                ngx.log(0, string.format("Access Granted: {\"valid-mtls-id\": \"0x%s\", \"roles-found\": %d}", serial, #validation["service-roles"]))
+                ngx.log(0, string.format('Access Granted: {"mtls-id": "0x%s", "status": "valid", "role": "%d roles, unconstrained"}', serial, #validation["service-roles"]))
                 return true
             end
         end        

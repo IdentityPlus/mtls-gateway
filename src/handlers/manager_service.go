@@ -1072,6 +1072,7 @@ func (srv *Manager_Service) handle_access_control(w http.ResponseWriter, r *http
 
 func (srv *Manager_Service) handle_http_config(w http.ResponseWriter, r *http.Request) {
 	service_fonfigs := srv.Get_Configurations()
+
 	domain := r.Host
 	if i := strings.Index(domain, ":"); i != -1 {
 		domain = domain[:i]
