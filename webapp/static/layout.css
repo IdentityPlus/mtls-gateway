@@ -1,8 +1,8 @@
       
       @font-face {
-	font-family: 'Identity Plus'; font-weight: 400;
-	src: url(/static/Identity_Plus/Identity_Plus_v2.ttf) format('truetype');
-	font-display: swap;
+            font-family: 'Identity Plus'; font-weight: 400;
+            src: url(/static/Identity_Plus/Identity_Plus_v2.ttf) format('truetype');
+            font-display: swap;
       }
       
       * {box-sizing: border-box; font-family: Roboto; font-weight: inherit;}
