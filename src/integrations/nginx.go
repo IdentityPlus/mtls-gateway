@@ -50,10 +50,20 @@ func (cfg Nginx_Builder) build_tls() string {
 		certificate_dir += "/identity"
 	}
 
+	client_cert_mode := "ssl_verify_client           optional;\n        ssl_verify_depth            2;"
+	for _, location := range cfg.Service.HTTP.Locations {
+		if location.Path == "/" {
+			if !location.EnforceMTLS {
+				client_cert_mode = ""
+			}
+		}
+	}
+
 	return utils.Build_Template("./webapp/templates/nginx/tls-config.conf", map[string]string{
-		"{{DOMAIN}}":   cfg.domain(),
-		"{{ID-DIR}}":   cfg.MtlsIdDirectory,
-		"{{CERT-DIR}}": certificate_dir,
+		"{{DOMAIN}}":      cfg.domain(),
+		"{{ID-DIR}}":      cfg.MtlsIdDirectory,
+		"{{CERT-DIR}}":    certificate_dir,
+		"{{CLIENT-CERT}}": client_cert_mode,
 	})
 }
 
