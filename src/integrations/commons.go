@@ -85,6 +85,16 @@ type ServiceConfig struct {
 	Service ManagedService `yaml:"managed-service"`
 }
 
+func (http Http) MTLS_Needed() bool {
+	for _, location := range http.Locations {
+		if location.EnforceMTLS {
+			return true
+		}
+	}
+
+	return false
+}
+
 func Parse_Service_Config(service_file string) (ServiceConfig, error) {
 	var config ServiceConfig
 	yamlData, err := os.ReadFile(service_file)
