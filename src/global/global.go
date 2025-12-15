@@ -52,6 +52,7 @@ func Load_Config(config_file string) {
 	}
 
 	if config.AdminOperatingPort == 0 {
+		config.Theme = "light"
 		config.Log_Retention = 12
 		config.AdminPort = 444
 		config.AdminOperatingPort = 444
@@ -64,6 +65,7 @@ func Load_Config(config_file string) {
 		config.DeviceName = "Mtls-Gateway"
 		config.IdentityBroker = "identity.plus"
 		config.RolesAllowed = []string{"org. administrator", "org. manager", "administrator", "manager"}
+		config.Verbose = true
 	}
 
 	Config__ = &config
