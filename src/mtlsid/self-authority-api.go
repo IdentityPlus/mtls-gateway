@@ -27,11 +27,7 @@ type Self_Authority_API struct {
 	Identity_Dir string   `yaml:"id_directory"`
 	Device_Name  string   `yaml:"device_name"`
 
-	client_certificate *tls.Certificate
-}
-
-func (cli *Self_Authority_API) Invalidate() {
-	cli.client_certificate = nil
+	// client_certificate__ *tls.Certificate
 }
 
 func (cli *Self_Authority_API) insecure_call(endpoint string, method string, request_body string) (string, []byte) {
@@ -45,16 +41,12 @@ func (cli *Self_Authority_API) insecure_call(endpoint string, method string, req
 }
 
 func (cli *Self_Authority_API) Client_Certificate() (*tls.Certificate, error) {
-	if cli.client_certificate == nil {
-		client_certificate, err := tls.LoadX509KeyPair(cli.Identity_Dir+"/"+cli.Device_Name+".cer", cli.Identity_Dir+"/"+cli.Device_Name+".key")
-		if err != nil {
-			return nil, fmt.Errorf("error loading key material: %v", err.Error())
-		}
-
-		cli.client_certificate = &client_certificate
+	client_certificate, err := tls.LoadX509KeyPair(cli.Identity_Dir+"/"+cli.Device_Name+".cer", cli.Identity_Dir+"/"+cli.Device_Name+".key")
+	if err != nil {
+		return nil, fmt.Errorf("error loading key material: %v", err.Error())
 	}
 
-	return cli.client_certificate, nil
+	return &client_certificate, nil
 }
 
 func (cli *Self_Authority_API) secure_call(endpoint string, method string, request_body string) (string, []byte) {
@@ -133,8 +125,10 @@ func (cli *Self_Authority_API) client(client_certificate *tls.Certificate) (*htt
 	}
 
 	tlsConfig := tls.Config{
-		Certificates: client_certificates,
-		RootCAs:      trusted_authorities,
+		Certificates:           client_certificates,
+		RootCAs:                trusted_authorities,
+		ClientSessionCache:     tls.NewLRUClientSessionCache(0),
+		SessionTicketsDisabled: true,
 	}
 
 	transport := http.Transport{
@@ -439,8 +433,6 @@ func (cli *Self_Authority_API) Renew(tentative bool) string {
 		}
 
 		os.WriteFile(cli.Identity_Dir+"/"+cli.Device_Name+".key", pem_key, 0644)
-
-		cli.Invalidate()
 	}
 
 	return agent_identity.Result.Outcome
@@ -450,7 +442,7 @@ func (cli *Self_Authority_API) Issue_service_identity(force bool) string {
 	err, ans := cli.secure_call("https://selfauthority."+cli.Service+"/api/v1", "POST", "{\"operation\": \"issue_service_certificate\", \"args\": {\"force-renew\":"+strconv.FormatBool(force)+"}}")
 
 	if cli.Verbose {
-		log.Printf(string(ans))
+		// log.Printf(string(ans))
 	}
 
 	if err != "" {

@@ -94,8 +94,13 @@ func (srv *Manager_Service) authenticate_client(domain string, cert *x509.Certif
 	log.Printf("authenticating: %s", domain)
 	validation__, device_name, device_type, error_cause = srv.Perimeter_APIs[domain].Validate_Client_Identity(cert, "", true)
 
-	if error_cause != "" {
+	if validation__ == nil {
 		log.Printf("Access denied to mTLS ID: {SN: %s, Agent: \"%s\"} on account of: %s\n", cert.SerialNumber.String(), cert.Subject.CommonName, error_cause)
+
+		if error_cause != "" {
+			log.Printf("Error validating certificates! Working from cache: %s\n", error_cause)
+		}
+
 		return false
 	}
 
@@ -903,7 +908,7 @@ func (srv *Manager_Service) handle_access_control(w http.ResponseWriter, r *http
 	config := srv.Get_Service_Config(domain)
 
 	cert := r.TLS.PeerCertificates[0]
-	var validation__, _, _, _ = srv.Perimeter_APIs[domain].Validate_Client_Identity(cert, "", true)
+	var validation__, _, _, validation_error = srv.Perimeter_APIs[domain].Validate_Client_Identity(cert, "", true)
 
 	if config.Service.HTTP.OIDC.Clients == nil {
 		config.Service.HTTP.OIDC.Clients = []integrations.OIDC_Client{integrations.OIDC_Client{
@@ -1050,6 +1055,10 @@ func (srv *Manager_Service) handle_access_control(w http.ResponseWriter, r *http
 		} else {
 			log.Printf("unknown action: %s", r.FormValue("action"))
 		}
+	}
+
+	if validation_error != "" {
+		page_error = "Error validating certificates, working from cache! Reason: " + validation_error
 	}
 
 	render_page(w, "my-service-access-ctl", map[string]interface{}{

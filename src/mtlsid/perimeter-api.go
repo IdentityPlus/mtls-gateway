@@ -14,6 +14,7 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"os"
 	"strings"
 	"sync"
 	"time"
@@ -41,6 +42,7 @@ type Perimeter_API struct {
 	Validation_Tickets map[string]Client_Validation_Ticket
 	mu                 sync.Mutex
 	__client           *http.Client
+	__cert_time        time.Time
 }
 
 func (idp *Perimeter_API) Cache_Size() int {
@@ -83,7 +85,7 @@ func (idp *Perimeter_API) Validate_Client_Identity(cert *x509.Certificate, as_se
 	if error_cause == "" {
 		return validation__, cert.Subject.CommonName, cert.Subject.OrganizationalUnit[0], ""
 	} else {
-		return nil, "", "", error_cause
+		return validation__, "", "", error_cause
 	}
 
 }
@@ -91,6 +93,7 @@ func (idp *Perimeter_API) Validate_Client_Identity(cert *x509.Certificate, as_se
 func (idp *Perimeter_API) Validate_Client_Identity_SN(serial_no string, as_service string, cacheable bool) (*Client_Validation_Ticket, string) {
 
 	idp.mu.Lock()
+	defer idp.mu.Unlock()
 
 	var cached_validation = idp.Validation_Tickets[serial_no]
 	// if global.Config__.Verbose && cached_validation.Cache != nil {
@@ -102,12 +105,18 @@ func (idp *Perimeter_API) Validate_Client_Identity_SN(serial_no string, as_servi
 	// if we have a Cache that is not older than 5 minutes, we skip
 	if !cacheable || cached_validation.Cache == nil || time.Since(cached_validation.Added).Seconds() > 300 {
 		if global.Config__.Verbose {
-			log.Printf("Fully re/validating mTLS ID: %s\n", serial_no)
+			if !cacheable {
+				log.Printf("Cache override - fully re/validating mTLS ID: %s\n", serial_no)
+			} else if cached_validation.Cache == nil {
+				log.Printf("No cache - fully re/validating mTLS ID: %s\n", serial_no)
+			} else {
+				log.Printf("Cache expired - fully re/validating mTLS ID: %s\n", serial_no)
+			}
 		}
 
 		start := time.Now()
 		bodyBytes, err := idp.identity_inquiry_call(serial_no, as_service)
-		//log.Printf("Identity Broker response: %s\n", string(bodyBytes))
+		log.Printf("Identity Broker response: %s\n", string(bodyBytes))
 
 		var ans IDP_Response
 
@@ -147,7 +156,7 @@ func (idp *Perimeter_API) Validate_Client_Identity_SN(serial_no string, as_servi
 				idp.Validation_Tickets[serial_no] = cached_validation
 
 			} else {
-				error_reason = string(bodyBytes)
+				error_reason = ans.IdentityProfile.Outcome
 			}
 
 		} else {
@@ -159,7 +168,6 @@ func (idp *Perimeter_API) Validate_Client_Identity_SN(serial_no string, as_servi
 		Stats__.ValidationCount++
 	}
 
-	idp.mu.Unlock()
 	return &cached_validation, error_reason
 }
 
@@ -241,6 +249,11 @@ func (idp *Perimeter_API) do_call(method string, request_body string) ([]byte, e
 }
 
 func (idp *Perimeter_API) client() (*http.Client, error) {
+	info, _ := os.Stat(idp.Self_Authority.Identity_Dir + "/" + idp.Self_Authority.Device_Name + ".cer")
+
+	if idp.__client != nil && idp.__cert_time != info.ModTime() {
+		idp.__client = nil
+	}
 
 	// create the client if not yet created
 	if idp.__client == nil {
@@ -249,6 +262,7 @@ func (idp *Perimeter_API) client() (*http.Client, error) {
 			return nil, errors.New("client certificate or key not properly specified. They need to be in separate files as DER Encoded")
 		}
 
+		idp.__cert_time = info.ModTime()
 		clientCert, err := tls.LoadX509KeyPair(idp.Self_Authority.Identity_Dir+"/"+idp.Self_Authority.Device_Name+".cer", idp.Self_Authority.Identity_Dir+"/"+idp.Self_Authority.Device_Name+".key")
 
 		if err != nil {

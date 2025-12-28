@@ -38,7 +38,6 @@ func Enroll(token string) (*mtlsid.Perimeter_API, string) {
 		return nil, ans
 	}
 
-	cli.Invalidate()
 	ans = cli.Issue_service_identity(true)
 
 	if strings.HasPrefix(ans, "Failed ") {

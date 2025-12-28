@@ -27,16 +27,20 @@ func update_certificates() bool {
 	}
 
 	// update Let's Encrypt Server Certificates
-	for _, domain := range handlers.Manager_Service__.Get_Configurations() {
+	if true {
+		for _, domain := range handlers.Manager_Service__.Get_Configurations() {
 
-		config := handlers.Manager_Service__.Get_Service_Config(domain)
-		if strings.Contains(config.Service.Authority, "letsencrypt") {
-			result := utils.Issue_Lets_Encrypt_Cert(domain, config.Service.Authority == "letsenecrypt-staging", false, false)
+			config := handlers.Manager_Service__.Get_Service_Config(domain)
+			if strings.Contains(config.Service.Authority, "letsencrypt") {
+				result := utils.Issue_Lets_Encrypt_Cert(domain, config.Service.Authority == "letsenecrypt-staging", false, false)
 
-			if result == "renewed" {
-				restart_openresty = true
+				if result == "renewed" {
+					restart_openresty = true
+				}
 			}
 		}
+	} else {
+		log.Printf("Let'sencrypt renewal disabled !!!!!!\n")
 	}
 
 	currentTime := time.Now()
@@ -59,6 +63,7 @@ func certificate_update_service() {
 
 		// sleep half a day - Let's Encrypt recommends twice a day update attempt
 		time.Sleep(12 * time.Hour)
+		// time.Sleep(1 * time.Minute)
 	}
 }
 
