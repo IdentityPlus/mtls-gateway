@@ -746,11 +746,17 @@ func (srv *Manager_Service) handle_perimeter(w http.ResponseWriter, r *http.Requ
 		handle_actions(r.FormValue("action"), r)
 
 		if r.FormValue("action") == "edit-interface" {
-			config.Service.Port, _ = strconv.Atoi(r.FormValue("port"))
-			config.Service.Mode = r.FormValue("mode")
-			config.Service.Authority = r.FormValue("authority")
+			new_port, _ := strconv.Atoi(r.FormValue("port"))
+			port_conflict := srv.Check_Port_Conflict(domain, config, new_port)
+			if port_conflict == "" {
+				config.Service.Port = new_port
+				config.Service.Mode = r.FormValue("mode")
+				config.Service.Authority = r.FormValue("authority")
 
-			page_error = srv.update_service_config(domain, config)
+				page_error = srv.update_service_config(domain, config)
+			} else {
+				page_error = "Port \"" + r.FormValue("port") + "\" is already occupied by \"" + port_conflict + "\"! Same port is only possible via SNI for HTTP services. Multiple TCP/stream services or a mix of HTTP & stream on the same port results in port conflict."
+			}
 
 		} else if r.FormValue("action") == "add-worker" {
 			config.Service.Upstream.Workers = append(config.Service.Upstream.Workers, r.FormValue("worker"))
@@ -1299,13 +1305,16 @@ func (srv *Manager_Service) update_service_config(domain string, config integrat
 	utils.DeleteConfFiles(global.Config__.DataDirectory + "/services/work/conf/http/")
 
 	destination_file := ""
+	cleanup_file := ""
 
 	if config.Service.Mode == "TCP" {
 		os.MkdirAll(global.Config__.DataDirectory+"/conf/stream/", 0755)
 		destination_file = "/conf/stream/" + domain + ".conf"
+		cleanup_file = "/conf/http/" + domain + ".conf"
 	} else {
 		os.MkdirAll(global.Config__.DataDirectory+"/conf/http/", 0755)
 		destination_file = "/conf/http/" + domain + ".conf"
+		cleanup_file = "/conf/stream/" + domain + ".conf"
 	}
 
 	srv.managed_services[domain] = &config
@@ -1316,6 +1325,12 @@ func (srv *Manager_Service) update_service_config(domain string, config integrat
 	// copy the modified configuration file into the production directory
 	if test_result == "" {
 		err := utils.MoveFile(global.Config__.DataDirectory+"/services/work"+destination_file, global.Config__.DataDirectory+destination_file)
+
+		if _, err := os.Stat(global.Config__.DataDirectory + cleanup_file); err == nil {
+			// Delete file to prevent overlapping port configuration in the http and stream section.
+			err = os.Remove(global.Config__.DataDirectory + cleanup_file)
+		}
+
 		if err == nil {
 			srv.Start_Openresty()
 		} else {
@@ -1403,6 +1418,27 @@ func (srv *Manager_Service) Get_Service_Config(domain string) integrations.Servi
 	return *config
 }
 
+func (srv *Manager_Service) Check_Port_Conflict(domain string, config integrations.ServiceConfig, port int) string {
+
+	for dom, cfg := range srv.managed_services {
+		if dom != domain {
+			// if the mode of the service is TCP then any other service having the same port (TCP or HTTP)
+			// will trigger a conflict
+			if config.Service.Mode == "TCP" && cfg.Service.Port == port {
+				return dom
+			}
+
+			// if the mode of the service is HTTP then we allow other HTTP services to have the same port
+			// only TCP services with the same port will trigger a collision
+			if config.Service.Mode == "HTTP" && cfg.Service.Mode == "TCP" && cfg.Service.Port == port {
+				return dom
+			}
+		}
+	}
+
+	return ""
+}
+
 func load_service_config(domain string) integrations.ServiceConfig {
 	if global.Config__.Verbose {
 		log.Printf("loading configuration for %s", domain)
@@ -1417,7 +1453,7 @@ func load_service_config(domain string) integrations.ServiceConfig {
 				Port: global.Config__.ApplicationOperatingPort,
 				Mode: "HTTP",
 				Upstream: integrations.Upstream{
-					Workers: []string{("w1." + domain + ":8080")},
+					Workers: []string{("localhost:1234")},
 				},
 				TCP: integrations.Tcp{
 					RolesAllowed: []string{"org. administrator", "administrator"},
