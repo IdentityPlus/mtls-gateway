@@ -69,7 +69,7 @@ func (m *MemoryStore) Delete(domain, code string) *OIDCAuthContext {
 
 func (m *MemoryStore) Issue_Claim(domain string, client_id string, iss string, auth_request OIDCAuthContext, orgID string, email string, name string, groups []string) (OIDCTokenResponse, error) {
 	claims := jwt.MapClaims{
-		"sub":                auth_request.Mtls_ID,
+		"sub":                orgID,
 		"preferred_username": orgID,
 		"email":              email,
 		"name":               name,
@@ -88,7 +88,7 @@ func (m *MemoryStore) Issue_Claim(domain string, client_id string, iss string, a
 
 	// ----- Create ACCESS TOKEN as JWT -----
 	accessClaims := jwt.MapClaims{
-		"sub":    auth_request.Mtls_ID,
+		"sub":    orgID,
 		"aud":    client_id,
 		"iss":    iss,
 		"scope":  "openid profile email",
