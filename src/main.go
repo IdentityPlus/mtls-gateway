@@ -23,6 +23,7 @@ func update_certificates() bool {
 
 		if ans == "renewed" {
 			restart_openresty = true
+			handlers.Manager_Service__.Reload_Certificate(key)
 		}
 	}
 

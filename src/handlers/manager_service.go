@@ -130,6 +130,10 @@ func (srv *Manager_Service) authenticate_client(domain string, cert *x509.Certif
 	}
 }
 
+func (srv *Manager_Service) Reload_Certificate(domain string) {
+	srv.get_gateway_certificate(domain, true)
+}
+
 func (srv *Manager_Service) get_gateway_certificate(domain string, no_cache bool) *tls.Certificate {
 	if srv.certificates == nil {
 		srv.certificates = make(map[string]*tls.Certificate)
