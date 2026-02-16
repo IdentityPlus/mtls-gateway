@@ -7,13 +7,14 @@ import (
 	"math/big"
 	"net/http"
 	"os"
+	"strings"
 
 	"identity.plus/mtls-gw/global"
 )
 
 func List_Service_Configurations() ([]string, error) {
 	// Directory containing the files
-	dir := global.Config__.DataDirectory + "/identity"
+	dir := global.Config__.DataDirectory + "/services"
 
 	// Read all files in the directory
 	files, err := os.ReadDir(dir)
@@ -26,13 +27,10 @@ func List_Service_Configurations() ([]string, error) {
 
 	// Loop over the files and process them
 	for _, file := range files {
-		// Get the filename
 		filename := file.Name()
 
-		// Check if the file ends with ".yam
-		if filename != "_" {
-			// Append to the result array
-			serviceFiles = append(serviceFiles, filename)
+		if strings.HasSuffix(filename, ".yaml") {
+			serviceFiles = append(serviceFiles, filename[:len(filename)-len(".yaml")])
 		}
 	}
 

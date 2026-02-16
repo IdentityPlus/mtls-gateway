@@ -751,7 +751,7 @@ func (srv *Manager_Service) handle_perimeter(w http.ResponseWriter, r *http.Requ
 
 		if r.FormValue("action") == "edit-interface" {
 			new_port, _ := strconv.Atoi(r.FormValue("port"))
-			port_conflict := srv.Check_Port_Conflict(domain, config, new_port)
+			port_conflict := srv.Check_Port_Conflict(domain, config, r.FormValue("mode"), new_port)
 			if port_conflict == "" {
 				config.Service.Port = new_port
 				config.Service.Mode = r.FormValue("mode")
@@ -1422,19 +1422,19 @@ func (srv *Manager_Service) Get_Service_Config(domain string) integrations.Servi
 	return *config
 }
 
-func (srv *Manager_Service) Check_Port_Conflict(domain string, config integrations.ServiceConfig, port int) string {
+func (srv *Manager_Service) Check_Port_Conflict(domain string, config integrations.ServiceConfig, mode string, port int) string {
 
 	for dom, cfg := range srv.managed_services {
 		if dom != domain {
 			// if the mode of the service is TCP then any other service having the same port (TCP or HTTP)
 			// will trigger a conflict
-			if config.Service.Mode == "TCP" && cfg.Service.Port == port {
+			if mode == "TCP" && cfg.Service.Port == port {
 				return dom
 			}
 
 			// if the mode of the service is HTTP then we allow other HTTP services to have the same port
 			// only TCP services with the same port will trigger a collision
-			if config.Service.Mode == "HTTP" && cfg.Service.Mode == "TCP" && cfg.Service.Port == port {
+			if mode == "HTTP" && cfg.Service.Mode == "TCP" && cfg.Service.Port == port {
 				return dom
 			}
 		}
