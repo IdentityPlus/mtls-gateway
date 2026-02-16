@@ -30,6 +30,7 @@ func update_certificates() bool {
 	// update Let's Encrypt Server Certificates
 	if true {
 		for _, domain := range handlers.Manager_Service__.Get_Configurations() {
+			log.Printf("trying to update Let's Encrypt certificate for: %s", domain)
 
 			config := handlers.Manager_Service__.Get_Service_Config(domain)
 			if strings.Contains(config.Service.Authority, "letsencrypt") {
