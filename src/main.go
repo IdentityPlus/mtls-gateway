@@ -1,6 +1,7 @@
 package main
 
 import (
+	"crypto/x509"
 	"log"
 	"os"
 	"strings"
@@ -34,7 +35,19 @@ func update_certificates() bool {
 
 			config := handlers.Manager_Service__.Get_Service_Config(domain)
 			if strings.Contains(config.Service.Authority, "letsencrypt") {
-				result := utils.Issue_Lets_Encrypt_Cert(domain, config.Service.Authority == "letsenecrypt-staging", false, false)
+
+				sv_certificate := handlers.Manager_Service__.Get_Service_Certificate(domain, config, false)
+
+				force := false
+				if sv_certificate != nil {
+					x509_cert, _ := x509.ParseCertificate(sv_certificate.Certificate[0])
+					sv_renewal_due := utils.Compute_Renewal_Timeline(x509_cert)
+					if sv_renewal_due <= 0 {
+						force = true
+					}
+				}
+
+				result := utils.Issue_Lets_Encrypt_Cert(domain, config.Service.Authority == "letsenecrypt-staging", force, false)
 
 				if result == "renewed" {
 					restart_openresty = true

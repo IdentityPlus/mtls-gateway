@@ -159,7 +159,7 @@ func (srv *Manager_Service) get_gateway_certificate(domain string, no_cache bool
 	return &loaded_cert
 }
 
-func (srv *Manager_Service) get_service_certificate(domain string, config integrations.ServiceConfig, no_cache bool) *tls.Certificate {
+func (srv *Manager_Service) Get_Service_Certificate(domain string, config integrations.ServiceConfig, no_cache bool) *tls.Certificate {
 	if !strings.Contains(config.Service.Authority, "letsencrypt") {
 		return srv.get_gateway_certificate(domain, no_cache)
 	}
@@ -814,7 +814,7 @@ func (srv *Manager_Service) handle_perimeter(w http.ResponseWriter, r *http.Requ
 	var x509_cert *x509.Certificate
 	gw_age := 0
 
-	sv_certificate := srv.get_service_certificate(domain, config, false)
+	sv_certificate := srv.Get_Service_Certificate(domain, config, false)
 
 	if sv_certificate != nil {
 		x509_cert, _ = x509.ParseCertificate(sv_certificate.Certificate[0])
