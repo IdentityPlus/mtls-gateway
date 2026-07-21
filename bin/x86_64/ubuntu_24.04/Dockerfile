@@ -1,4 +1,4 @@
-FROM openresty/openresty:noble-amd64
+FROM openresty/openresty:noble
 
 RUN apt update
 RUN apt install -y supervisor certbot
