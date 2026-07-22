@@ -157,6 +157,7 @@ func (srv *Initialization_Service) handle_init_service(w http.ResponseWriter, r 
 
 				if perimeter_api != nil {
 					domain = perimeter_api.Domain()
+					Manager_Service__.Get_Service_Config(domain)
 					Manager_Service__.Register_Service(domain)
 					go Manager_Service__.Start()
 				}
