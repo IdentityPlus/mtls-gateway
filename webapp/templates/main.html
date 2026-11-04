@@ -109,7 +109,7 @@
                 <li>{{ if eq .CurrentPage "Overview" }}<p><fa class="fa-solid fa-chart-simple"></fa>Overview</p>{{ else }}<a href="/"><fa class="fa-solid fa-chart-simple"></fa>Overview</a>{{ end }}</li>
                 <li>{{ if eq .CurrentPage "Perimeter" }}<p><fa class="fa-regular fa-circle"></fa>Perimeter</p>{{ else }}<a href="/perimeter"><fa class="fa-regular fa-circle"></fa>Perimeter</a>{{ end }}</li>
                 <li>{{ if eq .CurrentPage "Access Control" }}<p><fa class="fa-solid fa-lock"></fa>Access Control</p>{{ else }}<a href="/access-control"><fa class="fa-solid fa-lock"></fa>Access Control</a>{{ end }}</li>
-                {{ if eq .Service.Mode "HTTP" }}
+                {{ if or (eq .Service.Mode "HTTP") (eq .Service.Mode "HTTPS") }}
                     <li>{{ if eq .CurrentPage "HTTP Config" }}<p><fa class="fa-solid fa-link"></fa>HTTP Config</p>{{ else }}<a href="/http-config"><fa class="fa-solid fa-link"></fa>HTTP Config</a>{{ end }}</li>
                 {{ end }}
  

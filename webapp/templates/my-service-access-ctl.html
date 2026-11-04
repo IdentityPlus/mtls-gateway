@@ -8,14 +8,14 @@
                 <tr class="first"><th><label for="split">Access Control</label></th><td >
                     <select id="split" name="split">
                         <option {{ if eq .Service.HTTP.AccessMode "Gateway" }} SELECTED {{ end }} value="Gateway">Gateway RBAC</option>
-                        {{ if eq .Service.Mode "HTTP" }}
+                        {{ if or (eq .Service.Mode "HTTP") (eq .Service.Mode "HTTPS") }}
                         <option {{ if eq .Service.HTTP.AccessMode "Application" }} SELECTED {{ end }} value="Application" >Application</option>
                         <option {{ if eq .Service.HTTP.AccessMode "Proxy" }} SELECTED {{ end }}  value="Proxy">Trusted Headers</option>
                         <option {{ if eq .Service.HTTP.AccessMode "OIDC" }} SELECTED {{ end }}  value="OIDC">OIDC / OAuth2 Callback</option>
                         {{ end }}
                     </select>
                 </td></tr>
-                {{ if eq .Service.Mode "HTTP" }}
+                {{ if or (eq .Service.Mode "HTTP") (eq .Service.Mode "HTTPS") }}
                 <tr><th><label for="mtlsid">mTLS ID Heder</label></th><td><input type="text" id="mtlsid" name="mtlsid" value="{{ .Service.HTTP.MtlsID }}"></td></tr>
                 <tr><th><label for="agent">mTLS Agent CN Header</label></th><td><input type="text" id="agent" name="agent" value="{{ .Service.HTTP.MtlsAgent }}"></td></tr>
                 {{ end }}
@@ -27,7 +27,7 @@
         </div>
     </div>
 
-    {{ if eq .Service.Mode "HTTP" }}
+    {{ if or (eq .Service.Mode "HTTP") (eq .Service.Mode "HTTPS") }}
       {{ if eq .Service.HTTP.AccessMode "Proxy" }}
         <div class="W600">
             <h2><fa class="fa-solid fa-id-card"></fa>Trusted Proxy Headers</h2>

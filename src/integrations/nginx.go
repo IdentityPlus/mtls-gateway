@@ -163,6 +163,7 @@ func (cfg Nginx_Builder) build_HTTP_defaults() string {
 		"{{X-Forwarded-Proto}}": forward_proto,
 		"{{X-Real-IP}}":         real_ip,
 		"{{HOST-HEADER}}":       host_header,
+		"{{SNI}}":               cfg.domain(),
 	})
 }
 
@@ -187,8 +188,13 @@ func (cfg Nginx_Builder) build_HTTP_locations() string {
 		websockets := cfg.build_web_sockets()
 		custom := cfg.build_custom(location)
 
+		proto := "http"
+		if cfg.Service.Mode == "HTTPS" {
+			proto = "https"
+		}
+
 		if !strings.Contains(custom, "proxy_pass ") {
-			http_proxy = "\n            proxy_pass http://up_" + strings.ReplaceAll(cfg.domain(), ".", "_") + ";"
+			http_proxy = "\n            proxy_pass " + proto + "://up_" + strings.ReplaceAll(cfg.domain(), ".", "_") + ";"
 		}
 
 		location := utils.Build_Template("./webapp/templates/nginx/location.conf", map[string]string{
@@ -212,13 +218,18 @@ func (cfg Nginx_Builder) build_HTTP_locations() string {
 			AllowAllRoles: true,
 		}
 
+		proto := "http"
+		if cfg.Service.Mode == "HTTPS" {
+			proto = "https"
+		}
+
 		location = utils.Build_Template("./webapp/templates/nginx/location.conf", map[string]string{
 			"{{PATH}}":          oidc_ep.Path,
 			"{{LUA_ACCESS}}":    cfg.build_HTTP_lua_access(oidc_ep),
 			"{{CUSTOM}}":        "",
 			"{{HTTP-DEFAULTS}}": cfg.build_HTTP_defaults(),
 			"{{WEBSOCKETS}}":    "",
-			"{{UPSTREAM}}":      "\n            proxy_pass http://" + global.Config__.LocalAuthenticatorEndpoint + ";",
+			"{{UPSTREAM}}":      "\n            proxy_pass " + proto + "://" + global.Config__.LocalAuthenticatorEndpoint + ";",
 		})
 
 	} else {
@@ -259,7 +270,7 @@ func (cfg Nginx_Builder) Build() string {
 		if tcp_access != "" {
 			tcp_proxy = "\n        proxy_pass up_" + strings.ReplaceAll(cfg.domain(), ".", "_") + ";"
 		}
-	} else if cfg.Service.Mode == "HTTP" {
+	} else if cfg.Service.Mode == "HTTP" || cfg.Service.Mode == "HTTPS" {
 		http_locations = cfg.build_HTTP_locations()
 		server_name = "        server_name                 "
 		if cfg.Service.HTTP.Wildcard {

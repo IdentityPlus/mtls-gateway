@@ -5,13 +5,14 @@
         <div class="spacer">
             <form id="interface" method="POST">
             <table>
-                <tr class="first"><th><label for="mode">Mode</label></th><td>
+                <tr class="first"><th><label for="mode">Proxy Mode</label></th><td>
                     <select id="mode" name="mode">
+                        <option {{ if eq .Service.Mode "HTTPS" }} SELECTED {{ end }} >HTTPS</option>
                         <option {{ if eq .Service.Mode "HTTP" }} SELECTED {{ end }} >HTTP</option>
                         <option {{ if eq .Service.Mode "TCP" }} SELECTED {{ end }} >TCP</option>
                     </select>
                 </td></tr>
-                <tr><th><label for="port">Port</label></th><td><input type="text" id="port" name="port" value="{{ .Service.Port }}"></td></tr>
+                <tr><th><label for="port">Ingress Port</label></th><td><input type="text" id="port" name="port" value="{{ .Service.Port }}"></td></tr>
                 <tr class="first"><th><label for="authority">Certificate Authority</label></th><td>
                     <select id="authority" name="authority">
                         <option {{ if ne .Service.Authority "letsencrypt" }} SELECTED {{ end }} value="identityplus">Identity Plus Self-Authority</option>

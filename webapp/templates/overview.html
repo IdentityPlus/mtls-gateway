@@ -5,7 +5,7 @@
         <form action="/save-service" method="POST">
             <table>
                 <tr class="first"><th><label>End Point</label></th><td>
-                {{ if eq .Service.Mode "HTTP" }}
+                {{ if or (eq .Service.Mode "HTTP") (eq .Service.Mode "HTTPS") }}
                     <a href="https://{{.Domain}}{{ if ne .Port 443 }}:{{.Port}}{{ end }}" target="blank_">https://{{.Domain}}{{ if ne .Port 443 }}:{{.Port}}{{ end }}</a>
                 {{ else }}
                     <label>{{.Domain}}:{{.Port}} (TCP)</label>

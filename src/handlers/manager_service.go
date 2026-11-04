@@ -1434,7 +1434,7 @@ func (srv *Manager_Service) Check_Port_Conflict(domain string, config integratio
 
 			// if the mode of the service is HTTP then we allow other HTTP services to have the same port
 			// only TCP services with the same port will trigger a collision
-			if mode == "HTTP" && cfg.Service.Mode == "TCP" && cfg.Service.Port == port {
+			if (mode == "HTTP" || mode == "HTTPS") && cfg.Service.Mode == "TCP" && cfg.Service.Port == port {
 				return dom
 			}
 		}
