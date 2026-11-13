@@ -163,7 +163,7 @@ func (cfg Nginx_Builder) build_HTTP_defaults() string {
 		"{{X-Forwarded-Proto}}": forward_proto,
 		"{{X-Real-IP}}":         real_ip,
 		"{{HOST-HEADER}}":       host_header,
-		"{{SNI}}":               cfg.domain(),
+		"{{SNI}}":               "$proxy_host",
 	})
 }
 
