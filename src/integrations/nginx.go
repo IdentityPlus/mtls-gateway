@@ -148,6 +148,17 @@ func build_array(array []string) string {
 	return result
 }
 
+func (cfg Nginx_Builder) build_proxy_force() string {
+	if cfg.Service.HTTP.HostHeader != "" {
+		return utils.Build_Template("./webapp/templates/nginx/http-proxy-mode.conf", map[string]string{
+			"{{HOST-HEADER}}": cfg.Service.HTTP.HostHeader,
+			"{{DOMAIN}}":      cfg.Domain,
+		})
+	} else {
+		return ""
+	}
+}
+
 func (cfg Nginx_Builder) build_HTTP_defaults() string {
 	real_ip := cfg.Service.HTTP.XRealIP
 	forward_ip := cfg.Service.HTTP.XForwardedFor
@@ -202,6 +213,7 @@ func (cfg Nginx_Builder) build_HTTP_locations() string {
 			"{{LUA_ACCESS}}":    http_access,
 			"{{CUSTOM}}":        custom,
 			"{{HTTP-DEFAULTS}}": http_defaults,
+			"{{PROXY-FORCE}}":   cfg.build_proxy_force(),
 			"{{WEBSOCKETS}}":    websockets,
 			"{{UPSTREAM}}":      http_proxy,
 		})
@@ -228,6 +240,7 @@ func (cfg Nginx_Builder) build_HTTP_locations() string {
 			"{{LUA_ACCESS}}":    cfg.build_HTTP_lua_access(oidc_ep),
 			"{{CUSTOM}}":        "",
 			"{{HTTP-DEFAULTS}}": cfg.build_HTTP_defaults(),
+			"{{PROXY-FORCE}}":   cfg.build_proxy_force(),
 			"{{WEBSOCKETS}}":    "",
 			"{{UPSTREAM}}":      "\n            proxy_pass " + proto + "://" + global.Config__.LocalAuthenticatorEndpoint + ";",
 		})
@@ -238,6 +251,7 @@ func (cfg Nginx_Builder) build_HTTP_locations() string {
 			"{{LUA_ACCESS}}":    "",
 			"{{CUSTOM}}":        "            default_type text/plain;",
 			"{{HTTP-DEFAULTS}}": "",
+			"{{PROXY-FORCE}}":   "",
 			"{{WEBSOCKETS}}":    "",
 			"{{UPSTREAM}}":      "            return 404 \"OpenID-Connect authentication not enabled for this service.\\n\";",
 		})
