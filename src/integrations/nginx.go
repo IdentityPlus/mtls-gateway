@@ -3,6 +3,7 @@ package integrations
 import (
 	"bytes"
 	"fmt"
+	"net"
 	"os"
 	"os/exec"
 	"strconv"
@@ -24,7 +25,15 @@ func (cfg Nginx_Builder) domain() string {
 }
 
 func (cfg Nginx_Builder) build_worker(instance string) string {
-	return "        server " + instance + ";\n"
+	line := "        server " + instance
+
+	host, _, err := net.SplitHostPort(instance)
+	if err == nil && net.ParseIP(host) == nil {
+		// hostname: let nginx re-resolve it at runtime
+		line += " resolve"
+	}
+
+	return line + ";\n"
 }
 
 func (cfg Nginx_Builder) build_upstream() string {
